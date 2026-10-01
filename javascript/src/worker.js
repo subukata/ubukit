@@ -16,8 +16,9 @@ listen(({ id, algorithm, input, options }) => {
     let lastProgress = -Infinity;
     const result = run(algorithm, input, { ...options, onProgress: event => {
       const now = performance.now();
-      if (now - lastProgress >= 30 || event.converged || event.iteration === event.maxIterations) { send({ id, type: 'progress', progress: event }); lastProgress = now; }
+      if (now - lastProgress >= 30 || event.converged || event.stopReason || event.iteration === event.maxIterations) { send({ id, type: 'progress', progress: event }); lastProgress = now; }
     } });
     send({ id, type: 'result', result }, collectTransferables(result));
   } catch (error) { send({ id, type: 'error', error: { name: error.name, message: error.message, stack: error.stack } }); }
 });
+
