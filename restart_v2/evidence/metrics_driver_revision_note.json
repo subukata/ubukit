@@ -1,0 +1,10 @@
+{
+  "note": "The candidate checkpoint2 manifest predates timestamp-only benchmark metadata additions; computational sources still match. First-slot raw records are unchanged; later records use the newer timestamped driver. No historical driver-byte identity is claimed for the newer file.",
+  "differences": [
+    {
+      "path": "benchmark.py",
+      "checkpoint2_sha256": "034a2182da1636de85cf5fc6bf8b43b5a651693663f8681e5e6b95c516f0f37e",
+      "current_sha256": "0295fde229712769a846b23aa599341c27e8140c0325f752b89097b1e3e4e4d7"
+    }
+  ]
+}

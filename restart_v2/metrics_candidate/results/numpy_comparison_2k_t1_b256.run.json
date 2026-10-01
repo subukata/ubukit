@@ -1,0 +1,10 @@
+{
+  "summary_completed_utc": "2026-09-30T23:59:16.226841+00:00",
+  "raw_output": "restart_v2/metrics_candidate/results/numpy_comparison_2k_t1_b256.jsonl",
+  "methods": [
+    "sklearn",
+    "numpy_broadcast",
+    "numpy_sortsearch"
+  ],
+  "summary_checks_pass": true
+}

@@ -1,0 +1,259 @@
+{
+  "mode": "original",
+  "scope": "full_fit",
+  "initialization": "original_direct",
+  "kernel_threads": 2,
+  "initialization_threads": 2,
+  "max_iters": 5,
+  "tol": 0.0001,
+  "repeats_requested": 1,
+  "repeats_completed": 1,
+  "block_rows": 256,
+  "max_scratch_bytes": null,
+  "input_sha256": {
+    "X": "c64a7979a41e3753d9b48344069c58f8fcc23a34c48cfba3e3e046aa535142c8",
+    "R": "ebcc5de4d1ff14de7e4206f211ec361b10b90e13f2b7521fc35ca8a6f4ce3ab9"
+  },
+  "fixture_metadata": {
+    "n": 19,
+    "d": 3,
+    "m": 9
+  },
+  "source_sha256": {
+    "__init__.py": "26b801851512428d85db986b44e2311d362af5fed611def017f0b0dbd8b65997",
+    "_native_v2.cpython-312-x86_64-linux-gnu.so": "b7daff26c3d499fa1efad5daf3df3024af9a6a7dce2898c488b4b257241ef0b1",
+    "bench_worker.py": "981ce8c08c3d33b943bf1d8a3ea8f8f287f7d77ab2ec0a8ec58080321395754b",
+    "full_fit_worker.py": "e505394490d616673733ee7b4ea41f697fa0f7bf0f8f3481cda11aa2ed6a215d",
+    "initialization.py": "572e3f0a6e5990e9b7e1fc1a4e4d367393b42aa91de15c2c20e54de57ee6ba6e",
+    "kernel.py": "98c743e9e0d6115bfd499100cc02e1bc19f06f937298db36b61789a9f3ee5cfb",
+    "native.py": "4d5624c0ec87c0a6cec3a0c4421079d7e88c24fa68a93b80425fcf9c2c85f434",
+    "native_src/_kernels_v2.pyx": "abd6f6877a64fad9849c1044d53bf29cff5ece424530c5b8214ba2d3fa9033fa",
+    "native_src/native_v2.h": "85616bb8157712b96354a56bc657f654ac7a05fb529703555ca77c9d9838601e",
+    "oracle.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+    "prepare_mnist.py": "72dad89057f6d8ce755d1ad6c059797f12c393407b39c7282fd20b8db259cb91",
+    "run_screen.py": "3f3a41151d62381cf1e23017caa22aec968343d0a7d7581cab6ad73ef8479163",
+    "setup_native.py": "328ff4a67f0ea9f59380558374c98c453a539abf41610e9c636d1cec92dc92d5",
+    "test_initialization.py": "842b5a85c074e7fdc6e9c76d6e472e94196c900dd70da8207fec43e45a6ad382",
+    "test_native.py": "463f31489fbba0011355b349a456bf8a75fded68953cb36b07b2355e48930281",
+    "test_threaded.py": "7d18e6a8ea3c3b807c124bf8c54853fe9010a49f7ab2149c7b6ed8f9ccf6ea04",
+    "test_threaded_policy.py": "cfb56ce5fbea16b6c158415c711a8107d7bd2be8e2ac109c14727f5109a0d36f",
+    "test_tiny.py": "349dbef8bd4d12cb28e754bd0d83f7d8fbf9cef40a2473554d9a879343d75169",
+    "threaded.py": "c2453c54dbcd680f196b13c9001770662bee87cf426a68c6d7883134bb9cee5b",
+    "threaded_policy.py": "91b299b0ce395635a22db63d4d67428b3294465cf271b8672807b06f41881264",
+    "upstream/experiments__example.py": "b4bbacd9a7bb3675f146c48d5e6394b28130b84ea579cd509875a12bfa1a6b5c",
+    "upstream/somolp.py": "7761f76770fa846f106ea031141bb953cda9d5967dc6b88d169649ee6cc2057d"
+  },
+  "original_source_sha256": "7761f76770fa846f106ea031141bb953cda9d5967dc6b88d169649ee6cc2057d",
+  "time_utc": "2026-10-01T00:07:42Z",
+  "affinity": [
+    0,
+    1
+  ],
+  "timing_scope": "Every timed fit includes initialization, kernel setup, iterations and returned-state construction; data loading/imports/validation/reference serialization excluded",
+  "seconds": [
+    0.0007737960004305933
+  ],
+  "cpu_seconds": [
+    0.0007735169999999458
+  ],
+  "initialization_seconds": [
+    0.0005663430001732195
+  ],
+  "kernel_plus_overhead_seconds": [
+    0.0002074530002573738
+  ],
+  "validations": [
+    {
+      "W": {
+        "shape": [
+          9,
+          3
+        ],
+        "reference_shape": [
+          9,
+          3
+        ],
+        "finite": true,
+        "allclose_1e8": true,
+        "max_abs": 0.0
+      },
+      "P": {
+        "shape": [
+          19,
+          9
+        ],
+        "reference_shape": [
+          19,
+          9
+        ],
+        "finite": true,
+        "allclose_1e8": true,
+        "max_abs": 0.0
+      },
+      "V": {
+        "shape": [
+          19,
+          2
+        ],
+        "reference_shape": [
+          19,
+          2
+        ],
+        "finite": true,
+        "allclose_1e8": true,
+        "max_abs": 0.0
+      },
+      "history": {
+        "shape": [
+          5
+        ],
+        "reference_shape": [
+          5
+        ],
+        "finite": true,
+        "allclose_1e8": true,
+        "max_abs": 0.0
+      },
+      "n_iter_match": true
+    }
+  ],
+  "public_source_freeze": {
+    "frozen_utc": "2026-10-01T00:05:27.342790+00:00",
+    "scope": "actual public API for full-fit SOM pair",
+    "files": {
+      "__init__.py": "99e4b83acf89ad281b630a606fe6f025f413f0e3464b6efdd73cccd7eed6f3da",
+      "_backends/__init__.py": "9608ee9e53602dc0895d5db070246d8d108dde4104b810ad985db238035d409a",
+      "_backends/kmeans_blas_numba.py": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+      "_backends/kmeans_blas_vector.py": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+      "_backends/kmeans_finalizer.py": "256a4a77a9e1ab66f7e7b5ac3413d97797339f5d3d78bd3da5155977681624e4",
+      "_backends/kmeans_numba.py": "792aeeed6bab482c889347d5f554e618e2080a89ada999358f4886574932b827",
+      "_backends/metrics_numba.py": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+      "_backends/metrics_numpy.py": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+      "_backends/metrics_portable/__init__.py": "009f4e23641497c14e76dd264923b4d8006dd5dd48e137b401ea1f59c508fc9b",
+      "_backends/metrics_portable/_numba_core.py": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+      "_backends/metrics_portable/_numpy.py": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+      "_backends/metrics_portable/_sqrt_intervals.py": "5c4d60c8e160e10c756757d86887d7769a626ed8ad8b1ddd8816a12502e9ee44",
+      "_backends/metrics_portable/_sqrt_numba.py": "3c88ad35a371e0c811e1d128fcead7a50a3ecf2b13264fc5c0a6228afbb1e74a",
+      "_backends/metrics_portable/_sqrt_numpy.py": "886aa152d457241e4904826ac18bc31d7cb194b5c1f717d0cb2dcc5ee5bc2129",
+      "_backends/metrics_portable/_strict_numba.py": "6b64a55b0490734711bcbac0e9579386ddfbc5a3c9097b1a60fafa303a7d0145",
+      "_backends/metrics_sqrt.py": "4b49ec86a452711141cb1a2335a9c0f153f4bf64be5c37aabe0afb466c89a406",
+      "_backends/score_vector.py": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+      "_backends/som_portable/__init__.py": "26b801851512428d85db986b44e2311d362af5fed611def017f0b0dbd8b65997",
+      "_backends/som_portable/initialization.py": "572e3f0a6e5990e9b7e1fc1a4e4d367393b42aa91de15c2c20e54de57ee6ba6e",
+      "_backends/som_portable/kernel.py": "98c743e9e0d6115bfd499100cc02e1bc19f06f937298db36b61789a9f3ee5cfb",
+      "_backends/som_portable/oracle.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+      "_backends/som_portable/threaded.py": "c2453c54dbcd680f196b13c9001770662bee87cf426a68c6d7883134bb9cee5b",
+      "_backends/som_reference.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+      "_kmeans_lagged.py": "71c7087d1062c0c936dddfc7028473739ff066ba6101624cf35640cf8ae8bb38",
+      "_optional.py": "cbc87f2977ce076387042fd7b970d7786d0cc275e4977c0e107081398480f32f",
+      "kmeans.py": "4eae10767919a8a0414ca0ec1005f2e61700ccaa21486fdd9d14dc13667477d0",
+      "metrics.py": "4f63457575edda51c6fc1de929424a2f604f9f18e0bfa93c7e88c63a7c3bd3cd",
+      "policy.py": "20cac9152b8d8e95e0fe6d66cb40509a5b086635da588a7bc22b76e86a6ebcba",
+      "prepared.py": "6533150fe640a62603a9a3cbcd7503ba784aa35abce01b7d18ef02dd15868635",
+      "registry.py": "b8728489256561310f7fb1c24610bf8ef2d723a8181aaa565e93863b1b8ad867",
+      "som_olp.py": "7d30492088753d0b2961504b416c7532f29ebe343effa336e00a45704c66477e",
+      "validation.py": "c0d85b5e1c9dd84b53666cf2bab0e6248a923be301651e3c6182e1fa9ce492c2"
+    },
+    "configuration": {
+      "backend": "threadpool",
+      "initializer": "svd_lowrank",
+      "policy": {
+        "threads": 9,
+        "block_rows": 256,
+        "max_scratch_bytes": 67108864
+      }
+    },
+    "memory_contract": "Budget covers ThreadPool private and merged numerator/denominator arrays plus per-worker B-by-M buffers; outputs, input/centering copies, SVD/runtime workspace, guard fallback temporaries and linear norms are outside this named cap; no RSS bound"
+  },
+  "first_call_seconds": 0.0011924669997824822,
+  "first_call_cpu_seconds": 0.001191115999999992,
+  "first_initialization_seconds": 0.0009114229997067014,
+  "first_n_iter": 5,
+  "reference_source": "this first timed original full fit",
+  "cold_validation": {
+    "W": {
+      "shape": [
+        9,
+        3
+      ],
+      "reference_shape": [
+        9,
+        3
+      ],
+      "finite": true,
+      "allclose_1e8": true,
+      "max_abs": 0.0
+    },
+    "P": {
+      "shape": [
+        19,
+        9
+      ],
+      "reference_shape": [
+        19,
+        9
+      ],
+      "finite": true,
+      "allclose_1e8": true,
+      "max_abs": 0.0
+    },
+    "V": {
+      "shape": [
+        19,
+        2
+      ],
+      "reference_shape": [
+        19,
+        2
+      ],
+      "finite": true,
+      "allclose_1e8": true,
+      "max_abs": 0.0
+    },
+    "history": {
+      "shape": [
+        5
+      ],
+      "reference_shape": [
+        5
+      ],
+      "finite": true,
+      "allclose_1e8": true,
+      "max_abs": 0.0
+    },
+    "n_iter_match": true
+  },
+  "status": "ok",
+  "repeat_bitwise_stable": true,
+  "peak_rss_kib": 53552,
+  "threadpools": [
+    {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 2,
+      "prefix": "libscipy_openblas",
+      "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-fdde5778.so",
+      "version": "0.3.30",
+      "threading_layer": "pthreads",
+      "architecture": "SkylakeX"
+    },
+    {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 2,
+      "prefix": "libscipy_openblas",
+      "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so",
+      "version": "0.3.30",
+      "threading_layer": "pthreads",
+      "architecture": "SkylakeX"
+    }
+  ],
+  "n_iter": 5,
+  "median_seconds": 0.0007737960004305933,
+  "mad_seconds": 0.0,
+  "median_initialization_seconds": 0.0005663430001732195,
+  "median_kernel_plus_overhead_seconds": 0.0002074530002573738,
+  "input_unchanged": true,
+  "source_unchanged_during_measurement": true,
+  "public_freeze_verified_after": true
+}

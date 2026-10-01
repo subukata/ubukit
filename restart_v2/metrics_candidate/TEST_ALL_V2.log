@@ -1,0 +1,10 @@
+test_api_options_and_immutability (restart_v2.metrics_candidate.test_candidates.CandidateTests.test_api_options_and_immutability) ... ok
+test_no_numba_import_on_numpy_paths (restart_v2.metrics_candidate.test_candidates.CandidateTests.test_no_numba_import_on_numpy_paths) ... ok
+test_numpy_contracts (restart_v2.metrics_candidate.test_candidates.CandidateTests.test_numpy_contracts) ... ok
+test_optional_numba_contracts (restart_v2.metrics_candidate.test_candidates.CandidateTests.test_optional_numba_contracts) ... ok
+test_sqrt_rank_boundary_values (restart_v2.metrics_candidate.test_candidates.CandidateTests.test_sqrt_rank_boundary_values) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.757s
+
+OK

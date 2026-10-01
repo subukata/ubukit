@@ -1,0 +1,7 @@
+test_fresh_fit_equivalence_and_one_svd (test_prepared_som.PreparedSOMTests.test_fresh_fit_equivalence_and_one_svd) ... ok
+test_identity_and_contract_validation (test_prepared_som.PreparedSOMTests.test_identity_and_contract_validation) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.109s
+
+OK

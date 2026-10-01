@@ -1,0 +1,66 @@
+{
+  "as_of_label": "2026年10月1日 10:25 JST 最終版",
+  "final_metrics_verified": true,
+  "kmeans": {
+    "low": {
+      "candidate_s": 0.007302852998691378,
+      "baseline_s": 0.013641752999319579,
+      "numpy_s": 0.13432273299986264,
+      "ratio": 1.8680032313075572,
+      "numpy_ratio": 18.393185926641596
+    },
+    "high": {
+      "candidate_s": 0.029648047999216942,
+      "baseline_s": 0.03546092000033241,
+      "numpy_s": 3.219155561999287,
+      "ratio": 1.1960625536382359,
+      "numpy_ratio": 108.57900533904662
+    }
+  },
+  "som": {
+    "baseline_s": 175.72445367699947,
+    "candidate_s": 13.626693229000011,
+    "ratio": 12.895605024924667
+  },
+  "metrics": {
+    "best_ratio": 8.330491334778499,
+    "subtitle": "公開APIの10,000件 × 64次元から2次元、float64、k=15、9スレッド",
+    "note": "全呼び出しでsklearnのスコアと参照整数ペナルティが一致。公開ラッパーを含む3回の交互ウォーム測定です。ブロック256行、32 MiBは順位計算の作業枠で、距離格納はO(N²)のままです。",
+    "source_label": "restart_v2/evidence/public_metrics/summary.json",
+    "rows": [
+      {
+        "label": "公開 sqrt_numba 明示オプション",
+        "seconds": 1.142590419998669,
+        "ratio": 8.330491334778499,
+        "baseline": false
+      },
+      {
+        "label": "公開 numba scan",
+        "seconds": 1.2989590639990638,
+        "ratio": 7.327667096525759,
+        "baseline": false
+      },
+      {
+        "label": "公開 numpy broadcast JIT不要",
+        "seconds": 3.5168408779991296,
+        "ratio": 2.70650277427826,
+        "baseline": false
+      },
+      {
+        "label": "sklearn 2回",
+        "seconds": 9.518339592999837,
+        "ratio": 1.0,
+        "baseline": true
+      }
+    ]
+  },
+  "verification_note": "配布a2の独立インストール試験は14件中12成功・Numba専用2件スキップ。no-JITの3 APIとPreparedSOMの小規模一致も通過。配布33ソースを確認し、計時済み数値コア31ファイルは不変です。任意ランタイム込みの統合14件も別途通過。公開用全体ライセンスは未選定です [4]。",
+  "stage": "draft",
+  "source_sha256": {
+    "kmeans_candidate/results/matched_v2/summary.json": "ff5273d52f1be03cdc410ee8c303030b893bd94baf30a1f9d241bf77df56e783",
+    "som_candidate/results/fullfit70k/original_public_comparison.json": "ce9e9a773758acb4d2aaf4589f74bb089535dd4d9dbfcf0ceece481c40fbd5c7",
+    "som_candidate/results/fullfit70k/portable_public_comparison.json": "db034aa623eb4438a1990d523a27f89cc14e71a177d164c7fa2ecc763815cabf",
+    "evidence/public_metrics/summary.json": "d457c1e5665e479b97c91ce638dd5c0dcbc208f5b26e27a080e3b864bae8a3a3",
+    "evidence/kmeans_scratch_matched/summary.json": "162e9e747d8f42798ecbadae3f188f04ba07241dbf35935335d6f7da3cb3d871"
+  }
+}

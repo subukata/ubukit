@@ -1,0 +1,17 @@
+test_public_fit_finalizers (test_finalizer_integration.FinalizerIntegration.test_public_fit_finalizers) ... skipped 'Numba optional'
+test_kmeans_core (test_foundation.Foundation.test_kmeans_core) ... ok
+test_kmeans_final_sklearn (test_foundation.Foundation.test_kmeans_final_sklearn) ... ok
+test_lazy (test_foundation.Foundation.test_lazy) ... ok
+test_metrics_exact (test_foundation.Foundation.test_metrics_exact) ... ok
+test_snapshot (test_foundation.Foundation.test_snapshot) ... ok
+test_som_reference (test_foundation.Foundation.test_som_reference) ... ok
+test_validation_restoration (test_foundation.Foundation.test_validation_restoration) ... ok
+test_backends_and_rank_blocks (test_metric_portable.MetricPortableIntegration.test_backends_and_rank_blocks) ... ok
+test_cores_and_finalization (test_optional_kmeans.OptionalKmeans.test_cores_and_finalization) ... skipped 'optional Numba unavailable'
+test_kernels_and_initialization (test_som_portable.SomPortableIntegration.test_kernels_and_initialization) ... ok
+test_public_fit (test_threadpool_integration.ThreadpoolIntegration.test_public_fit) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.074s
+
+OK (skipped=2)

@@ -1,0 +1,17 @@
+{
+  "revision": "restart_v2_numpy_method_comparison_prepared_only",
+  "status": "not_run_requires_serialized_slot",
+  "source_contract": "Full original sklearn Euclidean distance calls; block_rows changes only rank work",
+  "cases": [
+    {"n": 2000, "d": 64, "k": [15], "dtype": "float64", "threads": 1, "block_rows": 32, "methods": ["sklearn", "numpy_broadcast", "numpy_sortsearch"], "repeats": 3},
+    {"n": 2000, "d": 64, "k": [15], "dtype": "float64", "threads": 1, "block_rows": 256, "methods": ["numpy_broadcast", "numpy_sortsearch"], "repeats": 3},
+    {"n": 2000, "d": 64, "k": [15], "dtype": "float64", "threads": 9, "block_rows": 32, "methods": ["sklearn", "numpy_broadcast", "numpy_sortsearch"], "repeats": 3},
+    {"n": 2000, "d": 64, "k": [15], "dtype": "float64", "threads": 9, "block_rows": 256, "methods": ["numpy_broadcast", "numpy_sortsearch"], "repeats": 3}
+  ],
+  "notes": [
+    "Keep 32MiB max_scratch_bytes fixed; broadcast effective blocks may be smaller than requested",
+    "Broadcast and sortsearch already passed exact float32/64, duplicate, grid, and multi-k tests",
+    "Use the fixed-generation seed and compare exact scores, integer penalties, and input hashes across all cases",
+    "Retain first-slot default as its recorded method; choose a new default only after new evidence and a separate checkpoint"
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "case": "low_d",
+  "status": "matched",
+  "median_seconds": {
+    "portable_sklearn_finalizer": 0.016208463999646483,
+    "portable_numba_finalizer": 0.012890984999103239,
+    "sklearn_lloyd": 0.017618177998883766
+  },
+  "initial_validation": {
+    "sklearn_lloyd": {
+      "labels_equal": true,
+      "label_mismatches": 0,
+      "centers_allclose": true,
+      "center_max_abs": 0.0,
+      "inertia_allclose": true,
+      "inertia_direct_allclose": true,
+      "inertia": 337110.9561173249,
+      "independent_direct_inertia": 337110.9561173244,
+      "n_iter": 20,
+      "n_iter_equal": true,
+      "all_final_clusters_nonempty": true,
+      "all_core_clusters_nonempty": true,
+      "finalized_labels": true,
+      "matched": true
+    },
+    "portable_sklearn_finalizer": {
+      "labels_equal": true,
+      "label_mismatches": 0,
+      "centers_allclose": true,
+      "center_max_abs": 2.3092638912203256e-14,
+      "inertia_allclose": true,
+      "inertia_direct_allclose": true,
+      "inertia": 337110.9561173242,
+      "independent_direct_inertia": 337110.9561173244,
+      "n_iter": 20,
+      "n_iter_equal": true,
+      "all_final_clusters_nonempty": true,
+      "all_core_clusters_nonempty": true,
+      "finalized_labels": true,
+      "matched": true
+    },
+    "portable_numba_finalizer": {
+      "labels_equal": true,
+      "label_mismatches": 0,
+      "centers_allclose": true,
+      "center_max_abs": 2.3092638912203256e-14,
+      "inertia_allclose": true,
+      "inertia_direct_allclose": true,
+      "inertia": 337110.9561173244,
+      "independent_direct_inertia": 337110.9561173244,
+      "n_iter": 20,
+      "n_iter_equal": true,
+      "all_final_clusters_nonempty": true,
+      "all_core_clusters_nonempty": true,
+      "finalized_labels": true,
+      "matched": true
+    }
+  },
+  "error": null
+}
+{
+  "case": "high_d",
+  "status": "matched",
+  "median_seconds": {
+    "portable_sklearn_finalizer": 0.06354111600012402,
+    "portable_numba_finalizer": 0.06644736099951842,
+    "sklearn_lloyd": 0.06823371799873712
+  },
+  "initial_validation": {
+    "sklearn_lloyd": {
+      "labels_equal": true,
+      "label_mismatches": 0,
+      "centers_allclose": true,
+      "center_max_abs": 0.0,
+      "inertia_allclose": true,
+      "inertia_direct_allclose": true,
+      "inertia": 1197730.5945584874,
+      "independent_direct_inertia": 1197730.5945584856,
+      "n_iter": 20,
+      "n_iter_equal": true,
+      "all_final_clusters_nonempty": true,
+      "all_core_clusters_nonempty": true,
+      "finalized_labels": true,
+      "matched": true
+    },
+    "portable_sklearn_finalizer": {
+      "labels_equal": true,
+      "label_mismatches": 0,
+      "centers_allclose": true,
+      "center_max_abs": 5.551115123125783e-16,
+      "inertia_allclose": true,
+      "inertia_direct_allclose": true,
+      "inertia": 1197730.5945584858,
+      "independent_direct_inertia": 1197730.5945584856,
+      "n_iter": 20,
+      "n_iter_equal": true,
+      "all_final_clusters_nonempty": true,
+      "all_core_clusters_nonempty": true,
+      "finalized_labels": true,
+      "matched": true
+    },
+    "portable_numba_finalizer": {
+      "labels_equal": true,
+      "label_mismatches": 0,
+      "centers_allclose": true,
+      "center_max_abs": 5.551115123125783e-16,
+      "inertia_allclose": true,
+      "inertia_direct_allclose": true,
+      "inertia": 1197730.5945584856,
+      "independent_direct_inertia": 1197730.5945584856,
+      "n_iter": 20,
+      "n_iter_equal": true,
+      "all_final_clusters_nonempty": true,
+      "all_core_clusters_nonempty": true,
+      "finalized_labels": true,
+      "matched": true
+    }
+  },
+  "error": null
+}

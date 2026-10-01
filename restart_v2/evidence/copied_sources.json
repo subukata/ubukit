@@ -1,0 +1,65 @@
+[
+  {
+    "source": "recovery_retained_common/portable_accel/kmeans.py",
+    "source_sha256": "71c7087d1062c0c936dddfc7028473739ff066ba6101624cf35640cf8ae8bb38",
+    "target": "_kmeans_lagged.py",
+    "sha256": "71c7087d1062c0c936dddfc7028473739ff066ba6101624cf35640cf8ae8bb38",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_retained_common/portable_accel/_backends/kmeans_numba.py",
+    "source_sha256": "792aeeed6bab482c889347d5f554e618e2080a89ada999358f4886574932b827",
+    "target": "_backends/kmeans_numba.py",
+    "sha256": "792aeeed6bab482c889347d5f554e618e2080a89ada999358f4886574932b827",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_portable_kmeans/blas_numba.py",
+    "source_sha256": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+    "target": "_backends/kmeans_blas_numba.py",
+    "sha256": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_portable_kmeans/blas_vector.py",
+    "source_sha256": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+    "target": "_backends/kmeans_blas_vector.py",
+    "sha256": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_portable_kmeans/score_vector.py",
+    "source_sha256": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+    "target": "_backends/score_vector.py",
+    "sha256": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_numpy_metrics/numpy_impl/numpy_metrics.py",
+    "source_sha256": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+    "target": "_backends/metrics_numpy.py",
+    "sha256": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_neighbor_metrics_exact/joint_metrics.py",
+    "source_sha256": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+    "target": "_backends/metrics_numba.py",
+    "sha256": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+    "adaptation": null
+  },
+  {
+    "source": "recovery_sqrt_metrics/sqrt_impl/sqrt_metrics.py",
+    "source_sha256": "0b3572ebd360f092d14d9a330c700b800e95dc312c3d9d175f52bf6e4bdb0770",
+    "target": "_backends/metrics_sqrt.py",
+    "sha256": "4b49ec86a452711141cb1a2335a9c0f153f4bf64be5c37aabe0afb466c89a406",
+    "adaptation": "relative import"
+  },
+  {
+    "source": "recovery/native_worker/som_olp_lab/harness/reference.py",
+    "source_sha256": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+    "target": "_backends/som_reference.py",
+    "sha256": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+    "adaptation": null
+  }
+]

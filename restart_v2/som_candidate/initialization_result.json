@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "configurations": 72,
+  "worst_absolute": {
+    "W": 0.0,
+    "P0": 5.0133508455729725e-14,
+    "fit_W": 4.604649994632837e-14,
+    "fit_P": 1.9317880628477724e-14,
+    "fit_V": 3.22519788653608e-14,
+    "fit_history": 3.410605131648481e-13
+  },
+  "same_full_svd": true,
+  "no_randomized_or_truncated_svd": true
+}

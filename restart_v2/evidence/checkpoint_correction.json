@@ -1,0 +1,7 @@
+{
+  "superseded_library_version": 3,
+  "reason": "Packaging staging step used a wrong relative archive path and omitted public metrics.py",
+  "correction": "Restored the complete previously tested foundation wrapper from retained source text; added required-public-module guard to checkpoint builder",
+  "algorithm_changes": false,
+  "new_runtime_tests": "deferred while another task owns timing slot; syntax/completeness checks only"
+}

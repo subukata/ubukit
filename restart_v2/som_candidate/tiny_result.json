@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "tiny_configurations": 144,
+  "worst_normal": {
+    "W": 2.9976021664879227e-15,
+    "P": 3.3306690738754696e-15,
+    "V": 7.66053886991358e-15,
+    "history": 2.4868995751603507e-13
+  },
+  "worst_offset_stress": {
+    "W": 0.0,
+    "P": 0.0,
+    "V": 0.0,
+    "history": 1.1368683772161603e-13
+  },
+  "fallback_cases": 36,
+  "zero_mass_preserved": true,
+  "input_unmodified": true,
+  "note": "Offset stress uses explicit 2e-5 tolerance; no universal trajectory claim"
+}

@@ -1,0 +1,27 @@
+{
+  "dtype": "float64",
+  "input_identity": [
+    "source dtype",
+    "shape",
+    "raw C-order value bytes hash",
+    "float64 snapshot hash"
+  ],
+  "preprocessing": "owned original X; axis-0 mean-centering for SVD",
+  "factorization": "numpy.linalg.svd(full_matrices=False), complete SVD",
+  "retained": [
+    "immutable X snapshot",
+    "mean",
+    "leading singular values",
+    "leading Vt",
+    "U[:, :rank]*s[:rank]"
+  ],
+  "initialization": "fresh W0/P0 per R/lambda/pca_scale; same lowrank-score/direct-fallback contract",
+  "factorization_threads": "pinned to preparation_threads; changed fit policy does not refactorize",
+  "changed_input": "fit has no X argument; explicit assert_same_input rejects raw dtype/shape/value changes; new X requires new object",
+  "measured_policy": {
+    "threads": 9,
+    "block_rows": 256,
+    "max_scratch_bytes": 67108864
+  },
+  "memory_scope": "owned cache bytes and process RSS are separately reported; named scratch cap is not total RSS"
+}

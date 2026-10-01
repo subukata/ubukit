@@ -1,0 +1,14 @@
+test_kmeans_core (test_foundation.Foundation.test_kmeans_core) ... ok
+test_kmeans_final_sklearn (test_foundation.Foundation.test_kmeans_final_sklearn) ... ok
+test_lazy (test_foundation.Foundation.test_lazy) ... ok
+test_metrics_exact (test_foundation.Foundation.test_metrics_exact) ... ok
+test_snapshot (test_foundation.Foundation.test_snapshot) ... ok
+test_som_reference (test_foundation.Foundation.test_som_reference) ... ok
+test_validation_restoration (test_foundation.Foundation.test_validation_restoration) ... ok
+test_cores_and_finalization (test_optional_kmeans.OptionalKmeans.test_cores_and_finalization) ... ok
+test_kernels_and_initialization (test_som_portable.SomPortableIntegration.test_kernels_and_initialization) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 1.225s
+
+OK

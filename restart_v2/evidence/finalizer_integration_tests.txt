@@ -1,0 +1,6 @@
+test_public_fit_finalizers (test_finalizer_integration.FinalizerIntegration.test_public_fit_finalizers) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.629s
+
+OK

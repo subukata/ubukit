@@ -1,0 +1,15 @@
+{
+  "status": "pass",
+  "tiny_configurations": 108,
+  "worst_absolute": {
+    "W": 2.7200464103316335e-15,
+    "P": 2.4980018054066022e-14,
+    "V": 1.1879386363489175e-14,
+    "history": 1.1368683772161603e-13
+  },
+  "repeat_stable": true,
+  "zero_mass_retention": true,
+  "input_unmodified": true,
+  "translation_fallback": true,
+  "stopping_checked": true
+}

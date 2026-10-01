@@ -1,0 +1,5 @@
+{"event": "cold_fit_complete", "mode": "original", "seconds": 174.1791113879999, "initialization_seconds": 8.570771365999462, "n_iter": 36}
+{"event": "warm_fit_complete", "mode": "original", "repetition": 1, "seconds": 175.72445367699947, "initialization_seconds": 7.802547281999978, "n_iter": 36}
+{"event": "warm_fit_complete", "mode": "original", "repetition": 2, "seconds": 176.9709607900004, "initialization_seconds": 8.032574531999671, "n_iter": 36}
+{"event": "warm_fit_complete", "mode": "original", "repetition": 3, "seconds": 173.77200596199964, "initialization_seconds": 7.873806087999583, "n_iter": 36}
+{"mode": "original", "status": "ok", "median_seconds": 175.72445367699947, "median_initialization_seconds": 7.873806087999583, "n_iter": 36, "repeats_completed": 3, "error": null}

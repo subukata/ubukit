@@ -1,0 +1,24 @@
+{
+  "status": "matched",
+  "scope": "Same-window seven warm end-to-end repetitions, final labels and inertia included. Scratch NumPy uses direct feature-ordered distances+B256 and bincount. No claim of optimal NumPy.",
+  "cases": [
+    {
+      "case": "low_d",
+      "numpy_seconds": 0.13432273299986264,
+      "accelerated_seconds": 0.007302852998691378,
+      "sklearn_seconds": 0.013641752999319579,
+      "speedup_vs_scratch_numpy": 18.393185926641596,
+      "speedup_vs_sklearn": 1.8680032313075572,
+      "completed_utc": "2026-10-01T01:01:23Z"
+    },
+    {
+      "case": "high_d",
+      "numpy_seconds": 3.219155561999287,
+      "accelerated_seconds": 0.029648047999216942,
+      "sklearn_seconds": 0.03546092000033241,
+      "speedup_vs_scratch_numpy": 108.57900533904662,
+      "speedup_vs_sklearn": 1.1960625536382359,
+      "completed_utc": "2026-10-01T01:01:53Z"
+    }
+  ]
+}

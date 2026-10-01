@@ -1,0 +1,9 @@
+Processing ./restart_v2_distribution_a2_7dvi1q7b/source
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Building wheels for collected packages: portable-accel-restart
+  Building wheel for portable-accel-restart (pyproject.toml): started
+  Building wheel for portable-accel-restart (pyproject.toml): finished with status 'done'
+  Created wheel for portable-accel-restart: filename=portable_accel_restart-0.2.0a2-py3-none-any.whl size=73088 sha256=9b767aafb5cff6e63ddc3e6550a2b3def39f20cc7564c200742f4052aa2c9e86
+  Stored in directory: /tmp/pip-ephem-wheel-cache-j9t8713a/wheels/e4/40/33/0e8b71323b69299b772635978b296cdab6d1a029b5535e05e5
+Successfully built portable-accel-restart

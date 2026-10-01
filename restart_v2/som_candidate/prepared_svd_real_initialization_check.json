@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "scope": "untimed post-benchmark initialization correctness check",
+  "n": 70000,
+  "threads": 9,
+  "lam": 2.439,
+  "checks": {
+    "W0": {
+      "max_abs": 0.0,
+      "array_equal": true,
+      "sha256_equal": true
+    },
+    "P0": {
+      "max_abs": 0.0,
+      "array_equal": true,
+      "sha256_equal": true
+    }
+  },
+  "completed_utc": "2026-10-01T01:00:41Z"
+}

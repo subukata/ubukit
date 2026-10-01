@@ -1,0 +1,717 @@
+{
+  "status": "matched",
+  "scope": "NEW restart-v2 matched-output end-to-end fits",
+  "wall_seconds": 5.445749365999291,
+  "cases": [
+    {
+      "status": "matched",
+      "case": "low_d",
+      "threads": 2,
+      "repeats": 3,
+      "max_iter": 20,
+      "seed": 20261001,
+      "protocol": "fresh process per case; 7 interleaved warm repetitions; all finalization inside fit",
+      "wait_policy": "PASSIVE",
+      "gomp_spincount": "0",
+      "shape": [
+        20000,
+        8
+      ],
+      "k": 16,
+      "backend": "numba",
+      "input_fingerprint": "44b3594ee015d3048d9fe90d27b3fb5506eda5abf40146b279b1101aace75c93:432c6f6758f3db5c4c887151f1ab568ef145a14db9d5b39d750e01b5ddf78fd2",
+      "initializer": "same distinct random data rows for every method",
+      "first_call_seconds": {
+        "sklearn_lloyd": 0.02199258499967982,
+        "portable_sklearn_finalizer": 0.2020724699996208,
+        "portable_numba_finalizer": 0.02075332200001867
+      },
+      "initial_validation": {
+        "sklearn_lloyd": {
+          "labels_equal": true,
+          "label_mismatches": 0,
+          "centers_allclose": true,
+          "center_max_abs": 0.0,
+          "inertia_allclose": true,
+          "inertia_direct_allclose": true,
+          "inertia": 337110.9561173249,
+          "independent_direct_inertia": 337110.9561173244,
+          "n_iter": 20,
+          "n_iter_equal": true,
+          "all_final_clusters_nonempty": true,
+          "all_core_clusters_nonempty": true,
+          "finalized_labels": true,
+          "matched": true
+        },
+        "portable_sklearn_finalizer": {
+          "labels_equal": true,
+          "label_mismatches": 0,
+          "centers_allclose": true,
+          "center_max_abs": 2.3092638912203256e-14,
+          "inertia_allclose": true,
+          "inertia_direct_allclose": true,
+          "inertia": 337110.9561173242,
+          "independent_direct_inertia": 337110.9561173244,
+          "n_iter": 20,
+          "n_iter_equal": true,
+          "all_final_clusters_nonempty": true,
+          "all_core_clusters_nonempty": true,
+          "finalized_labels": true,
+          "matched": true
+        },
+        "portable_numba_finalizer": {
+          "labels_equal": true,
+          "label_mismatches": 0,
+          "centers_allclose": true,
+          "center_max_abs": 2.3092638912203256e-14,
+          "inertia_allclose": true,
+          "inertia_direct_allclose": true,
+          "inertia": 337110.9561173244,
+          "independent_direct_inertia": 337110.9561173244,
+          "n_iter": 20,
+          "n_iter_equal": true,
+          "all_final_clusters_nonempty": true,
+          "all_core_clusters_nonempty": true,
+          "finalized_labels": true,
+          "matched": true
+        }
+      },
+      "package_path": "/workspace/scratch/c3932542689e/restart_v2/portable_accel",
+      "source_sha256": {
+        "__init__.py": "9104b035a10136e919853ca00f3964e86557041c62eb4ecebaecefbc2a1bb88a",
+        "_backends/__init__.py": "9608ee9e53602dc0895d5db070246d8d108dde4104b810ad985db238035d409a",
+        "_backends/kmeans_blas_numba.py": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+        "_backends/kmeans_blas_vector.py": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+        "_backends/kmeans_finalizer.py": "256a4a77a9e1ab66f7e7b5ac3413d97797339f5d3d78bd3da5155977681624e4",
+        "_backends/kmeans_numba.py": "792aeeed6bab482c889347d5f554e618e2080a89ada999358f4886574932b827",
+        "_backends/metrics_numba.py": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+        "_backends/metrics_numpy.py": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+        "_backends/metrics_portable/__init__.py": "009f4e23641497c14e76dd264923b4d8006dd5dd48e137b401ea1f59c508fc9b",
+        "_backends/metrics_portable/_numba_core.py": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+        "_backends/metrics_portable/_numpy.py": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+        "_backends/metrics_portable/_sqrt_intervals.py": "5c4d60c8e160e10c756757d86887d7769a626ed8ad8b1ddd8816a12502e9ee44",
+        "_backends/metrics_portable/_sqrt_numba.py": "3c88ad35a371e0c811e1d128fcead7a50a3ecf2b13264fc5c0a6228afbb1e74a",
+        "_backends/metrics_portable/_sqrt_numpy.py": "886aa152d457241e4904826ac18bc31d7cb194b5c1f717d0cb2dcc5ee5bc2129",
+        "_backends/metrics_portable/_strict_numba.py": "6b64a55b0490734711bcbac0e9579386ddfbc5a3c9097b1a60fafa303a7d0145",
+        "_backends/metrics_sqrt.py": "4b49ec86a452711141cb1a2335a9c0f153f4bf64be5c37aabe0afb466c89a406",
+        "_backends/score_vector.py": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+        "_backends/som_portable/__init__.py": "26b801851512428d85db986b44e2311d362af5fed611def017f0b0dbd8b65997",
+        "_backends/som_portable/initialization.py": "572e3f0a6e5990e9b7e1fc1a4e4d367393b42aa91de15c2c20e54de57ee6ba6e",
+        "_backends/som_portable/kernel.py": "98c743e9e0d6115bfd499100cc02e1bc19f06f937298db36b61789a9f3ee5cfb",
+        "_backends/som_portable/oracle.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+        "_backends/som_portable/threaded.py": "c2453c54dbcd680f196b13c9001770662bee87cf426a68c6d7883134bb9cee5b",
+        "_backends/som_reference.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+        "_kmeans_lagged.py": "71c7087d1062c0c936dddfc7028473739ff066ba6101624cf35640cf8ae8bb38",
+        "_optional.py": "cbc87f2977ce076387042fd7b970d7786d0cc275e4977c0e107081398480f32f",
+        "kmeans.py": "4eae10767919a8a0414ca0ec1005f2e61700ccaa21486fdd9d14dc13667477d0",
+        "metrics.py": "4f63457575edda51c6fc1de929424a2f604f9f18e0bfa93c7e88c63a7c3bd3cd",
+        "policy.py": "20cac9152b8d8e95e0fe6d66cb40509a5b086635da588a7bc22b76e86a6ebcba",
+        "prepared.py": "6533150fe640a62603a9a3cbcd7503ba784aa35abce01b7d18ef02dd15868635",
+        "registry.py": "b8728489256561310f7fb1c24610bf8ef2d723a8181aaa565e93863b1b8ad867",
+        "som_olp.py": "7d30492088753d0b2961504b416c7532f29ebe343effa336e00a45704c66477e",
+        "som_prepared.py": "bde4e5575bc190842aed5592d80e891c52f2280c24189e9c69f90a5085ae4ebe",
+        "validation.py": "c0d85b5e1c9dd84b53666cf2bab0e6248a923be301651e3c6182e1fa9ce492c2"
+      },
+      "versions": {
+        "python": "3.12.14",
+        "numpy": "2.3.5",
+        "scipy": "1.17.0",
+        "sklearn": "1.8.0",
+        "numba": "0.67.0"
+      },
+      "seconds": {
+        "portable_sklearn_finalizer": [
+          0.016208463999646483,
+          0.016794958000900806,
+          0.012498694000896649
+        ],
+        "portable_numba_finalizer": [
+          0.01724434500101779,
+          0.0107496379987424,
+          0.012890984999103239
+        ],
+        "sklearn_lloyd": [
+          0.015945647000989993,
+          0.017618177998883766,
+          0.01962152699888975
+        ]
+      },
+      "cpu_seconds": {
+        "portable_sklearn_finalizer": [
+          0.02728929899999999,
+          0.029526778000000142,
+          0.02096698500000027
+        ],
+        "portable_numba_finalizer": [
+          0.03328492399999994,
+          0.0185632899999999,
+          0.021551271999999955
+        ],
+        "sklearn_lloyd": [
+          0.027635373000000074,
+          0.030235471000000125,
+          0.03635413700000001
+        ]
+      },
+      "median_seconds": {
+        "portable_sklearn_finalizer": 0.016208463999646483,
+        "portable_numba_finalizer": 0.012890984999103239,
+        "sklearn_lloyd": 0.017618177998883766
+      },
+      "mad_seconds": {
+        "portable_sklearn_finalizer": 0.0005864940012543229,
+        "portable_numba_finalizer": 0.002141347000360838,
+        "sklearn_lloyd": 0.001672530997893773
+      },
+      "repeat_bitwise_consistent": {
+        "portable_sklearn_finalizer": true,
+        "portable_numba_finalizer": true,
+        "sklearn_lloyd": true
+      },
+      "repetition_validation": {
+        "portable_sklearn_finalizer": [
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 2.3092638912203256e-14,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173242,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 2.3092638912203256e-14,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173242,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 2.3092638912203256e-14,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173242,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          }
+        ],
+        "portable_numba_finalizer": [
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 2.3092638912203256e-14,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173244,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 2.3092638912203256e-14,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173244,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 2.3092638912203256e-14,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173244,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          }
+        ],
+        "sklearn_lloyd": [
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 0.0,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173249,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 0.0,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173249,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 0.0,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 337110.9561173249,
+            "independent_direct_inertia": 337110.9561173244,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          }
+        ]
+      },
+      "input_unchanged": true,
+      "source_unchanged": true,
+      "cpu_affinity": [
+        0,
+        1
+      ],
+      "threadpools": [
+        {
+          "user_api": "blas",
+          "internal_api": "openblas",
+          "num_threads": 2,
+          "prefix": "libscipy_openblas",
+          "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-fdde5778.so",
+          "version": "0.3.30",
+          "threading_layer": "pthreads",
+          "architecture": "SkylakeX"
+        },
+        {
+          "user_api": "blas",
+          "internal_api": "openblas",
+          "num_threads": 2,
+          "prefix": "libscipy_openblas",
+          "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so",
+          "version": "0.3.30",
+          "threading_layer": "pthreads",
+          "architecture": "SkylakeX"
+        },
+        {
+          "user_api": "openmp",
+          "internal_api": "openmp",
+          "num_threads": 2,
+          "prefix": "libgomp",
+          "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/scikit_learn.libs/libgomp-e985bcbb.so.1.0.0",
+          "version": null
+        }
+      ],
+      "time_utc": "2026-10-01T01:10:05Z"
+    },
+    {
+      "status": "matched",
+      "case": "high_d",
+      "threads": 2,
+      "repeats": 3,
+      "max_iter": 20,
+      "seed": 20261001,
+      "protocol": "fresh process per case; 7 interleaved warm repetitions; all finalization inside fit",
+      "wait_policy": "PASSIVE",
+      "gomp_spincount": "0",
+      "shape": [
+        10000,
+        128
+      ],
+      "k": 64,
+      "backend": "numba_blas_vector",
+      "input_fingerprint": "f2952874fb9249279ec16bb09136f0b516d80f36e160be537d1a5fd105f2c647:4813c50d40cd9ff53e2baa0d5085337f73595da1ea0167bd16bb2d7c31afe8d2",
+      "initializer": "same distinct random data rows for every method",
+      "first_call_seconds": {
+        "sklearn_lloyd": 0.07793147100164788,
+        "portable_sklearn_finalizer": 0.24413043599997764,
+        "portable_numba_finalizer": 0.06848451600126282
+      },
+      "initial_validation": {
+        "sklearn_lloyd": {
+          "labels_equal": true,
+          "label_mismatches": 0,
+          "centers_allclose": true,
+          "center_max_abs": 0.0,
+          "inertia_allclose": true,
+          "inertia_direct_allclose": true,
+          "inertia": 1197730.5945584874,
+          "independent_direct_inertia": 1197730.5945584856,
+          "n_iter": 20,
+          "n_iter_equal": true,
+          "all_final_clusters_nonempty": true,
+          "all_core_clusters_nonempty": true,
+          "finalized_labels": true,
+          "matched": true
+        },
+        "portable_sklearn_finalizer": {
+          "labels_equal": true,
+          "label_mismatches": 0,
+          "centers_allclose": true,
+          "center_max_abs": 5.551115123125783e-16,
+          "inertia_allclose": true,
+          "inertia_direct_allclose": true,
+          "inertia": 1197730.5945584858,
+          "independent_direct_inertia": 1197730.5945584856,
+          "n_iter": 20,
+          "n_iter_equal": true,
+          "all_final_clusters_nonempty": true,
+          "all_core_clusters_nonempty": true,
+          "finalized_labels": true,
+          "matched": true
+        },
+        "portable_numba_finalizer": {
+          "labels_equal": true,
+          "label_mismatches": 0,
+          "centers_allclose": true,
+          "center_max_abs": 5.551115123125783e-16,
+          "inertia_allclose": true,
+          "inertia_direct_allclose": true,
+          "inertia": 1197730.5945584856,
+          "independent_direct_inertia": 1197730.5945584856,
+          "n_iter": 20,
+          "n_iter_equal": true,
+          "all_final_clusters_nonempty": true,
+          "all_core_clusters_nonempty": true,
+          "finalized_labels": true,
+          "matched": true
+        }
+      },
+      "package_path": "/workspace/scratch/c3932542689e/restart_v2/portable_accel",
+      "source_sha256": {
+        "__init__.py": "9104b035a10136e919853ca00f3964e86557041c62eb4ecebaecefbc2a1bb88a",
+        "_backends/__init__.py": "9608ee9e53602dc0895d5db070246d8d108dde4104b810ad985db238035d409a",
+        "_backends/kmeans_blas_numba.py": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+        "_backends/kmeans_blas_vector.py": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+        "_backends/kmeans_finalizer.py": "256a4a77a9e1ab66f7e7b5ac3413d97797339f5d3d78bd3da5155977681624e4",
+        "_backends/kmeans_numba.py": "792aeeed6bab482c889347d5f554e618e2080a89ada999358f4886574932b827",
+        "_backends/metrics_numba.py": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+        "_backends/metrics_numpy.py": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+        "_backends/metrics_portable/__init__.py": "009f4e23641497c14e76dd264923b4d8006dd5dd48e137b401ea1f59c508fc9b",
+        "_backends/metrics_portable/_numba_core.py": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+        "_backends/metrics_portable/_numpy.py": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+        "_backends/metrics_portable/_sqrt_intervals.py": "5c4d60c8e160e10c756757d86887d7769a626ed8ad8b1ddd8816a12502e9ee44",
+        "_backends/metrics_portable/_sqrt_numba.py": "3c88ad35a371e0c811e1d128fcead7a50a3ecf2b13264fc5c0a6228afbb1e74a",
+        "_backends/metrics_portable/_sqrt_numpy.py": "886aa152d457241e4904826ac18bc31d7cb194b5c1f717d0cb2dcc5ee5bc2129",
+        "_backends/metrics_portable/_strict_numba.py": "6b64a55b0490734711bcbac0e9579386ddfbc5a3c9097b1a60fafa303a7d0145",
+        "_backends/metrics_sqrt.py": "4b49ec86a452711141cb1a2335a9c0f153f4bf64be5c37aabe0afb466c89a406",
+        "_backends/score_vector.py": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+        "_backends/som_portable/__init__.py": "26b801851512428d85db986b44e2311d362af5fed611def017f0b0dbd8b65997",
+        "_backends/som_portable/initialization.py": "572e3f0a6e5990e9b7e1fc1a4e4d367393b42aa91de15c2c20e54de57ee6ba6e",
+        "_backends/som_portable/kernel.py": "98c743e9e0d6115bfd499100cc02e1bc19f06f937298db36b61789a9f3ee5cfb",
+        "_backends/som_portable/oracle.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+        "_backends/som_portable/threaded.py": "c2453c54dbcd680f196b13c9001770662bee87cf426a68c6d7883134bb9cee5b",
+        "_backends/som_reference.py": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+        "_kmeans_lagged.py": "71c7087d1062c0c936dddfc7028473739ff066ba6101624cf35640cf8ae8bb38",
+        "_optional.py": "cbc87f2977ce076387042fd7b970d7786d0cc275e4977c0e107081398480f32f",
+        "kmeans.py": "4eae10767919a8a0414ca0ec1005f2e61700ccaa21486fdd9d14dc13667477d0",
+        "metrics.py": "4f63457575edda51c6fc1de929424a2f604f9f18e0bfa93c7e88c63a7c3bd3cd",
+        "policy.py": "20cac9152b8d8e95e0fe6d66cb40509a5b086635da588a7bc22b76e86a6ebcba",
+        "prepared.py": "6533150fe640a62603a9a3cbcd7503ba784aa35abce01b7d18ef02dd15868635",
+        "registry.py": "b8728489256561310f7fb1c24610bf8ef2d723a8181aaa565e93863b1b8ad867",
+        "som_olp.py": "7d30492088753d0b2961504b416c7532f29ebe343effa336e00a45704c66477e",
+        "som_prepared.py": "bde4e5575bc190842aed5592d80e891c52f2280c24189e9c69f90a5085ae4ebe",
+        "validation.py": "c0d85b5e1c9dd84b53666cf2bab0e6248a923be301651e3c6182e1fa9ce492c2"
+      },
+      "versions": {
+        "python": "3.12.14",
+        "numpy": "2.3.5",
+        "scipy": "1.17.0",
+        "sklearn": "1.8.0",
+        "numba": "0.67.0"
+      },
+      "seconds": {
+        "portable_sklearn_finalizer": [
+          0.06354111600012402,
+          0.06627621300140163,
+          0.061202138000226114
+        ],
+        "portable_numba_finalizer": [
+          0.06644736099951842,
+          0.07125704800091626,
+          0.058212354000716005
+        ],
+        "sklearn_lloyd": [
+          0.06823371799873712,
+          0.095857361000526,
+          0.06490293400020164
+        ]
+      },
+      "cpu_seconds": {
+        "portable_sklearn_finalizer": [
+          0.11983222299999996,
+          0.12396349900000025,
+          0.1157091170000002
+        ],
+        "portable_numba_finalizer": [
+          0.12454249599999967,
+          0.13863724999999993,
+          0.1120942239999998
+        ],
+        "sklearn_lloyd": [
+          0.11727712999999995,
+          0.17423658100000017,
+          0.11164773299999986
+        ]
+      },
+      "median_seconds": {
+        "portable_sklearn_finalizer": 0.06354111600012402,
+        "portable_numba_finalizer": 0.06644736099951842,
+        "sklearn_lloyd": 0.06823371799873712
+      },
+      "mad_seconds": {
+        "portable_sklearn_finalizer": 0.0023389779998979066,
+        "portable_numba_finalizer": 0.004809687001397833,
+        "sklearn_lloyd": 0.0033307839985354804
+      },
+      "repeat_bitwise_consistent": {
+        "portable_sklearn_finalizer": true,
+        "portable_numba_finalizer": true,
+        "sklearn_lloyd": true
+      },
+      "repetition_validation": {
+        "portable_sklearn_finalizer": [
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 5.551115123125783e-16,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584858,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 5.551115123125783e-16,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584858,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 5.551115123125783e-16,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584858,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          }
+        ],
+        "portable_numba_finalizer": [
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 5.551115123125783e-16,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584856,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 5.551115123125783e-16,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584856,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 5.551115123125783e-16,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584856,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          }
+        ],
+        "sklearn_lloyd": [
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 0.0,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584874,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 0.0,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584874,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          },
+          {
+            "labels_equal": true,
+            "label_mismatches": 0,
+            "centers_allclose": true,
+            "center_max_abs": 0.0,
+            "inertia_allclose": true,
+            "inertia_direct_allclose": true,
+            "inertia": 1197730.5945584874,
+            "independent_direct_inertia": 1197730.5945584856,
+            "n_iter": 20,
+            "n_iter_equal": true,
+            "all_final_clusters_nonempty": true,
+            "all_core_clusters_nonempty": true,
+            "finalized_labels": true,
+            "matched": true
+          }
+        ]
+      },
+      "input_unchanged": true,
+      "source_unchanged": true,
+      "cpu_affinity": [
+        0,
+        1
+      ],
+      "threadpools": [
+        {
+          "user_api": "blas",
+          "internal_api": "openblas",
+          "num_threads": 2,
+          "prefix": "libscipy_openblas",
+          "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-fdde5778.so",
+          "version": "0.3.30",
+          "threading_layer": "pthreads",
+          "architecture": "SkylakeX"
+        },
+        {
+          "user_api": "blas",
+          "internal_api": "openblas",
+          "num_threads": 2,
+          "prefix": "libscipy_openblas",
+          "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/scipy.libs/libscipy_openblas-6cdc3b4a.so",
+          "version": "0.3.30",
+          "threading_layer": "pthreads",
+          "architecture": "SkylakeX"
+        },
+        {
+          "user_api": "openmp",
+          "internal_api": "openmp",
+          "num_threads": 2,
+          "prefix": "libgomp",
+          "filepath": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/scikit_learn.libs/libgomp-e985bcbb.so.1.0.0",
+          "version": null
+        }
+      ],
+      "time_utc": "2026-10-01T01:10:08Z"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+0 sklearn_twice 0.568605 exact
+0 public_numba 0.199092 exact
+0 public_sqrt_numba 0.183056 exact
+0 public_numpy 0.376268 exact
+1 public_numpy 0.378728 exact
+1 public_numba 0.191919 exact
+1 sklearn_twice 0.539309 exact
+1 public_sqrt_numba 0.201493 exact
+2 public_sqrt_numba 0.198325 exact
+2 sklearn_twice 0.547467 exact
+2 public_numba 0.193406 exact
+2 public_numpy 0.366061 exact
+3 public_sqrt_numba 0.203241 exact
+3 public_numba 0.194005 exact
+3 sklearn_twice 0.55433 exact
+3 public_numpy 0.381866 exact
+{"status": "complete", "ratios": {"public_numpy": 1.4455422531934867, "public_numba": 2.8306623218298888, "public_sqrt_numba": 2.717058000711775}, "path": "/workspace/scratch/c3932542689e/restart_v2/evidence/public_metrics_digits/summary.json"}

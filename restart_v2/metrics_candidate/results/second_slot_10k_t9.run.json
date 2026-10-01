@@ -1,0 +1,11 @@
+{
+  "summary_completed_utc": "2026-10-01T00:01:08.006131+00:00",
+  "raw_output": "restart_v2/metrics_candidate/results/second_slot_10k_t9.jsonl",
+  "methods": [
+    "sklearn",
+    "numpy_broadcast",
+    "numba",
+    "sqrt_numba"
+  ],
+  "summary_checks_pass": true
+}

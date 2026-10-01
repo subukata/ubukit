@@ -1,0 +1,6 @@
+sklearn            0.328457s ± 0.001581  RSS 219.8MiB
+numpy_broadcast    0.267711s ± 0.000028  RSS 159.6MiB
+numpy_sortsearch   0.277333s ± 0.002187  RSS 159.1MiB
+sklearn 1.0 scores True penalties None
+numpy_broadcast 1.2269122560988022 scores True penalties True
+numpy_sortsearch 1.1843447936622207 scores True penalties True

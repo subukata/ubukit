@@ -1,0 +1,13 @@
+{
+  "input_sha256": {
+    "X": "9c98b7c9510e7c5ef3a3ead24c12dc28c6dec0f58b353f0b25c1e42c48f9b0b2",
+    "R": "423f053767168a424a50c145b4bd0ba2614c566818943eee177b2462b976061a"
+  },
+  "tol": 0.0001,
+  "max_iters": 1000,
+  "initialization_threads": 9,
+  "kernel_threads": 9,
+  "source": "pinned original SOMOLP.fit first timed cold fit",
+  "original_source_sha256": "7761f76770fa846f106ea031141bb953cda9d5967dc6b88d169649ee6cc2057d",
+  "initialization": "original_direct"
+}

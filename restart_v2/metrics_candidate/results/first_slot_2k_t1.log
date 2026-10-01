@@ -1,0 +1,8 @@
+sklearn            0.322105s ± 0.001015  RSS 217.2MiB
+numpy              0.257176s ± 0.000204  RSS 160.2MiB
+numba              0.095745s ± 0.001219  RSS 288.8MiB
+sqrt_numba         0.091897s ± 0.000840  RSS 288.7MiB
+sklearn 1.0 scores True penalties None
+numpy 1.2524682933387827 scores True penalties True
+numba 3.36419694934087 scores True penalties True
+sqrt_numba 3.5050599176194197 scores True penalties True

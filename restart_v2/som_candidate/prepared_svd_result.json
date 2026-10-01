@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "parameterized_tiny_fits": 18,
+  "worst_absolute": {
+    "W0": 0.0,
+    "P0": 0.0,
+    "W": 0.0,
+    "P": 0.0,
+    "V": 0.0,
+    "history": 0.0
+  },
+  "original_mutation_isolated": true,
+  "owned_arrays_readonly": true,
+  "fresh_state_per_fit": true,
+  "rank_capacity_checked": true,
+  "changed_input_shape_dtype_checked": true,
+  "convergence_n_iter": 8
+}
