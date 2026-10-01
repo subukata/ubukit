@@ -1,3 +1,4 @@
+import { checkpoint } from './session-hooks.js';
 import { positiveInteger, finiteNumber, assertFinite, seededRandom, checkCancelled, progress, squaredDistance } from './core.js';
 
 const DEFAULT_MEMORY = 512 * 1024 ** 2;
@@ -256,6 +257,7 @@ export class PreparedRMCM {
         const repeated = history.find(state => state.hash === hash && equalState(state, labels, centers));
         if (repeated) { stopReason = 'cycle'; cycleLength = iterations - repeated.iteration; }
       }
+      checkpoint(options, { algorithm: 'rmcm', centers, labels, membership: null, membershipLayout: 'samples-clusters', iterations, converged: stopReason === 'fixed_point', stopReason: stopReason === 'max_iter' && iterations < maxIterations ? null : stopReason, cycleLength, delta: g.delta, nEdges: g.nEdges, emptyClusterUpdates, nSamples: n, nFeatures: d, nClusters: k, backend: `javascript-float64-${g.backend}`, estimatedPrimaryBytes: estimatedBytes, labelContract: 'hard assignment that produced returned centers; no final reassignment', membershipContract: 'available after finalization; R = P H from returned labels' });
       const e = { algorithm: 'rmcm', iteration: iterations, maxIterations, converged: stopReason === 'fixed_point', stopReason: stopReason === 'max_iter' && iterations < maxIterations ? null : stopReason, cycleLength };
       progress(options, e); yield e;
       if (stopReason !== 'max_iter') break;
