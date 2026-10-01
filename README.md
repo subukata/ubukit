@@ -20,6 +20,35 @@
 `0.2.0a2`、FCM / RCM・ExRCM / JavaScript は追加の研究用候補です。
 このリポジトリからの導入を案内しており、PyPI / npm 公開済みとはしていません。
 
+## RMCM（Rough Membership C-means）
+
+固定したδ近傍内のクラスタ占有率を所属度にする手法です。RCM/ExRCMおよびRMCM2とは別手法です。
+
+```sh
+python -m pip install ./rmcm_challenge
+```
+
+```python
+import numpy as np
+from ubukit_rmcm import fit_rmcm
+X = np.array([[0.0], [1.0], [3.0], [8.0], [9.0]])
+result = fit_rmcm(X, n_clusters=2, delta=2.0, random_state=42)
+print(result.centers)
+print(result.memberships)
+print(result.stop_reason)
+```
+
+- [Pythonの使い方・出力契約](rmcm_challenge/USAGE_JA.md)
+- [前計算による高速化の式](rmcm_challenge/THEORY.md)
+- [Pythonの性能要約](rmcm_challenge/REPORT.md)
+- [JavaScript APIとWorker](javascript/docs/RMCM.md)
+- [JavaScript実行例](javascript/examples/rmcm.js)
+- [JavaScript性能要約](javascript/docs/RMCM_BENCHMARK.md)
+
+近傍はユークリッド距離≤δ、自己点を含みます。既定のadjoint版は固定近傍を前計算します。収束保証はなく、停止理由はfixed_point / cycle / max_iterを区別します。返却所属度は返却重心を生成した所属度です。ほぼ同距離の境界では加算順の丸め差が軌道を変える場合があります。
+
+[PythonとJavaScriptの同一条件比較](docs/PYTHON_VS_JAVASCRIPT_JA.md)も参照できます。
+
 ## インストール
 
 ### Python
@@ -320,3 +349,4 @@ python -m unittest discover -s restart_v2/tests -v
 第三者由来の表示は [NOTICE.txt](restart_v2/NOTICE.txt)、[LICENSE-SOM.txt](restart_v2/LICENSE-SOM.txt)、
 [JavaScript の SOM-OLP 表示](javascript/LICENSES/SOM-OLP-MIT.txt) に保持しています。
 これらはプロジェクト全体への新たなライセンス付与を意味しません。
+

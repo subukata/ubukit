@@ -1,14 +1,16 @@
 import { kmeansSteps, fcmSteps, rcmSteps, exrcmSteps, consumeSteps } from './clustering.js';
+import { rmcmSteps } from './rmcm.js';
 import { somOlpSteps } from './som-olp.js';
 import { neighborhoodSteps } from './neighborhood.js';
 import { checkCancelled, finiteNumber } from './core.js';
 export { kmeans, fcm, rcm, exrcm, membershipsFromSquaredDistances, roughAdmissible } from './clustering.js';
+export { rmcm, rmcmReference, rmcmSteps, prepareRMCM, prepareRMCMSteps, PreparedRMCM } from './rmcm.js';
 export { somOlp, somOlpSteps } from './som-olp.js';
 export { neighborhood, neighborhoodSteps } from './neighborhood.js';
 export { normalizeInput, seededRandom } from './core.js';
 export { createWorkerClient } from './worker-client.js';
-export const algorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'som-olp', 'neighborhood']);
-const registry = { kmeans: kmeansSteps, fcm: fcmSteps, rcm: rcmSteps, exrcm: exrcmSteps, 'som-olp': somOlpSteps, neighborhood: neighborhoodSteps };
+export const algorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'rmcm', 'som-olp', 'neighborhood']);
+const registry = { kmeans: kmeansSteps, fcm: fcmSteps, rcm: rcmSteps, exrcm: exrcmSteps, rmcm: rmcmSteps, 'som-olp': somOlpSteps, neighborhood: neighborhoodSteps };
 export function steps(algorithm, input, options = {}) {
   if (!Object.hasOwn(registry, algorithm)) throw new RangeError(`Unknown algorithm ${algorithm}; choose ${algorithms.join(', ')}`);
   return registry[algorithm](input, options);
@@ -28,3 +30,4 @@ export async function runAsync(algorithm, input, options = {}) {
     }
   } finally { iterator.return?.(); }
 }
+
