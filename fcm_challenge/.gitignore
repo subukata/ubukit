@@ -1,0 +1,8 @@
+.deps/
+__pycache__/
+*.pyc
+*.nbc
+*.nbi
+.pytest_cache/
+build/
+*.egg-info/

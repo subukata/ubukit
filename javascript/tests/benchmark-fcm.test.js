@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { fcm } from '../src/index.js';
+import { referenceFcmLinear } from '../bench/fcm-linear-reference.js';
+const fixture=JSON.parse(fs.readFileSync(new URL('../fixtures/fcm-python.json',import.meta.url)));
+function close(actual,expected){assert.equal(actual.length,expected.length);for(let i=0;i<actual.length;i++)assert.ok(Math.abs(actual[i]-expected[i])<=2e-12*Math.max(1,Math.abs(expected[i])),`${i}: ${actual[i]} vs ${expected[i]}`);}
+for(const c of fixture.cases)test(`linear FCM benchmark reference matches Python and production m=${c.m}`,()=>{const input={data:Float64Array.from(fixture.X.flat()),nSamples:fixture.X.length,nFeatures:fixture.X[0].length};const options={nClusters:fixture.init[0].length,initMembership:Float64Array.from(fixture.init.flat()),m:c.m,maxIterations:fixture.max_iter,tolerance:fixture.tol,returnHistory:true};const ref=referenceFcmLinear(input,options),prod=fcm(input,options);for(const key of ['centers','membership','objectiveHistory'])close(ref[key],prod[key]);close(ref.centers,c.centers.flat());close(ref.membership,c.membership.flat());close([ref.objective,ref.fpc,ref.delta],[prod.objective,prod.fpc,prod.delta]);assert.deepEqual(ref.labels,prod.labels);assert.equal(ref.iterations,prod.iterations);});
+test('linear FCM reference handles zero-distance ties and retained empty cluster',()=>{const input={data:Float64Array.of(0,0,4),nSamples:3,nFeatures:1},options={nClusters:3,initMembership:Float64Array.of(.5,.5,0,.5,.5,0,.5,.5,0),m:2,maxIterations:3,tolerance:0};const ref=referenceFcmLinear(input,options),prod=fcm(input,options);close(ref.centers,prod.centers);close(ref.membership,prod.membership);close([ref.objective,ref.fpc,ref.delta],[prod.objective,prod.fpc,prod.delta]);});

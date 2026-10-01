@@ -1,0 +1,20 @@
+{
+  "name": "ubukit-js",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zero-dependency Float64Array CPU clustering and neighborhood evaluation for browser demos",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./worker": "./src/worker-client.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "bench": "node bench/run.js --all",
+    "demo": "node demo/serve.js",
+    "bench:clustering": "node bench/run.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
