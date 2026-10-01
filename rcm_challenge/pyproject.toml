@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ubukit-exrcm-research"
+version = "0.1.0"
+description = "Independent ExRCM normalized binary-overlap research implementation"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.23"]
+
+[project.optional-dependencies]
+scipy = ["scipy>=1.9"]
+numba = ["numba>=0.59"]
+
+[tool.setuptools]
+py-modules = ["rough_cmeans", "_numba_kernel"]
