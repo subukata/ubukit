@@ -31,3 +31,7 @@ export async function runAsync(algorithm, input, options = {}) {
   } finally { iterator.return?.(); }
 }
 
+
+export { createSession, ClusteringSession, sessionAlgorithms } from './session.js';
+export { createRealtimeWorkerClient } from './realtime-worker-client.js';
+export { createMetricScheduler } from './metric-scheduler.js';

@@ -1,3 +1,5 @@
+import { somPrototypeBlock, somMembershipBlock } from './iteration-kernels.js';
+import { checkpoint } from './session-hooks.js';
 /** SOM-OLP, ported from Seiki Ubukata's MIT-licensed implementation.
  * Upstream commit 4361175b776987d65c348d0132b31d43505e1069.
  * Preserves old-P -> V/W -> new-P -> objective -> stopping order.
@@ -197,40 +199,30 @@ export function* somOlpSteps(input, options = {}) {
   const v = maxIterations === 0 ? null : new Float64Array(n * q);
   const numerator = new Float64Array(m * d), denominator = new Float64Array(m);
   const history = [];
+  const accum = { distortion: 0, entropy: 0 };
   let converged = false;
   for (let iteration = 0; iteration < maxIterations; iteration++) {
     checkCancelled(options); numerator.fill(0); denominator.fill(0); v.fill(0);
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
-      for (let i = start; i < Math.min(n, start + blockRows); i++) {
-        for (let j = 0; j < m; j++) {
-          const value = p[i * m + j]; denominator[j] += value;
-          for (let f = 0; f < d; f++) numerator[j * d + f] += value * data[i * d + f];
-          for (let h = 0; h < q; h++) v[i * q + h] += value * r[j * q + h];
-        }
-      }
+      somPrototypeBlock(data, p, r, numerator, denominator, v, start, Math.min(n, start + blockRows), d, m, q);
       yield* emit(options, { algorithm: 'som-olp', phase: 'update-prototypes', iteration: iteration + 1, completed: Math.min(n, start + blockRows), total: n });
     }
     for (let j = 0; j < m; j++) if (denominator[j] > 0) for (let f = 0; f < d; f++) w[j * d + f] = numerator[j * d + f] / denominator[j];
     assertFinite(w, 'SOM prototypes'); assertFinite(v, 'SOM embedding');
-    let distortion = 0, entropy = 0;
+    accum.distortion = 0; accum.entropy = 0;
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
-      for (let i = start; i < Math.min(n, start + blockRows); i++) {
-        for (let j = 0; j < m; j++) {
-          cost[j] = distance(data, i * d, w, j * d, d) + gamma * distance(v, i * q, r, j * q, q);
-          if (!Number.isFinite(cost[j])) throw new RangeError('SOM local cost overflowed; rescale the data/gamma');
-        }
-        probabilityRow(cost, p, i * m, lambda);
-        for (let j = 0; j < m; j++) { const value = p[i * m + j]; distortion += value * cost[j]; if (value > 0) entropy += value * Math.log(value); }
-      }
+      somMembershipBlock(data, w, v, r, p, cost, start, Math.min(n, start + blockRows), d, m, q, gamma, lambda, accum);
       yield* emit(options, { algorithm: 'som-olp', phase: 'update-memberships', iteration: iteration + 1, completed: Math.min(n, start + blockRows), total: n });
     }
-    const objective = distortion + lambda * entropy;
+    const objective = accum.distortion + lambda * accum.entropy;
     if (!Number.isFinite(objective)) throw new RangeError('SOM objective overflowed; rescale the data');
     history.push(objective);
+    converged = iteration > 0 && Math.abs(objective - history[iteration - 1]) / Math.max(1, Math.abs(history[iteration - 1])) <= tolerance;
+    checkpoint(options, { algorithm: 'som-olp', prototypes: w, centers: w, W: w, memberships: p, membership: p, P: p, embedding: v, V: v, history: Float64Array.from(history), objective, iterations: iteration + 1, nIter: iteration + 1, converged, nSamples: n, nFeatures: d, nUnits: m, nClusters: m, nComponents: q, initialization });
     yield* emit(options, { algorithm: 'som-olp', phase: 'iteration', iteration: iteration + 1, objective, maxIterations });
-    if (iteration > 0 && Math.abs(objective - history[iteration - 1]) / Math.max(1, Math.abs(history[iteration - 1])) <= tolerance) { converged = true; break; }
+    if (converged) break;
   }
   const labels = labelsFromMembership(p, n, m);
   return { algorithm: 'som-olp', prototypes: w, centers: w, W: w,

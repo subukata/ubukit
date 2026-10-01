@@ -1,3 +1,5 @@
+import { fcmCenterBlock, fcmMembershipBlock } from './iteration-kernels.js';
+import { checkpoint, SESSION_WARM_CENTERS } from './session-hooks.js';
 import { normalizeInput, positiveInteger, finiteNumber, assertFinite, seededRandom, checkCancelled, progress, squaredDistance, translatedData, restoreCenters, initializeCenters, labelsFromMembership } from './core.js';
 
 const MIN_NORMAL = 2.2250738585072014e-308;
@@ -54,6 +56,7 @@ export function* kmeansSteps(input, options = {}) {
     for (let c = 0; c < k; ++c) if (counts[c] > 0) for (let f = 0; f < d; ++f) centers[c * d + f] = sums[c * d + f] / counts[c];
     assertFinite(centers, 'centers');
     converged = changed === 0;
+    checkpoint(options, { algorithm: 'kmeans', centers, labels, coreLabels: labels, iterations, converged, nSamples: n, nFeatures: d, nClusters: k, objective: null, inertia: null, labelContract: 'iteration assignment that produced centers; nearest-final-centers only after finalization' }, shifted.origin);
     const event = { algorithm: 'kmeans', iteration: iterations, maxIterations, changed, converged };
     progress(options, event); yield event;
     if (converged) break;
@@ -134,23 +137,29 @@ export function* fcmSteps(input, options = {}) {
   const shifted = translatedData(x), data = shifted.data, centers = new Float64Array(k * d);
   // Empty initial fuzzy clusters retain the data mean, as in the Python oracle.
   for (let f = 0; f < d; ++f) { let sum = 0; for (let i = 0; i < n; ++i) sum += data[i * d + f] / n; for (let c = 0; c < k; ++c) centers[c * d + f] = sum; }
+  if (options[SESSION_WARM_CENTERS]) {
+    const old = options[SESSION_WARM_CENTERS];
+    for (let j = 0; j < centers.length; ++j) centers[j] = old[j] - shifted.origin[j % d];
+  }
   let warm = centers;
   if (options.initCenters != null) warm = initializeCenters({ ...x, data }, k, options, shifted.origin);
   let u = initialMembership({ ...x, data }, warm, k, options, m), unew = new Float64Array(n * k);
   const sums = new Float64Array(k), maxima = new Float64Array(k), newcenters = new Float64Array(k * d), dist = new Float64Array(k), history = [];
+  const accum = { delta2: 0, objective: 0 };
   let iterations = 0, delta = Infinity, objective = Infinity, converged = false;
   for (iterations = 1; iterations <= maxIterations; ++iterations) {
-    sums.fill(0); newcenters.fill(0); maxima.fill(0);
+    sums.fill(0); newcenters.fill(0);
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
-      for (let i = start; i < Math.min(n, start + blockRows); ++i) for (let c = 0; c < k; ++c) {
-        const membership = u[i * k + c], weight = m === 2 ? membership * membership : membership ** m;
-        maxima[c] = Math.max(maxima[c], membership); sums[c] += weight;
-        for (let f = 0; f < d; ++f) newcenters[c * d + f] += weight * data[i * d + f];
-      }
+      fcmCenterBlock(data, u, sums, newcenters, start, Math.min(n, start + blockRows), d, k, m);
       yield { phase: 'centers', iteration: iterations, completedRows: Math.min(n, start + blockRows), totalRows: n };
     }
     for (let c = 0; c < k; ++c) {
+      if (sums[c] < MIN_NORMAL) {
+        let maximum = 0;
+        for (let i = 0; i < n; ++i) maximum = Math.max(maximum, u[i * k + c]);
+        maxima[c] = maximum;
+      }
       if (sums[c] < MIN_NORMAL && maxima[c] > 0) {
         sums[c] = 0; newcenters.fill(0, c * d, (c + 1) * d);
         for (let i = 0; i < n; ++i) { const weight = (u[i * k + c] / maxima[c]) ** m; sums[c] += weight; for (let f = 0; f < d; ++f) newcenters[c * d + f] += weight * data[i * d + f]; }
@@ -158,18 +167,15 @@ export function* fcmSteps(input, options = {}) {
       if (sums[c] > 0) for (let f = 0; f < d; ++f) centers[c * d + f] = newcenters[c * d + f] / sums[c];
     }
     assertFinite(centers, 'centers');
-    let delta2 = 0; objective = 0;
+    accum.delta2 = 0; accum.objective = 0;
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
-      for (let i = start; i < Math.min(n, start + blockRows); ++i) {
-        for (let c = 0; c < k; ++c) dist[c] = squaredDistance(data, i * d, centers, c * d, d);
-        fuzzyRow(dist, unew, i * k, k, m);
-        for (let c = 0; c < k; ++c) { const v = unew[i * k + c], diff = v - u[i * k + c]; delta2 += diff * diff; objective += objectiveTerm(v, dist[c], m); }
-      }
+      fcmMembershipBlock(data, centers, u, unew, dist, start, Math.min(n, start + blockRows), d, k, m, accum);
       yield { phase: 'membership', iteration: iterations, completedRows: Math.min(n, start + blockRows), totalRows: n };
     }
-    [u, unew] = [unew, u]; delta = Math.sqrt(delta2); converged = delta < tolerance;
+    [u, unew] = [unew, u]; objective = accum.objective; delta = Math.sqrt(accum.delta2); converged = delta < tolerance;
     if (options.returnHistory) history.push(objective);
+    checkpoint(options, { algorithm: 'fcm', centers, membership: u, membershipLayout: 'samples-clusters', iterations, converged, nSamples: n, nFeatures: d, nClusters: k, m, objective, delta, ...(options.returnHistory ? { objectiveHistory: Float64Array.from(history) } : {}) }, shifted.origin);
     const event = { algorithm: 'fcm', iteration: iterations, maxIterations, objective, delta, converged };
     progress(options, event); yield event;
     if (converged) break;
@@ -257,6 +263,7 @@ export function* exrcmSteps(input, options = {}) {
     const cycle = cycleWindow > 0 && previous.slice(0, -1).some(old => sameMask(mask, old.mask) && sameMask(centers, old.centers));
     previous.push({ mask: mask.slice(), centers: centers.slice() }); if (previous.length > Math.max(1, cycleWindow)) previous.shift();
     converged = exact || stableState;
+    checkpoint(options, { algorithm, centers, membership: u, mask, membershipLayout: 'samples-clusters', iterations, converged, stopReason: converged ? 'fixedPoint' : cycle ? 'membershipCycle' : null, nSamples: n, nFeatures: d, nClusters: k, alpha, beta, p, cycleWindow, membershipContract: 'iteration membership that produced centers; re-evaluated at final centers after finalization' }, shifted.origin);
     const event = { algorithm, iteration: iterations, maxIterations, converged };
     progress(options, event); yield event;
     if (converged) { stopReason = 'fixedPoint'; break; }

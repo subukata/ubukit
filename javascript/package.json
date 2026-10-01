@@ -2,17 +2,21 @@
   "name": "ubukit-js",
   "version": "0.1.0",
   "private": true,
-  "description": "Zero-dependency Float64Array CPU clustering and neighborhood evaluation for browser demos",
+  "description": "Zero-dependency Float64Array CPU clustering, stateful sessions and neighborhood evaluation for browsers and Node",
   "type": "module",
   "exports": {
     ".": "./src/index.js",
-    "./worker": "./src/worker-client.js"
+    "./worker": "./src/worker-client.js",
+    "./session": "./src/session.js",
+    "./realtime-worker": "./src/realtime-worker-client.js",
+    "./metrics": "./src/metric-scheduler.js"
   },
   "scripts": {
     "test": "node --test tests/*.test.js",
     "bench": "node bench/run.js --all",
     "demo": "node demo/serve.js",
-    "bench:clustering": "node bench/run.js"
+    "bench:clustering": "node bench/run.js",
+    "bench:realtime": "node --expose-gc bench/realtime.js"
   },
   "engines": {
     "node": ">=20"

@@ -1,16 +1,27 @@
 # UbuKit JavaScript 版（0.1.0 ローカルプレビュー）
 
-デモサイトへ直接組み込める、外部依存なしの ES Modules / Float64Array CPU 実装です。
+ブラウザと Node へ組み込める、外部依存なしの ES Modules / Float64Array CPU ライブラリです。
 
-- k-means / FCM / RCM / ExRCM / SOM-OLP / 近傍評価（Trustworthiness・Continuity）
+- k-means / FCM / RCM / ExRCM / RMCM / SOM-OLP / 近傍評価（Trustworthiness・Continuity）
 - 共通 `run` / `runAsync` / Web Worker API
+- 状態を保持する `createSession`、最新入力優先の progressive Worker、近傍評価の debounce/cache API
 - 行優先 TypedArray、再利用バッファ、不要な N×K×D テンソルを作らない計算
 - 進捗通知、AbortSignal、Worker の即時終了によるキャンセル、クライアント再利用
 - Python の明示初期値による照合 fixture と Node テスト、ブラウザ用デモ・検証画面
 
 現時点では npm 公開・デモサイト配信はしていません。WASM/GPU 版ではありません。Node の検証とブラウザの検証は別に扱います。ブラウザの実測状況は `docs/VALIDATION.md` を参照してください。
 
+以下は状態保持 API・今回のカーネル改善より前の測定です。新しい実装の測定は [realtime 計測](docs/REALTIME_BENCHMARK.md) を参照してください。
+
 Node のデモサイズ計測では、同条件の JS 参照実装に対して k-means 12.85×、RCM 7.91×、ExRCM 6.21×、近傍評価 3.94×。FCM は両者 O(NK) のメンバーシップ更新・TypedArray・m=2 最適化で再測定し、本体 8.89 ms／参照 6.10 ms（0.69×）でした。FCM と SOM-OLP（0.85×）は今回の暖機後計測で高速化を確認していません。FCM だけ再測定した時刻と、保持した他方式の測定時刻を分けて記録しています。比較条件は [性能要約](../docs/PERFORMANCE_JA.md) を参照してください。過去の raw data は利用に不要なため同梱せず、同梱スクリプトで再計測できます。
+
+## 動くデータ・段階実行
+
+`createSession` は k-means / FCM / RCM / ExRCM / RMCM / SOM-OLP の途中状態を保持します。`step(count, {timeBudgetMs})` は実際の処理ブロックごとに進め、`snapshot()` は完了した反復のコピーを返します。データの移動・発生・消滅は `updateData`、パラメータ変更は `updateParameters` で明示的に適用します。互換な中心を引き継ぎ、行メンバーシップや RMCM の近傍グラフを必要に応じて無効化します。
+
+`createRealtimeWorkerClient` は最新入力を優先し、古い進捗・結果を抑制します。`createMetricScheduler` は反復法ではない近傍評価用の debounce / cancel / 内容一致 cache です。時間予算は処理ブロック間の soft limit で、初期化・GC を含む厳密な応答時間の保証ではありません。
+
+詳しい使用例、配列形状、更新・無効化・キャンセルの契約は [REALTIME.md](docs/REALTIME.md) にあります。既存の `run` などの API と出力は維持しています。Python の状態保持 API はこの追加には含みません。
 
 ## すぐ試す
 

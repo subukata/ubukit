@@ -305,6 +305,17 @@ try {
 手法ごとの [JavaScript 入出力・呼出例](docs/JAVASCRIPT_JA.md)、[Worker・キャンセル等の仕様](javascript/README.md)。
 Python と JS では seed の乱数系列や同距離順位規則が異なるため、同じ seed だけで結果一致は保証しません。
 
+## JavaScript の状態保持・リアルタイム処理
+
+動くデータには `createSession` を使い、`step` で段階実行、`snapshot` で完了した反復を取得できます。`updateData` は点の移動・発生・消滅、`updateParameters` はパラメータ変更を扱い、互換な中心を保持しながら古い所属度や近傍グラフを明示的に無効化します。
+
+- [実行例](javascript/examples/realtime.js): `node javascript/examples/realtime.js`
+- [Session / 最新入力優先 Worker / 近傍評価 cache の契約](javascript/docs/REALTIME.md)
+- [初回・暖機後・step p50/p95 を分けた計測](javascript/docs/REALTIME_BENCHMARK.md)
+- [Python との対応と更新契約](javascript/docs/PYTHON_REALTIME_CONTRACT.md)
+
+時間予算は処理ブロック間で確認する soft limit です。厳密な応答時間や FPS を保証しません。Python は現行の batch / prepared API を維持しており、今回の状態保持 API は JavaScript 向けです。既存の `run` 等の出力は変えていません。
+
 ## 困ったとき
 
 - `No module named portable_accel` 等: スクリプトを実行するのと同じ `python` で `python -m pip install ...` したか確認してください。リポジトリのルート自体は Python パッケージではありません
