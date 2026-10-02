@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from ubukit_rmcm._graph import _gram_candidates,_radius
-from ubukit_rmcm import prepare_rmcm
+from ubukit._impl.rmcm._graph import _gram_candidates,_radius
+from ubukit._impl.rmcm import prepare_rmcm
 from .test_graph_parity import base
 
 @pytest.mark.parametrize('d',[1,2,3,7,8,9,16,32,64,128])
@@ -41,7 +41,7 @@ def test_auto_full_outputs_and_materialized_count(d,seed):
     for key in vars(aa):np.testing.assert_equal(getattr(aa,key),getattr(bb,key))
 
 def test_auto_dispatch_and_unaudited_scipy_fallback(monkeypatch):
-    import ubukit_rmcm._graph as graph
+    import ubukit._impl.rmcm._graph as graph
     import scipy
     original=graph.graph_blocked_strict;calls=[]
     def record(*args):calls.append(args[0].shape);return original(*args)
@@ -55,7 +55,7 @@ def test_auto_dispatch_and_unaudited_scipy_fallback(monkeypatch):
 
 @pytest.mark.parametrize('d',[8,16,32,64,128])
 def test_auto_sparse_radius_hint_is_scale_translation_and_cluster_safe(d):
-    from ubukit_rmcm._graph import _prefer_sparse_tree
+    from ubukit._impl.rmcm._graph import _prefer_sparse_tree
     rng=np.random.default_rng(d);X=rng.normal(size=(600,d))
     for scale,offset in [(1.,0.),(1e-100,0.),(1e100,1e103)]:
         data=X*scale+offset

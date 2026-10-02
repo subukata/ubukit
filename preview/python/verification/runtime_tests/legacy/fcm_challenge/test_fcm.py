@@ -5,7 +5,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 from scipy.spatial.distance import cdist
 
-from ubukit_fcm import fit_fcm, fit_fcm_numpy, memberships_from_squared_distances
+from ubukit._impl.fcm import fit_fcm, fit_fcm_numpy, memberships_from_squared_distances
 
 BACKENDS = ['numpy', 'scipy', 'blas']
 if importlib.util.find_spec('numba'):

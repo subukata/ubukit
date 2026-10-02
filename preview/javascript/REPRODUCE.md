@@ -1,7 +1,7 @@
 # Reproduce JavaScript dev6 efficiency, SOM and external metrics
 
 This repository snapshot pairs JavaScript `0.1.0-dev.6` with Python
-`0.0.0.dev5`. Both retain traditional SOM; the external-metric runtime is unchanged. Runtime dependencies added: zero. The source is a private preview;
+`0.0.0.dev6`. Both retain traditional SOM; the external-metric runtime is unchanged. Runtime dependencies added: zero. The source is a private preview;
 no npm/PyPI publication or deployment is implied. For both languages, start with
 [the aggregate replay instructions](../REPRODUCE.md).
 

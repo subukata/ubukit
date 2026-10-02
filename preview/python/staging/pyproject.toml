@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ubukit-bundled-local-preview"
-version = "0.0.0.dev5"
+version = "0.0.0.dev6"
 description = "Local-only UbuKit prototype with sample-major membership axes"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,10 +23,9 @@ numba = ["numba>=0.60"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-py-modules = ["rough_cmeans", "_numba_kernel", "external_metrics", "_external_metrics_numba"]
 include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["ubukit", "portable_accel", "portable_accel.*", "ubukit_fcm", "ubukit_rmcm"]
+include = ["ubukit", "ubukit.*"]
 namespaces = false

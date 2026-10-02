@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-import rough_cmeans as rough
+import ubukit._impl.rough_cmeans as rough
 from scipy.spatial.distance import cdist
 import importlib.util,sys
 from pathlib import Path

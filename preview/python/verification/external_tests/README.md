@@ -1,6 +1,8 @@
+> Namespace dev6: this harness now imports implementation modules only under `ubukit._impl`; ownership guards require the installed `ubukit` tree. Frozen numerical fixtures/tolerances and oracle bytes remain unchanged. Current runtime hashes are in `staging/SOURCE_MANIFEST.json` relative to the Python preview root; historical hashes/results below are not new migration measurements.
+
 # Installed external-metrics regression gate
 
-This gate exercises the two frozen external-metrics modules and the three lazy `ubukit` aliases in the private `0.0.0.dev4` distribution (unchanged external-metric runtime). It never imports an implementation from the checkout. The canonical modules must be owned by the selected virtualenv's installed distribution RECORD and their SHA-256 hashes must match that RECORD before and after execution.
+This gate exercises the two frozen external-metrics modules and the three lazy `ubukit` aliases in the private `0.0.0.dev6` distribution (namespace-only import relocation). It never imports an implementation from the checkout. The canonical modules must be owned by the selected virtualenv's installed distribution RECORD and their SHA-256 hashes must match that RECORD before and after execution.
 
 ## Run
 

@@ -1,9 +1,9 @@
 import json,subprocess,sys,unittest
 import numpy as np
-from portable_accel import ExecutionPolicy,prepare,fit_kmeans,joint_quality,fit_som_olp,initialize_som_olp,run_som_olp
+from ubukit._impl.portable_accel import ExecutionPolicy,prepare,fit_kmeans,joint_quality,fit_som_olp,initialize_som_olp,run_som_olp
 class Foundation(unittest.TestCase):
     def test_lazy(self):
-        s=subprocess.check_output([sys.executable,'-c',"import sys,json;import portable_accel;print(json.dumps([n for n in ('numpy','scipy','sklearn','numba','llvmlite') if n in sys.modules]))"],text=True)
+        s=subprocess.check_output([sys.executable,'-c',"import sys,json;import ubukit._impl.portable_accel;print(json.dumps([n for n in ('numpy','scipy','sklearn','numba','llvmlite') if n in sys.modules]))"],text=True)
         self.assertEqual(json.loads(s),[])
     def test_snapshot(self):
         x=np.arange(30.).reshape(10,3);p=prepare(x);x[:]=0;self.assertEqual(p.X[1,0],3.)
@@ -37,7 +37,7 @@ class Foundation(unittest.TestCase):
                 with ExecutionPolicy().activate():ref=[(trustworthiness(x,y,n_neighbors=k),trustworthiness(y,x,n_neighbors=k)) for k in (2,4)]
                 got=joint_quality(x,y,[2,4,2],policy=ExecutionPolicy(block_rows=3));self.assertEqual([(q.trustworthiness,q.continuity) for q in got],ref)
     def test_som_reference(self):
-        from portable_accel._backends.som_reference import fit
+        from ubukit._impl.portable_accel._backends.som_reference import fit
         x=np.random.default_rng(3).normal(size=(17,5));r=np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])
         got=fit_som_olp(x,r,gamma=.5,lam=1.,max_iters=3);ref=fit(x,r,.5,1.,max_iters=3,threads=1)
         for key in ('W','P','V','history'):np.testing.assert_array_equal(got[key],ref[key])

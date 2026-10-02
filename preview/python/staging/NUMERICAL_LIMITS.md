@@ -109,7 +109,7 @@ is claimed.
 
 ## Opt-in localized SOM-OLP probability tails
 
-The explicit `portable_accel.som_olp_localized` functions are experimental and
+The explicit `ubukit._impl.portable_accel.som_olp_localized` functions are experimental and
 do not change the existing defaults. Direct float64 reductions and heuristic
 cancellation guards can produce different nonconvex trajectories. Extreme
 inputs, optional backends and insufficient scratch budgets retain the original

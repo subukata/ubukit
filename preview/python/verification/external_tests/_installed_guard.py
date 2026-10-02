@@ -7,8 +7,9 @@ from pathlib import Path
 import sys
 import sysconfig
 
-RUNTIME_ROOTS = ('ubukit', 'portable_accel', 'ubukit_fcm', 'ubukit_rmcm',
-                 'rough_cmeans', '_numba_kernel', 'external_metrics', '_external_metrics_numba')
+RUNTIME_ROOTS = ('ubukit',)
+LEGACY_ROOTS = {'portable_accel', 'ubukit_fcm', 'ubukit_rmcm',
+                'rough_cmeans', '_numba_kernel', 'external_metrics', '_external_metrics_numba'}
 
 def check_installed(distribution='ubukit-bundled-local-preview', verify_hashes=False):
     if sys.prefix == sys.base_prefix:
@@ -19,6 +20,9 @@ def check_installed(distribution='ubukit-bundled-local-preview', verify_hashes=F
         raise AssertionError('Editable installation is not an installed-wheel verification')
     roots = {Path(sysconfig.get_path(key)).resolve() for key in ('purelib', 'platlib')}
     files = {Path(dist.locate_file(item)).resolve(): item for item in (dist.files or [])}
+    for item in dist.files or []:
+        top = Path(item).parts[0]
+        assert top.removesuffix('.py') not in LEGACY_ROOTS, ('legacy runtime packaged', str(item))
     def owned(path):
         p = Path(path).resolve()
         assert any(p.is_relative_to(root) for root in roots), ('outside virtualenv site-packages', str(p))

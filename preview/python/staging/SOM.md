@@ -18,8 +18,8 @@ assert online['embedding'].shape == batch['embedding'].shape == (4, 2)
 ```
 
 `fit_som` and `fit_som_batch` are aliases of `som` and `som_batch` respectively.
-All seven additions, including `SOMState`, are available from both `ubukit` and
-`portable_accel`. Importing the facade remains lazy, without loading NumPy/Numba.
+All seven additions, including `SOMState`, are public from `ubukit`. The
+implementation under `ubukit._impl.portable_accel` is private. Importing the facade remains lazy, without loading NumPy/Numba.
 
 ## Mathematical definitions
 

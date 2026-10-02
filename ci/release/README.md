@@ -3,12 +3,13 @@
 ## Exact candidate and scope
 
 - Repository: `subukata/ubukit` (private)
-- Source commit: `934b506cd6250e1e9b9ea5ce2a419330f29de487` (PR8 facade version correction included)
-- Python `0.0.0.dev5`; JavaScript `0.1.0-dev.6`
-- The initial CI introduction added `.github/workflows/private-candidate.yml` and `ci/release/**`. The follow-up portability correction also updates `preview/python/verification/runtime_tests/som_kmeans_extension/test_scipy_blas.py` and its entry in `preview/VERIFICATION_SNAPSHOT.json`. No runtime files, frozen oracles, publishing configuration, licenses, visibility, secrets, or billing settings change
-- The owner approved private integration and staged execution on 2026-10-02. This workflow is manual-only; it never automatically starts the next OS stage
+- Target source: Python namespace `0.0.0.dev6`; JavaScript `0.1.0-dev.6` is unchanged
+- Execution remains locked to historical PR8 source commit `934b506cd6250e1e9b9ea5ce2a419330f29de487` in both the workflow input and `verify_checkout.py`. That dev5 commit does not satisfy the dev6 source gate. These local driver/plan adaptations do not select or authorize a new candidate or any CI dispatch
+- Before dev6 execution, obtain separate approval for an exact reviewed source SHA and staged run; update both SHA locks together. Do not weaken the exact-SHA or runtime-snapshot checks, or reuse dev5 artifacts/results as dev6 evidence
+- The inherited harness includes the PR8 facade and cross-platform overflow-test corrections. This CI update changes the dev6 version/count/namespace expectations, requires the namespace regression input, and aligns the runtime constraints with the observed dev6 stack (NumPy 2.3.5, SciPy 1.17.0, scikit-learn 1.8.0, threadpoolctl 3.6.0); it does not change runtime code or numerical assertions
+- The previous 2026-10-02 private integration/staged-run approval was for dev5. This workflow remains manual-only; it never automatically starts the next OS stage
 
-The workflow checks out its own harness/verification commit into `harness/` and the reviewed artifact source into `candidate/`. Python tests execute from the workflow-bound verification checkout, whose complete snapshots are verified and whose runtime SOURCE_SNAPSHOT must be byte-identical to the frozen candidate. This permits reviewed test-only portability corrections while reusing exactly the same wheel/sdist/tgz. Both checkout SHAs and the artifact source binding are verified. The artifact source verifier fails closed on any other candidate SHA. Git's process-local `core.autocrlf=false` preserves byte hashes on Windows
+The workflow checks out its own harness/verification commit into `harness/` and the reviewed artifact source into `candidate/`. Python tests execute from the workflow-bound verification checkout, whose complete snapshots are verified and whose runtime SOURCE_SNAPSHOT must be byte-identical to the frozen candidate. This permits reviewed test-only portability corrections while reusing exactly the same wheel/sdist/tgz. Both checkout SHAs and the artifact source binding are verified. The artifact source verifier fails closed on any other candidate SHA; the retained historical pin also fails the new dev6 source-version check. Git's process-local `core.autocrlf=false` preserves byte hashes on Windows
 
 ## Staged execution
 
@@ -32,7 +33,7 @@ A single build produces wheel, sdist and npm tarball with SHA-256 manifests. Eve
 
 Read-only observation on 2026-10-02 showed the account's current-month Actions panel at 0 of 2,000 minutes and 0 of 0.5 GB storage used. The existing account-wide Actions budget was $0 with Stop usage enabled. These were directly observed, not inferred from the plan. No setting was changed
 
-Immediately before executing:
+After a separately approved dev6 candidate has been locked, immediately before each approved execution:
 
 1. Recheck https://github.com/settings/billing and https://github.com/settings/billing/budgets for account `subukata`
 2. Confirm sufficient included usage remains and the account-wide Actions product budget is still $0 with Stop usage enabled. If not, stop; do not change spending limits or use a paid runner
@@ -46,13 +47,15 @@ Official references: [Actions billing](https://docs.github.com/en/billing/concep
 
 ## Gate details
 
-- Portable source verification: all 89 runtime hashes, exact runtime path sets and 463 committed verification hashes; confirms the PR8 facade correction without changing source
-- Python: independent clean wheel and sdist venvs, binary runtime dependencies, pip check, source ownership/hash checks, focused tests, 113 high-precision oracle cases, facade and both examples. Linux additionally runs inherited runtime/external harnesses and new tests. Build backend constraints prevent an unconstrained setuptools upgrade during sdist installation
+- Portable source verification: all 90 runtime hashes (63 Python under `ubukit`, 27 unchanged JavaScript), exact runtime path sets and every committed `VERIFICATION_SNAPSHOT.json` entry; retains the PR8 facade-harness parity check
+- Python: independent clean wheel and sdist venvs, binary runtime dependencies, pip check, source ownership/hash checks, sole `ubukit` top-level ownership, absence of all seven former top-level names, 38 facade exports, focused tests including `test_namespace.py`, 113 high-precision oracle cases, facade and both examples. Linux additionally runs inherited runtime/external harnesses and new tests. Build backend constraints prevent an unconstrained setuptools upgrade during sdist installation
 - JavaScript: offline, scripts-disabled installation of the same frozen tgz; 45 test files; package documentation, VM/worker, SOM VM, differential and efficiency-worker stages
 - Browser: each engine runs SOM/worker/routes/cache checks normally, with WebAssembly unavailable, and with CSP forbidding WASM compilation; normal mode requires real WASM assignment/finalization with no fallback. A separate page executes the sklearn fixture sweep and external-metrics module worker. Each scenario records failures and keeps testing the remaining engines; failures are never skips
 - Tooling: official actions pinned to verified immutable commit SHAs. Playwright `1.63.0` and its three-package dependency tree are locked through normal `npm install --package-lock-only --ignore-scripts`; no fabricated lockfile. Playwright remains test-only
 
 ## Explicitly not established by this staged plan
+
+Dev6 has not been newly validated on Windows or macOS by these adaptations. The available namespace-migration evidence is local Linux x86_64 / CPython 3.12; historical dev5 cross-platform passes do not qualify dev6.
 
 No native Safari, installed Chrome/Edge channels, Intel macOS, additional architectures, Python 3.10/3.11/3.13/3.14, Node 20/22/26, or optional Numba claims. WebKit is not Safari. No demo UI/visual/accessibility acceptance or every-algorithm browser suite is promised. Python's lower declared dependency bounds remain separate compatibility work. Full dependency reproducibility across OSes is not claimed: runtime pins and key build tools are constrained, while transitive/platform dependencies are resolved and captured in per-install freeze logs
 

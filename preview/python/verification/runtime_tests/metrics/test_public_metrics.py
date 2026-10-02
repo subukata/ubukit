@@ -1,7 +1,7 @@
 import numpy as np,json
 from .._support import portable_oracle
 old=portable_oracle.joint_quality;P0=portable_oracle.ExecutionPolicy
-from portable_accel import joint_quality as new,ExecutionPolicy as P1
+from ubukit._impl.portable_accel import joint_quality as new,ExecutionPolicy as P1
 
 def test_public_metrics():
     rng=np.random.default_rng(248);count=0

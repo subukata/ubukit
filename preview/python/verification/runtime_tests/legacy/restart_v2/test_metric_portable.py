@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
-from portable_accel import joint_quality,ExecutionPolicy
-from portable_accel._optional import numba_available
+from ubukit._impl.portable_accel import joint_quality,ExecutionPolicy
+from ubukit._impl.portable_accel._optional import numba_available
 class MetricPortableIntegration(unittest.TestCase):
     def test_backends_and_rank_blocks(self):
         rng=np.random.default_rng(71)

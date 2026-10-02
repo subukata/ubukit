@@ -6,9 +6,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
-from ubukit_fcm import fit_fcm, memberships_from_squared_distances
-from ubukit_fcm._robust import distance_parts, memberships_and_logweights, weighted_centers
-from portable_accel._som_numerics import normalize_costs_inplace
+from ubukit._impl.fcm import fit_fcm, memberships_from_squared_distances
+from ubukit._impl.fcm._robust import distance_parts, memberships_and_logweights, weighted_centers
+from ubukit._impl.portable_accel._som_numerics import normalize_costs_inplace
 
 BACKENDS = ['numpy', 'scipy', 'blas'] + (['numba', 'numba_parallel'] if importlib.util.find_spec('numba') else [])
 

@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose,assert_array_equal
 from scipy.spatial.distance import cdist
-import ubukit_fcm.core as candidate
-import rough_cmeans as rough
+import ubukit._impl.fcm.core as candidate
+import ubukit._impl.rough_cmeans as rough
 from .._support import fcm_oracle as reference, rough_oracle as rough_reference
 def decimal_membership(q,m):
  with localcontext() as ctx:
@@ -72,7 +72,7 @@ def test_multi_seed_convergence_and_returned_objective(backend,m):
 
 @pytest.mark.parametrize('parallel',[False,True])
 def test_new_numba_fused_near_one_and_nonmutating_previous(parallel):
- pytest.importorskip('numba');from ubukit_fcm import _numba
+ pytest.importorskip('numba');from ubukit._impl.fcm import _numba
  x=np.array([[0.]]);centers=np.array([[1e150],[np.nextafter(1e150,np.inf)]]);q=cdist(x,centers,'sqeuclidean');m=np.nextafter(1.,2.);previous=np.full((1,2),.5);before=previous.copy();out=np.empty_like(previous)
  fn=_numba.update_membership_parallel if parallel else _numba.update_membership_serial
  delta=fn(x,centers,previous,out,m)
@@ -134,7 +134,7 @@ def test_one_dimensional_direct_kernel_matches_cdist(scale):
 @pytest.mark.parametrize('d',[16,17,32,128,784])
 @pytest.mark.parametrize('k',[4,5,8,10])
 def test_wide_numba_distances_preserve_point_arithmetic(d,k):
- pytest.importorskip('numba');from ubukit_fcm import _numba
+ pytest.importorskip('numba');from ubukit._impl.fcm import _numba
  rng=np.random.default_rng(d+k);x=rng.normal(size=(3,d));centers=rng.normal(size=(k,d));centers[0]=x[0];previous=rng.random((3,k));previous/=previous.sum(1)[:,None]
  for m in [1+1e-9,1.3,2.,3.5,1000.]:
   a=np.empty_like(previous);b=np.empty_like(previous)
@@ -167,7 +167,7 @@ def test_rough_assignment_only_matches_full_step_outputs(backend,d):
 @pytest.mark.parametrize('m',[np.nextafter(1.,2.),1+1e-12,1+1e-8,1.000099])
 @pytest.mark.parametrize('parallel',[False,True])
 def test_numba_near_one_cutoff_matches_original_kernel(m,parallel):
- pytest.importorskip('numba');from ubukit_fcm import _numba
+ pytest.importorskip('numba');from ubukit._impl.fcm import _numba
  q=1+np.array([0.,128,512,700,745,800,1000,1024,2000])*(m-1);centers=np.sqrt(q)[:,None];x=np.zeros((3,1));u=np.full((3,len(q)),1/len(q));a=np.empty_like(u);b=np.empty_like(u)
  old=_numba.update_parallel if parallel else _numba.update_serial
  new=_numba.update_membership_parallel if parallel else _numba.update_membership_serial

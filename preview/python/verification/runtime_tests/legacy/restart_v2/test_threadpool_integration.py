@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from portable_accel import fit_som_olp,run_som_olp,initialize_som_olp,ExecutionPolicy
+from ubukit._impl.portable_accel import fit_som_olp,run_som_olp,initialize_som_olp,ExecutionPolicy
 class ThreadpoolIntegration(unittest.TestCase):
     def test_public_fit(self):
         rng=np.random.default_rng(5);r=np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])

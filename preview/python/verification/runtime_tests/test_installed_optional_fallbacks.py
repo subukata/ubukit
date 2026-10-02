@@ -58,7 +58,7 @@ print('five explicit optional-backend failures and auto fallback passed')
 def test_bounded_sparse_graph_memory_guard():
     import numpy as np
     import pytest
-    from ubukit_rmcm._graph import graph_tree, graph_blocked
+    from ubukit._impl.rmcm._graph import graph_tree, graph_blocked
     for method in (graph_tree, graph_blocked):
         with pytest.raises(MemoryError):
             method(np.zeros((100,8)),1,1000,4)

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from ubukit_rmcm._graph import _gram_candidates, _screening_coordinates, _audited_float32_blas
-from ubukit_rmcm import prepare_rmcm
+from ubukit._impl.rmcm._graph import _gram_candidates, _screening_coordinates, _audited_float32_blas
+from ubukit._impl.rmcm import prepare_rmcm
 from .test_graph_parity import base
 
 @pytest.mark.parametrize('d',[8,9,16,32,64,128])
@@ -38,7 +38,7 @@ def test_float32_dispatch_falls_back_without_changing_graph_or_guard(d,scale):
 
 
 def test_unaudited_float32_provider_and_high_dimension_fall_back(monkeypatch):
-    import ubukit_rmcm._graph as graph
+    import ubukit._impl.rmcm._graph as graph
     monkeypatch.setattr(graph,'_audited_float32_blas',lambda:False)
     X=np.random.default_rng(8).normal(size=(12,8))
     assert graph._screening_coordinates(X,8.)[0].dtype==np.float64
@@ -68,7 +68,7 @@ def test_actual_float32_matmul_disjoint_boundary_tiles(shape,d,scale):
 @pytest.mark.parametrize('d',[8,32,128,655])
 def test_large_graph_really_uses_float32_sgemm(monkeypatch,d):
     if not _audited_float32_blas():pytest.skip('Float32 BLAS provider not enabled here')
-    import ubukit_rmcm._graph as graph
+    import ubukit._impl.rmcm._graph as graph
     calls=[];original=graph._gram_candidates
     class Tracked(np.ndarray):
         def __matmul__(self,other):

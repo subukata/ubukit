@@ -1,61 +1,66 @@
-# UbuKit: private accelerated sample-major membership candidate
+# UbuKit: private namespace-consolidated candidate
 
-**PRIVATE PREVIEW. Not published to PyPI, TestPyPI, or any other registry.**
-The provisional distribution name `ubukit-bundled-local-preview` is not an
-approved release name. No project-wide license has been selected. The retained
-SOM third-party MIT notice applies to its original/derived code, not the whole
-project. No published-release or general performance claim is made.
+**PRIVATE PREVIEW. Not published to PyPI, TestPyPI, or any registry.**
+The provisional distribution remains `ubukit-bundled-local-preview`; this is not
+an approved public name. No project-wide license has been selected. Existing
+third-party notices remain unchanged and scoped to their original/derived code.
 
-This private dev5 candidate adds one opt-in probability-tail localization module
-on top of the preserved, verified Python dev4 baseline. Its 38 existing exports
-and numerical implementations are unchanged. Among the 61 inherited runtime
-files, 60 are byte-identical and the facade changes only its version literal.
-The validated new numerical module is also byte-identical to the previously
-reviewed candidate. No existing backend or default is replaced.
+This private `0.0.0.dev6` candidate consolidates every implementation under
+`ubukit._impl`. The only installed top-level runtime package is `ubukit`.
+The existing 38 facade exports, signatures, defaults, result contracts, stopping
+rules and numerical implementations are retained. No new algorithm aliases or
+backend defaults are introduced. The opt-in localized SOM-OLP implementation
+from dev5 remains private and opt-in.
 
-`SOURCE_MANIFEST.json` compares this candidate to dev4. This distinct private
-version `0.0.0.dev5` prevents ambiguous installation alongside the retained dev4
-artifact; it is not an approved public release. See
-[EXPERIMENTAL_LOCALIZED_SOM.md](EXPERIMENTAL_LOCALIZED_SOM.md) for explicit use
-and limitations, and [SOM.md](SOM.md) for the inherited traditional SOM APIs.
+`SOURCE_MANIFEST.json` records every current runtime file and its mapped dev5
+source/hash. Four inherited files have import/facade/documentation changes;
+all other inherited runtime files retain their bytes. The only new runtime file
+is the private package marker `ubukit/_impl/__init__.py`. Namespace migration
+is not a new performance claim or a statement of cross-platform qualification.
 
 ## Installation boundary
 
-Use a **new virtual environment**. Do not install this alongside
-`portable-accel-restart`, `ubukit-fcm`, `ubukit-exrcm-research`, `ubukit-rmcm`, or
-the prior `ubukit-local-preview` aggregate. Their RECORDs own overlapping paths;
-uninstalling either distribution can delete the other's runtime files.
-`pip check` does not detect this conflict. The repository preview's
-`tools/check_install_environment.py` is a pre-install check, not an automatic
-pip hook, and intentionally performs no uninstall or repair.
-
-The legacy top-level module `_numba_kernel` is retained because
-`rough_cmeans` imports it directly. An unrelated distribution or local module
-using that name can shadow/collide with the optional RCM backend. Relocating it
-requires a separate compatibility review; this prototype does not relocate it.
-The same environment-isolation rule applies to every preserved top-level name.
+Use a **new virtual environment** for this private trial. The previous aggregate
+installed overlapping top-level modules; upgrading/uninstalling it in a mixed
+legacy environment can remove files another distribution owns. The supplied
+`tools/check_install_environment.py` checks the target environment read-only.
+It blocks actual foreign `ubukit` ownership/imports and an old layout of this
+same aggregate. Unrelated standalone legacy module names no longer collide with
+the new package and do not by themselves block installation. No package is
+removed or repaired automatically. `pip check` alone does not detect file-owner
+collisions.
 
 ```sh
 python -m venv .venv
-.venv/bin/python -m pip install -c /path/to/constraints-som-verified.txt /path/to/ubukit_bundled_local_preview-0.0.0.dev5-py3-none-any.whl
-# Optional: install the same local wheel with the [numba] extra.
+.venv/bin/python -I -B tools/check_install_environment.py
+.venv/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl
+# Optional Numba: install the same local wheel with the [numba] extra.
 ```
 
-A clean environment has only one UbuKit distribution owning these files. All
-original Python imports remain valid:
+The public import is `import ubukit`. Former top-level imports
+`portable_accel`, `ubukit_fcm`, `rough_cmeans`, `ubukit_rmcm`, `external_metrics`,
+`_numba_kernel`, and `_external_metrics_numba` are not installed or aliased.
+Use existing `ubukit` exports instead. Paths under `ubukit._impl` are unsupported
+implementation details, not replacement public imports. Verification code may
+inspect them to protect numerical and backend contracts.
 
-```python
-import ubukit
-import portable_accel
-import ubukit_fcm
-import rough_cmeans
-import ubukit_rmcm
-```
+The `ubukit` root import is lazy and imports neither NumPy nor Numba. Its 38
+exports still comprise 35 aliases and three thin sample-major adapters:
+`fit_rcm`, `fit_exrcm`, and `assign_rcm`.
 
-The `ubukit` root import is lazy. It does not import NumPy or Numba. Its 38
-exports comprise 35 aliases and three thin adapters: `fit_rcm`,
-`fit_exrcm`, and `assign_rcm`. Accessing one of these adapters loads the numerical
-runtime; importing `ubukit` alone still does not.
+## Saved objects and optional compiler caches
+
+The namespace move changes implementation classes/functions' module paths.
+Cross-version pickle compatibility is not promised. Do not patch pickle bytes
+or load untrusted pickle files; retain the original isolated dev5 environment
+when an existing serialized object requires its old module paths. Recreate a
+model from supported data/parameters where possible. This migration adds no
+model persistence format or pickle migration tool.
+
+Old Numba `.nbc`/`.nbi` caches are not distributed or reused as compatibility
+artifacts. Use a fresh candidate-specific cache for validation; first use may
+compile again. Numba remains optional and is loaded only when a selected path
+needs it. No global module aliases recreate old names.
 
 ## Facade membership axes: samples first
 
@@ -90,10 +95,9 @@ still returns `None` for both membership fields. The private legacy result is
 retained so metadata is available; the copies add O(NK) time and storage
 (approximately 9NK bytes for float64 memberships plus bool upper memberships).
 
-All original imports, including `rough_cmeans.fit_rcm`, `rough_cmeans.fit_exrcm`
-and `rough_cmeans.assign`, retain `(K,N)` arrays and their original return types.
-Use those entry points when exact legacy object identity/types or axes are
-required. The prior single-wheel review remains unchanged in its own directory.
+The private RCM implementation retains `(K,N)` arrays and its original result
+type. Only the public facade adapts memberships; private paths are not a public
+legacy-compatibility promise. Retained dev5 artifacts are unchanged separately.
 
 The established public entrypoints and sample-major membership axes remain.
 See the companion correction report for the specific numerical and input-validation
@@ -119,7 +123,7 @@ claimed here.
 
 `ubukit.adjusted_rand_score`, `ubukit.adjusted_mutual_info_score`, and
 `ubukit.adjusted_scores` are lazy aliases of the unchanged functions in the
-preserved top-level module `external_metrics`. The joint helper returns
+private module `ubukit._impl.external_metrics`. The joint helper returns
 `{"ari": ..., "ami": ...}`. AMI accepts `average_method="arithmetic"` (default),
 `"geometric"`, `"min"`, or `"max"`, and `backend="numpy"` (default) or `"numba"`.
 
@@ -130,11 +134,10 @@ cases call the installed scikit-learn implementation to preserve its numerical
 convention. These calls can be slower. Test-panel tolerance is not a universal
 error bound. Optional Numba is imported only when its path is needed.
 
-The generic top-level names `external_metrics` and `_external_metrics_numba`
-are retained to preserve the frozen absolute import. They add potential name
-collisions; the supplied read-only preflight checks both names. The facade
-avoids duplicating their implementation. No user environment is repaired or
-uninstalled automatically.
+The formerly generic external-metrics modules now live under `ubukit._impl`.
+Their optional Numba import is relative. No unrelated top-level module can
+shadow those internal imports. The public facade still aliases the same scoring
+functions without numerical wrappers.
 
 Exact external-metrics attribution is in `NOTICE-EXTERNAL-METRICS.txt` and
 `THIRD_PARTY_LICENSES.txt`. References to `NOTICE.txt` within the unchanged BSD
@@ -143,9 +146,9 @@ longer filename. Its `source_audit.json` is included in the verification
 companion, under `verification/external_provenance/`. No project license is
 chosen. Historical performance results are not new measurements of this wheel.
 
-## Tested environment and installation example
+## Inherited numerical qualification and installation example
 
-This private trial was checked on Linux x86_64 with CPython 3.12.14 only.
+The inherited pre-migration private trial was checked on Linux x86_64 with CPython 3.12.14 only. Namespace-candidate checks are recorded in the separate migration report.
 All integration environments used NumPy 2.3.5, SciPy 1.17.0 and threadpoolctl
 3.6.0. Both scikit-learn 1.7.2 with optional Numba 0.63.1, and scikit-learn
 1.8.0 with optional Numba 0.67.0 were checked. No Windows/macOS, ARM, browser,
@@ -159,10 +162,10 @@ a blocked result; do not co-install or automatically uninstall another owner.
 ```sh
 python3 -m venv .venv-ubukit-preview
 .venv-ubukit-preview/bin/python -I -B tools/check_install_environment.py
-.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev5-py3-none-any.whl
+.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl
 .venv-ubukit-preview/bin/python -I -B examples/all_methods.py
 # Optional Numba in this same isolated environment:
-.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt 'artifacts/ubukit_bundled_local_preview-0.0.0.dev5-py3-none-any.whl[numba]'
+.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt 'artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl[numba]'
 .venv-ubukit-preview/bin/python -I -B examples/all_methods.py --with-numba
 ```
 

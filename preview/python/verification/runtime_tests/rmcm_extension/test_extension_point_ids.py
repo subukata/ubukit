@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from ubukit_rmcm import RMCMGraphCache
+from ubukit._impl.rmcm import RMCMGraphCache
 from .test_graph_parity import base
 
 def equal(a,b):

@@ -1,3 +1,5 @@
+> Namespace dev6: this harness now imports implementation modules only under `ubukit._impl`; ownership guards require the installed `ubukit` tree. Frozen numerical fixtures/tolerances and oracle bytes remain unchanged. Current runtime hashes are in `staging/SOURCE_MANIFEST.json` relative to the Python preview root; historical hashes/results below are not new migration measurements.
+
 # Installed-wheel runtime regressions
 
 This harness tests the installed `ubukit-bundled-local-preview` distribution. It must not be run against a source tree or editable installation. Every canonical runtime import is checked against the selected virtualenv's site-packages and the distribution's wheel RECORD, including recorded file hashes. Frozen baseline/reference modules live under `_oracles/` and load only under `_ubukit_oracle_*` aliases. They are never added to `sys.path`, bundled into the wheel, or used as candidate implementations.
@@ -37,7 +39,7 @@ The driver invokes `python -I -B`, clears `PYTHONPATH`, disables third-party pyt
 7. ARI/AMI is included in the 61-runtime-file package and tested separately under `verification/external_tests`; this original-seven-family harness does not duplicate that full numerical panel.
 8. Obsolete metrics `test_neighbor_query.py` and `test_neighbor_reuse.py` target superseded work candidates. The final validated `test_neighbor_brute.py` is included instead.
 
-This is the inherited dev3 verification harness, adapted for dev4 version and export checks. Traditional SOM tests are in `../../tests/`. Extreme FCM/SOM expectations
+This is the inherited dev3 verification harness, adapted for dev6 version, namespace and 38-export checks. Traditional SOM tests are in `../../tests/`. Extreme FCM/SOM expectations
 were deliberately updated to the reviewed numerical contract; ordinary tests
 remain in place. The final verification manifest at the preview root binds
 the current bytes. Historical copy manifests are not current hash attestations

@@ -9,7 +9,7 @@ from fractions import Fraction
 import numpy as np
 import pytest
 import ubukit
-from portable_accel._som_classic import _schedule, _mulberry32
+from ubukit._impl.portable_accel._som_classic import _schedule, _mulberry32
 
 
 def grid(width, height):

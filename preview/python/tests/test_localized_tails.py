@@ -5,8 +5,8 @@ import math
 import numpy as np
 import pytest
 import ubukit as uk
-from portable_accel.som_olp_localized import run_som_olp_localized, _repair_statistics, _max_abs_columns
-from portable_accel._som_extreme import run as cold_run
+from ubukit._impl.portable_accel.som_olp_localized import run_som_olp_localized, _repair_statistics, _max_abs_columns
+from ubukit._impl.portable_accel._som_extreme import run as cold_run
 
 POLICY = uk.ExecutionPolicy(threads=1, block_rows=3)
 D = lambda x: Decimal.from_float(float(x))

@@ -9,7 +9,7 @@ from sklearn.datasets import load_iris,load_wine,load_breast_cancer
 from sklearn.preprocessing import StandardScaler
 from threadpoolctl import threadpool_info
 import ubukit as uk
-from portable_accel.som_olp_localized import run_som_olp_localized,fit_som_olp_localized
+from ubukit._impl.portable_accel.som_olp_localized import run_som_olp_localized,fit_som_olp_localized
 
 parser=argparse.ArgumentParser();parser.add_argument('--out',required=True);args=parser.parse_args()
 out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True)

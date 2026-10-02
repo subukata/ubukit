@@ -113,7 +113,7 @@ def test_extreme_scratch_cap_is_enforced():
 
 @pytest.mark.parametrize('base',[1.,1e10,1e100,1e300])
 def test_finite_common_quotient_preserves_gap(base):
-    from portable_accel._som_numerics import normalize_costs_inplace
+    from ubukit._impl.portable_accel._som_numerics import normalize_costs_inplace
     next_value=np.nextafter(base,np.inf);gap=next_value-base;lam=.7*gap
     costs=np.array([[base,next_value]])
     normalize_costs_inplace(costs,lam)
@@ -123,7 +123,7 @@ def test_finite_common_quotient_preserves_gap(base):
 @pytest.mark.parametrize('costs,lam',[(np.array([[-np.finfo(float).max,np.finfo(float).max]]),np.finfo(float).max),
                                      (np.array([[0.,1e-323]]),5e-324)])
 def test_normalization_extreme_signs_and_subnormal(costs,lam):
-    from portable_accel._som_numerics import normalize_costs_inplace
+    from ubukit._impl.portable_accel._som_numerics import normalize_costs_inplace
     expected=np.exp(np.array([0.,-2.]));expected/=expected.sum()
     normalize_costs_inplace(costs,lam)
     np.testing.assert_allclose(costs[0],expected,rtol=2e-15,atol=0.)
@@ -161,11 +161,11 @@ def test_unrepresentable_pca_prototypes_fail_explicitly():
     ([1e308,1e308,-np.nextafter(1e308,0.),-np.nextafter(1e308,0.),0.],(1e308-np.nextafter(1e308,0.))*2/5),
 ])
 def test_cold_mean_preserves_cross_exponent_cancellation(values,expected):
-    from portable_accel._som_extreme import _weighted_mean
+    from ubukit._impl.portable_accel._som_extreme import _weighted_mean
     np.testing.assert_allclose(_weighted_mean(np.array(values)),expected,rtol=2e-15,atol=0.)
 
 def test_cold_mean_preserves_cancellation_between_exact_binary_products():
-    from portable_accel._som_extreme import _weighted_mean
+    from ubukit._impl.portable_accel._som_extreme import _weighted_mean
     values=[1e300,-(.7/.3)*1e300];weights=[.7,.3]
     with localcontext() as ctx:
         ctx.prec=200

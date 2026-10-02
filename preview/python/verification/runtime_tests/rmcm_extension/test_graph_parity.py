@@ -6,8 +6,8 @@ import pytest
 
 from .._support import rmcm_oracle as base
 from _ubukit_oracle_rmcm.core import _graph as graph_baseline
-from ubukit_rmcm._graph import graph_tree,graph_blocked
-from ubukit_rmcm import prepare_rmcm
+from ubukit._impl.rmcm._graph import graph_tree,graph_blocked
+from ubukit._impl.rmcm import prepare_rmcm
 
 
 def compare(X, delta, method, block=32):

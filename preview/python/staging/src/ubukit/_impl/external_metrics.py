@@ -218,7 +218,7 @@ def _emi(n, a, b, backend):
     if backend == "numpy":
         return _emi_numpy(n, pairs)
     if backend == "numba":
-        from _external_metrics_numba import emi_numba
+        from ._external_metrics_numba import emi_numba
         return float(emi_numba(n, pairs))
     raise ValueError("backend must be 'numpy' or 'numba'")
 

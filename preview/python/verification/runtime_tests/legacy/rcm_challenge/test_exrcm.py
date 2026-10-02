@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import numpy as np
 from numpy.testing import assert_allclose, assert_array_equal
-import rough_cmeans as r
+import ubukit._impl.rough_cmeans as r
 
 BACKENDS = ['naive', 'numpy'] + [b for b in ['scipy', 'numba'] if importlib.util.find_spec(b)]
 
@@ -187,7 +187,7 @@ class ExRCMTests(unittest.TestCase):
             third = [[0.], [5.]] if true_cycle else [[0.], [8.]]
             states = [step([[0.], [5.]], A), step([[3.], [8.]], B),
                       step(third, A), step([[2.], [9.]], B)]
-            with patch('rough_cmeans._step', side_effect=states):
+            with patch('ubukit._impl.rough_cmeans._step', side_effect=states):
                 q = r.fit([[0.], [2.]], 2, init=[[-1.], [-1.]], max_iter=3, backend='numpy')
             self.assertEqual(q.stop_reason, 'cycle' if true_cycle else 'max_iter')
             self.assertEqual(q.cycle_length, 2 if true_cycle else None)

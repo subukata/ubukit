@@ -1,4 +1,4 @@
-"""Executable README examples for the private UbuKit dev3 trial.
+"""Executable README examples for the private UbuKit dev6 trial.
 
 Run with the installed virtualenv: python -I -B examples/all_methods.py
 Add --with-numba only after installing this local wheel's [numba] extra.

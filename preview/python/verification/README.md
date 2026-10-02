@@ -1,4 +1,6 @@
-# Current dev5 installed-only verification
+> Namespace dev6: this harness now imports implementation modules only under `ubukit._impl`; ownership guards require the installed `ubukit` tree. Frozen numerical fixtures/tolerances and oracle bytes remain unchanged. Current runtime hashes are in `staging/SOURCE_MANIFEST.json` relative to the Python preview root; historical hashes/results below are not new migration measurements.
+
+# Current dev6 installed-only verification
 
 Candidate imports resolve to installed site-packages, with RECORD ownership and
 hash checks. Frozen baseline/oracle modules remain local test-only references.

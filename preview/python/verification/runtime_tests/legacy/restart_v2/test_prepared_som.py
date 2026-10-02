@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 import numpy as np
-from portable_accel import ExecutionPolicy, fit_som_olp, PreparedSOM
+from ubukit._impl.portable_accel import ExecutionPolicy, fit_som_olp, PreparedSOM
 
 class PreparedSOMTests(unittest.TestCase):
     def test_fresh_fit_equivalence_and_one_svd(self):

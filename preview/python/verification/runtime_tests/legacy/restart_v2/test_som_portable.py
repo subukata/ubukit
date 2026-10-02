@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from portable_accel import fit_som_olp,initialize_som_olp,run_som_olp,ExecutionPolicy,prepare
+from ubukit._impl.portable_accel import fit_som_olp,initialize_som_olp,run_som_olp,ExecutionPolicy,prepare
 class SomPortableIntegration(unittest.TestCase):
     def test_kernels_and_initialization(self):
         rng=np.random.default_rng(12);grid=np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])

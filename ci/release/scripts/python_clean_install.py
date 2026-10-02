@@ -1,7 +1,7 @@
 """Clean-install candidate driver, designed for Windows/macOS/Linux.
 
 Running this script installs test dependencies into new isolated environments.
-Targets the reviewed PR8 dev5 tree; cross-OS execution still needs approval.
+Targets the namespace-dev6 tree; cross-OS execution still needs separate approval.
 """
 import argparse
 import hashlib
@@ -25,7 +25,7 @@ p.add_argument('--include-large-sparse', action='store_true')
 a = p.parse_args()
 root, out = a.python_root.resolve(), a.output.resolve()
 assert not out.exists(), f'Refuse to reuse installation directory: {out}'
-required = ['tests/test_som.py', 'tests/test_localized_tails.py',
+required = ['tests/test_namespace.py', 'tests/test_som.py', 'tests/test_localized_tails.py',
             'tests/test_backend_contracts.py', 'tools/check_high_precision.py',
             'verification/python_api.py', 'examples/all_methods.py']
 for relative in required:

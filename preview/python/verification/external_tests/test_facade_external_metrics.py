@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
-import external_metrics as em
+import ubukit._impl.external_metrics as em
 import ubukit
 
 AVERAGES=('arithmetic','geometric','min','max')
@@ -36,18 +36,18 @@ def test_lazy_facade_and_direct_alias_identity():
     isolated(r'''
 import inspect,sys
 import ubukit
-assert not any(n in sys.modules for n in ('numpy','scipy','sklearn','numba','llvmlite','external_metrics','_external_metrics_numba'))
+assert not any(n in sys.modules for n in ('numpy','scipy','sklearn','numba','llvmlite','ubukit._impl.external_metrics','ubukit._impl._external_metrics_numba'))
 names=('adjusted_rand_score','adjusted_mutual_info_score','adjusted_scores')
 assert all(name in ubukit.__all__ and name in dir(ubukit) for name in names)
 for name in names:
-    assert ubukit._EXPORTS[name]==('external_metrics',name)
+    assert ubukit._EXPORTS[name]==('._impl.external_metrics',name)
     assert name not in ubukit._ADAPTED_EXPORTS
     value=getattr(ubukit,name)
-    import external_metrics
-    assert value is getattr(external_metrics,name)
-    assert inspect.signature(value)==inspect.signature(getattr(external_metrics,name))
+    import ubukit._impl.external_metrics
+    assert value is getattr(ubukit._impl.external_metrics,name)
+    assert inspect.signature(value)==inspect.signature(getattr(ubukit._impl.external_metrics,name))
 assert not any(n.split('.')[0] in ('scipy','sklearn','numba','llvmlite') for n in sys.modules)
-assert '_external_metrics_numba' not in sys.modules
+assert 'ubukit._impl._external_metrics_numba' not in sys.modules
 ''')
 
 
@@ -130,7 +130,7 @@ sys.meta_path.insert(0,BlockNumba())
 import ubukit
 x=[0,0,1,1,2,2,3,3];y=[0,1,0,1,0,1,0,1]
 assert ubukit.adjusted_scores(x,y)['ari']==ubukit.adjusted_rand_score(x,y)
-assert '_external_metrics_numba' not in sys.modules
+assert 'ubukit._impl._external_metrics_numba' not in sys.modules
 for function in (ubukit.adjusted_mutual_info_score,ubukit.adjusted_scores):
     try:function(x,y,backend='numba')
     except ImportError:pass

@@ -1,0 +1,149 @@
+{
+  "status": "passed",
+  "version": "0.0.0.dev6",
+  "runtime_files": 63,
+  "inherited_byte_identical": 58,
+  "numerical_ast_equal": 62,
+  "public_exports": 38,
+  "facade_signature_available_count": 36,
+  "facade_parity_groups": 30,
+  "final_stages": 30,
+  "environments": {
+    "base-env": {
+      "main": {
+        "tests": 135,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 128
+      },
+      "extreme_hpo": {
+        "tests": 200,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 200
+      },
+      "runtime": {
+        "tests": 2385,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 71,
+        "passed": 2314
+      },
+      "external_facade": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 27
+      },
+      "external_numerical_counts": {
+        "independent_ari": 2960,
+        "independent_ami": 11708,
+        "sklearn_ari": 3053,
+        "sklearn_ami_regular": 12080,
+        "sklearn_ami_singular": 132,
+        "backend_parity": 0,
+        "invariance": 1116,
+        "invalid": 17,
+        "overflow": 4
+      }
+    },
+    "numba-env": {
+      "main": {
+        "tests": 135,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 135
+      },
+      "extreme_hpo": {
+        "tests": 233,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 233
+      },
+      "runtime": {
+        "tests": 2459,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 3,
+        "passed": 2456
+      },
+      "external_facade": {
+        "tests": 31,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 31
+      },
+      "external_numerical_counts": {
+        "independent_ari": 2960,
+        "independent_ami": 11708,
+        "sklearn_ari": 3053,
+        "sklearn_ami_regular": 12080,
+        "sklearn_ami_singular": 132,
+        "backend_parity": 12212,
+        "invariance": 1116,
+        "invalid": 17,
+        "overflow": 4
+      }
+    },
+    "sdist-env": {
+      "main": {
+        "tests": 135,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 7,
+        "passed": 128
+      },
+      "extreme_hpo": {
+        "tests": 200,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 200
+      },
+      "runtime": {
+        "tests": 2385,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 71,
+        "passed": 2314
+      },
+      "external_facade": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "passed": 27
+      },
+      "external_numerical_counts": {
+        "independent_ari": 2960,
+        "independent_ami": 11708,
+        "sklearn_ari": 3053,
+        "sklearn_ami_regular": 12080,
+        "sklearn_ami_singular": 132,
+        "backend_parity": 0,
+        "invariance": 1116,
+        "invalid": 17,
+        "overflow": 4
+      }
+    }
+  },
+  "high_precision_cases": 113,
+  "artifacts": {
+    "ubukit_bundled_local_preview-0.0.0.dev6.tar.gz": "a60f2e9c8fcce48796eb713c42ba1c6d07d0e0cc5c7cbd232a8f0b2320b524c5",
+    "ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl": "0b994666fd59d4aff24570173b3e54a6d2f57907c5545f1bdd50ae5d01ceffdb"
+  },
+  "limits": [
+    "Local Linux x86_64 CPython3.12 only; no new Windows/macOS/ARM/browser qualification",
+    "No performance benchmarking or universal bitwise equivalence claim",
+    "No registry/GitHub upload, remote CI or external compute",
+    "Old pickle module paths unsupported; current Policy pickle and new optional compiler caches checked",
+    "Inherited FCM/RMCM missing-Numba messages name old component extras; install this aggregate wheel[numba] instead",
+    "Project license and final public distribution name remain undecided"
+  ]
+}

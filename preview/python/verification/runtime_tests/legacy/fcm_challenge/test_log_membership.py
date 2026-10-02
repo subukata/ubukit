@@ -2,8 +2,8 @@ from decimal import Decimal, localcontext
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
-from ubukit_fcm import memberships_from_squared_distances
-from ubukit_fcm.log_membership import (membership_logsoftmax, membership_logsumexp,
+from ubukit._impl.fcm import memberships_from_squared_distances
+from ubukit._impl.fcm.log_membership import (membership_logsoftmax, membership_logsumexp,
     membership_scipy_softmax, membership_naive_logsoftmax)
 METHODS=[membership_logsoftmax,membership_logsumexp,membership_scipy_softmax]
 
@@ -42,7 +42,7 @@ def test_near_one_near_tie_requires_log1p():
 @pytest.mark.parametrize('parallel',[False,True])
 def test_numba_near_one_near_tie(parallel):
     pytest.importorskip('numba')
-    from ubukit_fcm import _numba
+    from ubukit._impl.fcm import _numba
     x=np.array([[0.]])
     centers=np.array([[1e150],[np.nextafter(1e150,np.inf)]])
     q=(x[:,None,:]-centers[None,:,:])[:,:,0]**2
