@@ -1,16 +1,11 @@
-# UbuKit JavaScript: dev6 private efficiency candidate
+# UbuKit for JavaScript
 
-This repository snapshot contains the reviewed JavaScript candidate
-`0.1.0-dev.6`, with 27 runtime files, seven package entrypoints and nine
-algorithm/metric registry names. It includes
-FCM/SOM extreme-range repairs, snapshot ownership and session validation fixes,
-optional lightweight TPE/random optimization, ARI/AMI external metrics, and
-traditional online SOM plus true BatchSOM. SOURCE_MANIFEST.json binds
-the current runtime files to SHA-256 hashes.
+Clustering, self-organizing maps, evaluation metrics and parameter search for
+Node.js and browsers, using ES modules and no runtime npm dependencies.
 
-The package remains `private: true` and unpublished. No project-wide license
+The package is `private: true` and unpublished. No project-wide license
 has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See the
-[build instructions](../docs/getting-started.md#javascript) to create a local tarball from source. Earlier research trees are preserved separately in the immutable main snapshot.
+[build instructions](../docs/getting-started.md#javascript) to create a local tarball from source.
 
 ## Install locally
 
@@ -98,7 +93,7 @@ The Worker clients retain their default URLs, resolved relative to their own
 installed modules: `src/worker.js` and `src/realtime-worker.js`. Those files are
 included in the explicit tarball allowlist. Browser use requires serving the ES
 modules from an appropriate origin or a bundler that preserves module Worker URLs.
-There are no new public `worker-entry` aliases.
+There are no public `worker-entry` aliases.
 
 In Node, use the existing `workerFactory` option with `node:worker_threads`.
 A Worker URL can be derived from the corresponding exported client module:
@@ -125,7 +120,7 @@ them from the sender. Default use does not transfer the caller's input buffers.
 The metric scheduler supports cancellation, debounce, result-copy caching,
 `clearCache` and disposal.
 
-## Numerical correction and compatibility note
+## FCM numerical behavior
 
 FCM keeps the reviewed ordinary Float64 kernels. Large `m` (above 32), near-one `m` (m-1 < 1e-4), extreme
 coordinate or membership scales, and numerical range failures use a finite-m
@@ -162,8 +157,8 @@ uses the existing center-based restart contract. Fallback retry chunks remain
 cooperative and do not replay completed iteration progress/checkpoints. The
 memory estimate includes the additional log state; time budgets remain soft.
 
-Other algorithms retain their reviewed numerical policy. Browser execution has
-not been reverified by this numerical change; tests cover real Node workers.
+The numerical checks cover Node workers. Browser execution has not been
+qualified by these checks.
 
 ## Optional kernels and limits
 
@@ -178,13 +173,8 @@ build dependency is required. Existing capability, memory and numerical fallback
 logic remains unchanged. Requested WASM is not a promise that every operation
 executes in WASM. Read existing result diagnostics, where provided.
 
-SOURCE_MANIFEST.json identifies the immutable input and every packaged runtime
-hash. The separate integration verification bundle contains tests, comparison
-snapshots, logs and a report; these are intentionally excluded from the npm tarball.
-Testing does not imply new performance measurements, Windows/macOS/ARM coverage,
-or real-browser verification. Consult the integration report for checks actually
-run. Registry publication and deployment still require separate authorization.
-
+Other OSes, architectures and actual browser execution are not qualified by
+these checks. Local validation does not authorize registry publication.
 
 ## SOM-OLP exceptional numerical ranges
 
@@ -214,7 +204,7 @@ evaluated by dividing before subtraction.
 
 The dependency-free optional TPE optimizer and random baseline are exported from the root and `ubukit-js/optimization`. See OPTIMIZATION.md for examples, numerical contracts, and limitations.
 
-## External clustering agreement (introduced in dev4)
+## External clustering agreement
 
 `adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores` are exported
 from the package root and `ubukit-js/external-metrics`. The joint API shares one
@@ -224,18 +214,17 @@ numerical policy, supported limits, and error codes. Definitions follow
 scikit-learn's arithmetic-default ARI/AMI conventions; stable high-K answers
 intentionally do not reproduce its floating-point artifacts.
 
-Node execution is tested from an installed tarball. The module has no Node-only
-imports and is designed for modern browsers; an actual browser smoke run could
-not be completed because the cloud browser blocked the local test URL.
+The module has no Node-only imports and is designed for modern browsers.
+Installed-tarball checks cover Node; actual browser execution remains unverified.
 
-## Traditional SOM and BatchSOM (dev5)
+## Online SOM and BatchSOM
 
-Additive `som` and `som_batch` algorithms support arbitrary feature dimensions,
+The `som` and `som_batch` algorithms support arbitrary feature dimensions,
 16×16 rectangular grids, sample/PCA initialization and stateful sample/epoch updates.
 See [SOM.md](SOM.md) for exact batch equations, schedules, realtime projection,
 complexity and finite-range limits. No runtime dependencies were added.
 
-### Private efficiency candidate: k-means WASM transpose reuse
+### k-means WASM center cache
 
 For `kernelBackend: "wasm"`, `wasmCenterCache: true` (default) prepares the center
 transpose once per iteration and refreshes it after restoring final centers.

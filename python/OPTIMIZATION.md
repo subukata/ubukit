@@ -191,19 +191,10 @@ finalists on new seeds/data before relying on a tiny apparent advantage. Count
 all underlying model fits in budgets and comparisons, not only top-level
 objective calls.
 
-## Evidence and validation
+## Validation guidance
 
-This preview has unit/lifecycle/numerical tests and shared Python/JS parity
-fixtures. A small smoke suite uses four cheap problems, five seeds and fifty
-objective evaluations per run. It compares random, independent TPE, joint TPE,
-Optuna 5.0 default TPE, and Optuna 5.0 with `multivariate=False`.
-
-In that particular smoke, joint TPE's median was better than random on all four
-problems and better than Optuna 5.0 default on three; Optuna was better on
-Branin. Independent UbuKit TPE was worse than random on the mixed problem.
-This tiny handpicked suite is not a held-out benchmark or statistical proof of
-superiority. Timing recorded while other processes ran is exploratory only.
-Full per-seed values and settings are retained in the integration reports.
+Small synthetic comparisons do not establish general superiority over random
+search or Optuna. Use held-out validation and count objective-evaluation costs.
 
 References informing design, not a claim to reproduce every implementation:
 

@@ -1,4 +1,4 @@
-# Private combined preview: numerical contracts and limits
+# Numerical contracts and limits
 
 ## FCM
 
@@ -7,7 +7,7 @@ near-one or large m, unsafe distances and unsafe weighted products use scaled
 finite-m log-weight arithmetic. Positive distances are not clipped to zero, m is
 not clipped, and no m-to-infinity hard or uniform replacement is substituted.
 Distance-derived center weights are retained independently of rounded public
-memberships. A new exceptional stopping-norm guard preserves representable tiny
+memberships. An exceptional stopping-norm guard preserves representable tiny
 membership changes whose squared norm would otherwise underflow.
 
 Membership convergence retains the public absolute Frobenius criterion. A
@@ -24,13 +24,10 @@ case. Memberships are deliberately not recomputed solely to force agreement with
 the restored centers. The working-center/public-center difference is a real
 limitation, not a guarantee of returned-pair consistency.
 
-Near-coincident centers are ill-conditioned: the existing m=64, seed994 fixture
-changes memberships by as much as approximately 0.6505 versus dev2 even though
-center changes are small. An independent 400-digit six-step trajectory improves
-center accuracy in that case, but membership accuracy is not uniformly improved.
-The detailed report and full reference evidence are retained. No arbitrary
-precision, globally closer trajectory, global optimality, or cross-platform bit
-identity is promised. Reinitializing from rounded public U cannot restore hidden
+Near-coincident centers are ill-conditioned: small center changes can cause
+large membership changes. Stabilization does not guarantee a globally closer
+arbitrary-precision trajectory, global optimality, or cross-platform bit
+identity. Reinitializing from rounded public memberships cannot restore hidden
 weights from an earlier run.
 
 ## SOM-OLP
@@ -49,14 +46,8 @@ No lambda floor, hard assignment, uniform substitute, or claimed global optimum
 is introduced. Probabilities, outputs, ordinary distance products and LAPACK PCA
 remain float64; extreme nearly tied quantities can remain sensitive.
 
-A narrow prototype-mean repair can also activate after ordinary inputs generate
-tiny unit masses. One inherited JavaScript case generates mass around 1e-117:
-its repaired W[5] is 0.6884290744771887, exactly the rounded independent 160-digit
-weighted-mean reference, rather than the old 0.6884290744771885. A second inherited case generates a tiny unit mass that rounds to zero after
-the update; its W[24] changes from 2.9543435536324973 to 2.954343553632498.
-These two coordinates are tested against separately audited exact weighted-mean
-references. All other entries, events, P/V/history, labels and iteration results
-remain exact; the other 78 cases retain their original exact comparison.
+A prototype-mean repair can also activate when ordinary inputs produce tiny
+unit masses, including masses that round to zero after an update.
 
 Exceptional Python initial memberships must be nonnegative and row-stochastic
 within 1e-8. This is a deliberate restriction of an invalid numerical input domain;
@@ -80,21 +71,16 @@ accuracy remains limited. Safe-integer rules prevent category aliasing across
 Python and JavaScript. Replay requires the same observations and ask/tell order;
 libm and browser differences preclude a universal bit-parity guarantee.
 
-The recorded Optuna 5.0.0 comparison is exploratory: four handpicked cheap
-problems, five seeds and 50 objective evaluations. UbuKit startup is 12 successful
-observations versus Optuna's default 10, and equal integer seeds do not produce
-matching initial samples across different RNGs. Joint UbuKit wins three of the
-four medians against default Optuna, but independent UbuKit is worse than random
-on the mixed problem. This is not held-out evidence, a significance result, a
-state-of-the-art claim, a real clustering/SOM tuning evaluation, or a timing claim.
+Small synthetic comparisons do not establish superiority over random search or
+Optuna. Use held-out validation and account for objective-evaluation cost.
 
-## JavaScript external clustering metrics (dev4)
+## JavaScript external clustering metrics
 
 ARI, AMI and shared-contingency joint scores add no runtime dependency. The
 inputs are equal-length Arrays or numeric TypedArrays, each containing only
 strings or only safe integer Numbers. The full contract and error codes are in
-[javascript/package/EXTERNAL_METRICS.md](../javascript/EXTERNAL_METRICS.md).
-Python dev4 retains the unchanged, separately documented external-metric API.
+[JavaScript external metrics guide](../javascript/EXTERNAL_METRICS.md).
+Python has a separately documented [external-metric API](../python/README.md#ari-and-ami).
 
 ARI uses exact integer combinatorics, with BigInt when necessary, before the
 final binary64 quotient. AMI uses direct conditional entropies, a full-support
@@ -115,12 +101,10 @@ nor a total-memory guarantee. Many distinct large margins can be expensive.
 The APIs are synchronous; large calls belong in a separately managed worker.
 No scheduler/worker integration is added by this metric implementation.
 
-The independent 80-digit oracle panel measured maximum AMI absolute error
-3.33e-16 and exact final-Number ARI agreement. The benchmark results are bounded,
-machine-specific measurements; see [the report](https://github.com/subukata/ubukit/blob/5a197111b605c495f3f2a7ba69a6e09bb44e8caf/preview/javascript/REPORT.md). Node/VM
-smoke checks do not establish actual browser execution or cross-platform parity.
+Node/VM smoke checks do not establish actual browser execution or
+cross-platform parity.
 
-## Traditional online SOM and BatchSOM (Python dev4 / JavaScript dev5)
+## Online SOM and BatchSOM
 
 These are separate algorithms from SOM-OLP. Online updates one sample at a time
 in input order; batch freezes all BMUs and commits one weighted-mean epoch.
@@ -143,14 +127,12 @@ Snapshots expose committed prototypes; JavaScript full-data projection is explic
 before completion. Soft chunk budgets are not hard realtime deadlines. Primary
 memory estimates exclude runtime/library workspace, caller copies and exceptional
 integer temporaries. Read the complete [Python](../python/SOM.md) and
-[JavaScript](../javascript/SOM.md) contracts and bounded measurements in
-[SOM_ADDITION.md](https://github.com/subukata/ubukit/blob/5a197111b605c495f3f2a7ba69a6e09bb44e8caf/preview/SOM_ADDITION.md).
+[JavaScript](../javascript/SOM.md) contracts.
 
 ## Coverage boundary
 
 Validation is Linux x86-64, CPython 3.12 and Node. Other operating systems,
 architectures, Python versions and real browsers are unverified. Local bounded
-benchmarks do not establish universal performance bounds. Extreme correctness
-recovery can be slower, including about 5.1x in one Python high-m warm smoke case.
-This is a private repository preview. Package-registry publication and deployment
-are separate actions and are not established by these source checks.
+benchmarks do not establish universal performance bounds. Extreme numerical
+recovery can be slower.
+This is a pre-release preview, not a published package.

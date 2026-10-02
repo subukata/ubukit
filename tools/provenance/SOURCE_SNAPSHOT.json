@@ -487,7 +487,7 @@
     },
     {
       "path": "javascript/README.md",
-      "sha256": "42ad8fe1d453ce8a60a710375b9be676a4af6b7df8abbd320584843a6934f1a6"
+      "sha256": "20a7d7a3f04ce5246abaffeac7caff1a0b72c74bb8729f1fa4ce30772fa833db"
     },
     {
       "path": "javascript/SOM.md",
@@ -635,11 +635,11 @@
     },
     {
       "path": "python/OPTIMIZATION.md",
-      "sha256": "f789df87f65510a21145a9edd444465e35945e754cb3c8adfb88404fb0fc2c23"
+      "sha256": "2f4ab78554e6092070d834b1f3fb51539a96a07a28dc931ca2247bf4e530a886"
     },
     {
       "path": "python/README.md",
-      "sha256": "bd9ad5e44b4a24ce887966ec92463682b96a7a7172fab579f3948435b67900b6"
+      "sha256": "eabb65e87dc7887fbc4497a8116673abf0c63a423d8c27e4feb63ba3afeb6397"
     },
     {
       "path": "python/SOM.md",
