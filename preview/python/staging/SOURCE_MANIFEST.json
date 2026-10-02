@@ -1,0 +1,373 @@
+{
+  "schema_version": 4,
+  "purpose": "combined private candidate; no public release",
+  "version": "0.0.0.dev3",
+  "baseline_version": "0.0.0.dev2",
+  "runtime_files": [
+    {
+      "bundled": "src/_numba_kernel.py",
+      "sha256": "b7a6383bf0b20afa7f2b853a9475f54d6d58688aa3969a1144b5b6248840a9cc",
+      "baseline_sha256": "b7a6383bf0b20afa7f2b853a9475f54d6d58688aa3969a1144b5b6248840a9cc",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/__init__.py",
+      "sha256": "9104b035a10136e919853ca00f3964e86557041c62eb4ecebaecefbc2a1bb88a",
+      "baseline_sha256": "9104b035a10136e919853ca00f3964e86557041c62eb4ecebaecefbc2a1bb88a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/__init__.py",
+      "sha256": "9608ee9e53602dc0895d5db070246d8d108dde4104b810ad985db238035d409a",
+      "baseline_sha256": "9608ee9e53602dc0895d5db070246d8d108dde4104b810ad985db238035d409a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/blas_certificate.py",
+      "sha256": "efb3988ba6a4c0a35f7febed2e87c9963d4bfec42e4c6317145fc7391210f816",
+      "baseline_sha256": "efb3988ba6a4c0a35f7febed2e87c9963d4bfec42e4c6317145fc7391210f816",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/kmeans_blas_numba.py",
+      "sha256": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+      "baseline_sha256": "b5ee365c3076e02eb2985e892c8ecc050dcfb55526bca1f84c07377a6cba2759",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/kmeans_blas_vector.py",
+      "sha256": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+      "baseline_sha256": "560d4ec37d2c36749f4b0a21626ab24c0b2d6e3792c972ab673d4dbda44cf6bb",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/kmeans_finalizer.py",
+      "sha256": "087b072611af96f8fa79dd2cb00cf5f1f6b9474039b114b1c64eda28b5a6b7df",
+      "baseline_sha256": "087b072611af96f8fa79dd2cb00cf5f1f6b9474039b114b1c64eda28b5a6b7df",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/kmeans_numba.py",
+      "sha256": "f45ac5ab8f0c30b3a57f73668c79b47f1b8b64ce75d822e7123104e4b1007f3a",
+      "baseline_sha256": "f45ac5ab8f0c30b3a57f73668c79b47f1b8b64ce75d822e7123104e4b1007f3a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/kmeans_scipy_blas.py",
+      "sha256": "33385e113ca74abf9e2d41bb9c22e723e64d7465d960599c9d48a14f174d964b",
+      "baseline_sha256": "33385e113ca74abf9e2d41bb9c22e723e64d7465d960599c9d48a14f174d964b",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_numba.py",
+      "sha256": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+      "baseline_sha256": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_numpy.py",
+      "sha256": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+      "baseline_sha256": "3bea85f825047bfd0dc9a25b2baa4d5ee384ba2d1a4f815d3b35693492542bee",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/__init__.py",
+      "sha256": "009f4e23641497c14e76dd264923b4d8006dd5dd48e137b401ea1f59c508fc9b",
+      "baseline_sha256": "009f4e23641497c14e76dd264923b4d8006dd5dd48e137b401ea1f59c508fc9b",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_neighbor_queries.py",
+      "sha256": "234f269422295573d3cea89038b447576a0386da730986eeded02ab7e688dbe6",
+      "baseline_sha256": "234f269422295573d3cea89038b447576a0386da730986eeded02ab7e688dbe6",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_numba_core.py",
+      "sha256": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+      "baseline_sha256": "5510a88580276154f257c4d403d4376d3a11a45798264236e6a5af3c8233053b",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_numpy.py",
+      "sha256": "f509450d3e2726a8c37017a3e0972a34b52ef11d957b41a5fad9d388ce6726e2",
+      "baseline_sha256": "f509450d3e2726a8c37017a3e0972a34b52ef11d957b41a5fad9d388ce6726e2",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_sqrt_intervals.py",
+      "sha256": "5c4d60c8e160e10c756757d86887d7769a626ed8ad8b1ddd8816a12502e9ee44",
+      "baseline_sha256": "5c4d60c8e160e10c756757d86887d7769a626ed8ad8b1ddd8816a12502e9ee44",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_sqrt_numba.py",
+      "sha256": "dbf1476e2aa64965134019a26691d7810411a5b6e422eeb57a2945a98d454e2a",
+      "baseline_sha256": "dbf1476e2aa64965134019a26691d7810411a5b6e422eeb57a2945a98d454e2a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_sqrt_numpy.py",
+      "sha256": "5f6b9f4f0783f29a9ebc06dd94fff95ae1f6f4f8c20622b44a8dc84802ab2420",
+      "baseline_sha256": "5f6b9f4f0783f29a9ebc06dd94fff95ae1f6f4f8c20622b44a8dc84802ab2420",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_portable/_strict_numba.py",
+      "sha256": "8da7d36a1a7cc82b6d680ed1ed63389d02059257abb5d0d8cc564e26ea081830",
+      "baseline_sha256": "8da7d36a1a7cc82b6d680ed1ed63389d02059257abb5d0d8cc564e26ea081830",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/metrics_sqrt.py",
+      "sha256": "4b49ec86a452711141cb1a2335a9c0f153f4bf64be5c37aabe0afb466c89a406",
+      "baseline_sha256": "4b49ec86a452711141cb1a2335a9c0f153f4bf64be5c37aabe0afb466c89a406",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/score_vector.py",
+      "sha256": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+      "baseline_sha256": "54e7f4aa70397610540e216ec1bacccd787fd48e5545a418360cc470c59bccf3",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/__init__.py",
+      "sha256": "26b801851512428d85db986b44e2311d362af5fed611def017f0b0dbd8b65997",
+      "baseline_sha256": "26b801851512428d85db986b44e2311d362af5fed611def017f0b0dbd8b65997",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/initialization.py",
+      "sha256": "0ddd294e14028d5bf68d3a27a7a36c8999d54727e0f997a4ff78a415d924fe6d",
+      "baseline_sha256": "0ddd294e14028d5bf68d3a27a7a36c8999d54727e0f997a4ff78a415d924fe6d",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/kernel.py",
+      "sha256": "47d70978a7d85fb690738fe3c89b52bba4ed4e145e718ad1c21f242577f08068",
+      "baseline_sha256": "a85faacac41b031bddb8b71806e8034d08b6b8e34cf36e4f5f83fc02199c2809",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/numba_direct.py",
+      "sha256": "4542b2ce6cc7ea7fa13443c66de11dd8c607d3e5e1f4b070e2a6255f15964aa6",
+      "baseline_sha256": "b28b4fee08545e310126517fb2d01ce947f4683ef068efb6de33272a9ee440c5",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/oracle.py",
+      "sha256": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+      "baseline_sha256": "7d07789ee5e5e6677562a6c1407a0bd510823ad6a5aeaf8ce637a8ecce0a5daf",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/simd_costs.py",
+      "sha256": "f2bb9b2260362cfb7edf5d88d990d98c9e820c507e9ce7f83eb59ae3348b9153",
+      "baseline_sha256": "f2bb9b2260362cfb7edf5d88d990d98c9e820c507e9ce7f83eb59ae3348b9153",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_portable/threaded.py",
+      "sha256": "06405db19659498d722d111bb25022cbcdb3ad913f01412f4717354f106d5598",
+      "baseline_sha256": "3b5f7604152f2807aa1e2186dca61dd089c131973a85c5035706b3e24a7d5fbe",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/_backends/som_reference.py",
+      "sha256": "42e669ef7e50210ec8c31f9e5ad06be5d5a47952b200a51e5998c999ccce85e4",
+      "baseline_sha256": "660310f149bbf6a087a91db87224bca4199e9cab2ba6811516699c4e4318a89c",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/_kmeans_lagged.py",
+      "sha256": "8be703d3460b9abf70b9bd3c12891c325529e1cac5431ad5984b0fd3066de407",
+      "baseline_sha256": "8be703d3460b9abf70b9bd3c12891c325529e1cac5431ad5984b0fd3066de407",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_optional.py",
+      "sha256": "cbc87f2977ce076387042fd7b970d7786d0cc275e4977c0e107081398480f32f",
+      "baseline_sha256": "cbc87f2977ce076387042fd7b970d7786d0cc275e4977c0e107081398480f32f",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/_som_extreme.py",
+      "sha256": "afb8ad0073df9af0a5ffd3d5462c72e4ce652d4b0aeb7db073cc4adbbb56d1df",
+      "baseline_sha256": null,
+      "change": "added"
+    },
+    {
+      "bundled": "src/portable_accel/_som_numerics.py",
+      "sha256": "79829ad27adb85a85360f424381240bccee4fead6b4eed4328cd3ff614561687",
+      "baseline_sha256": "51f6ea067fbad6afe7eb8e3d1109a6a5445e68c03b9cece5ca5d13376848a267",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/_threadpools.py",
+      "sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
+      "baseline_sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/kmeans.py",
+      "sha256": "266af3116c5086d7e94789971e7d06fbdc4a613153c3e41c606112086e414659",
+      "baseline_sha256": "266af3116c5086d7e94789971e7d06fbdc4a613153c3e41c606112086e414659",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/metrics.py",
+      "sha256": "bd1d51736604aa6666df3d114e3dab293f68bb9fecbead0d9ffb43858b27fe55",
+      "baseline_sha256": "bd1d51736604aa6666df3d114e3dab293f68bb9fecbead0d9ffb43858b27fe55",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/policy.py",
+      "sha256": "eec5c4e06fe1cfe7674e7fd0efcff1688ff938e7254783e953085fb95f5e285a",
+      "baseline_sha256": "eec5c4e06fe1cfe7674e7fd0efcff1688ff938e7254783e953085fb95f5e285a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/prepared.py",
+      "sha256": "6533150fe640a62603a9a3cbcd7503ba784aa35abce01b7d18ef02dd15868635",
+      "baseline_sha256": "6533150fe640a62603a9a3cbcd7503ba784aa35abce01b7d18ef02dd15868635",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/registry.py",
+      "sha256": "b8728489256561310f7fb1c24610bf8ef2d723a8181aaa565e93863b1b8ad867",
+      "baseline_sha256": "b8728489256561310f7fb1c24610bf8ef2d723a8181aaa565e93863b1b8ad867",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/portable_accel/som_olp.py",
+      "sha256": "175fb02ceefd7cdb6c026a285601f130c6a23d29d8a8543e384c13ee25d6af28",
+      "baseline_sha256": "1bff6aa1b0803aac9533e57dcb84acaa6a828abbf90709a3d5fde1d7e928bb7b",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/som_prepared.py",
+      "sha256": "4271f8a3232dca764bddcbb7ee547837f0bdd02004b7b57a6bf58d42b546fea9",
+      "baseline_sha256": "e4c52d99bc037d4c71e4cef313787bafb264d556a2929224fa80d458b2788a35",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/portable_accel/validation.py",
+      "sha256": "c0d85b5e1c9dd84b53666cf2bab0e6248a923be301651e3c6182e1fa9ce492c2",
+      "baseline_sha256": "c0d85b5e1c9dd84b53666cf2bab0e6248a923be301651e3c6182e1fa9ce492c2",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/rough_cmeans.py",
+      "sha256": "7dbacae214af49496be99df8a0956125116686ed4e600821c7f50ab8166ee6d9",
+      "baseline_sha256": "7dbacae214af49496be99df8a0956125116686ed4e600821c7f50ab8166ee6d9",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_fcm/__init__.py",
+      "sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
+      "baseline_sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_fcm/_numba.py",
+      "sha256": "4b3511c5c47d27292a1afae56a9674ace9977acbc0f6bcafe2d6265dee5ae4a9",
+      "baseline_sha256": "75ec1eb9fce3964e6c8c4823b4d5bcd41d3f4e9dc4dc53906c1afc12b6af9f86",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/ubukit_fcm/_robust.py",
+      "sha256": "05b75e4c28cfe4d4bd924b1310912dfdcd16d0dde15fbd067d379e312b4670d6",
+      "baseline_sha256": null,
+      "change": "added"
+    },
+    {
+      "bundled": "src/ubukit_fcm/_threadpools.py",
+      "sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
+      "baseline_sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_fcm/core.py",
+      "sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
+      "baseline_sha256": "606d9c53fe926c50e6cf908a6f8b8e5c2138e179a367c3631ccb0752e1bc6e12",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/ubukit_fcm/log_membership.py",
+      "sha256": "a7b30cee117b151d633e6e2ffc13df53b2ea9137c2fd14d4f3b7396d01850d52",
+      "baseline_sha256": "a7b30cee117b151d633e6e2ffc13df53b2ea9137c2fd14d4f3b7396d01850d52",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_rmcm/__init__.py",
+      "sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a",
+      "baseline_sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_rmcm/_graph.py",
+      "sha256": "4a194232d3b89fb38b2b51d9cc75b476b3d31537c3255d13217a109d4f67ea32",
+      "baseline_sha256": "4a194232d3b89fb38b2b51d9cc75b476b3d31537c3255d13217a109d4f67ea32",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_rmcm/_graph_reference.py",
+      "sha256": "b19be48f77c4f021bacc9543cc3910c3bb6949e332f3e9c7a73402df5ae06e98",
+      "baseline_sha256": "b19be48f77c4f021bacc9543cc3910c3bb6949e332f3e9c7a73402df5ae06e98",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_rmcm/_numba.py",
+      "sha256": "1c98f476e631abbd3648a911c69c589abea40ff7b45003cec67811f084e6370a",
+      "baseline_sha256": "1c98f476e631abbd3648a911c69c589abea40ff7b45003cec67811f084e6370a",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_rmcm/cache.py",
+      "sha256": "e79920ab4107cde3a868775633e9914bb5284a57da7f1289b33402c5972f0656",
+      "baseline_sha256": "e79920ab4107cde3a868775633e9914bb5284a57da7f1289b33402c5972f0656",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit_rmcm/core.py",
+      "sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4",
+      "baseline_sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4",
+      "change": "unchanged"
+    }
+  ],
+  "external_metric_files": [
+    {
+      "bundled": "src/_external_metrics_numba.py",
+      "sha256": "48b5616fef1d771bdde65b3a8926f8083476dca5b3792f654a631d0ae30e88ec",
+      "baseline_sha256": "48b5616fef1d771bdde65b3a8926f8083476dca5b3792f654a631d0ae30e88ec",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/external_metrics.py",
+      "sha256": "66aa7d48cdba96a87afbb8596d51c41d2eeafd585384432171bb09036ff64c5c",
+      "baseline_sha256": "66aa7d48cdba96a87afbb8596d51c41d2eeafd585384432171bb09036ff64c5c",
+      "change": "unchanged"
+    }
+  ],
+  "facade_files": [
+    {
+      "bundled": "src/ubukit/__init__.py",
+      "sha256": "0ab52ecc03c49c254cee19eb1ea98622e92f964cc9aa172eedae24fc2e125bff",
+      "baseline_sha256": "d7b4910f4830bbb51170b1bd12ea76a8e34f0ec97aa626c2a0e1f3a6bc5fbb76",
+      "change": "modified"
+    },
+    {
+      "bundled": "src/ubukit/_rough_memberships.py",
+      "sha256": "6c265c3dce9945204e09d69f75bba731826ae4486f48c73280d73e83f2c09d07",
+      "baseline_sha256": "6c265c3dce9945204e09d69f75bba731826ae4486f48c73280d73e83f2c09d07",
+      "change": "unchanged"
+    },
+    {
+      "bundled": "src/ubukit/optimization.py",
+      "sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429",
+      "baseline_sha256": null,
+      "change": "added"
+    }
+  ],
+  "python_source_files_total": 60
+}

@@ -1,0 +1,23 @@
+{
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "numpy": "2.3.5",
+  "scipy": "1.17.0",
+  "sklearn": "1.8.0",
+  "baseline_files": {
+    "sklearn/metrics/cluster/_supervised.py": {
+      "sha256": "2e9bc2e36a61a227300fbeff6c0703968b37da33155fc68f2091bbbaf147255f",
+      "size": 45823
+    },
+    "sklearn/metrics/cluster/_expected_mutual_info_fast.pyx": {
+      "sha256": "e4f791327313c23bd2a9f2807fd72caeef45004e42214fb7aa4a8b40489f91ad",
+      "size": 2692
+    }
+  },
+  "definitions": {
+    "ari": "sklearn pair_confusion_matrix ordered-pair formula with Python-int cross-products",
+    "ami": "(MI-EMI)/(generalized_average(Htrue,Hpred)-EMI), default arithmetic",
+    "emi": "full hypergeometric permutation expectation on fixed marginal counts",
+    "special_cases": "empty/empty=1; singleclass/singleclass=1; one singleclass=0; all four average_methods"
+  },
+  "path_note": "Historical upstream source hashes; paths are relative to site-packages."
+}

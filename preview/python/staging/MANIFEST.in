@@ -1,0 +1,9 @@
+include README.md LICENSE-SOM.txt NOTICE.txt NOTICE-EXTERNAL-METRICS.txt THIRD_PARTY_LICENSES.txt SOURCE_MANIFEST.json
+recursive-include src *.py
+recursive-exclude src __pycache__ *.pyc *.pyo *.nbc *.nbi
+prune tests
+prune benchmarks
+prune evidence
+prune validation
+
+include OPTIMIZATION.md NUMERICAL_LIMITS.md

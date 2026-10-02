@@ -1,0 +1,105 @@
+{
+  "input_archive": "ubukit_extension_20261001_core.zip",
+  "input_archive_sha256": "7c52a3efee20732a878b35517ac752dea568bc3e21b7bef47728e2925e98420b",
+  "source": "acceleration_extension/candidate_final/javascript",
+  "runtime_unchanged": false,
+  "runtime_files": {
+    "src/clustering.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/clustering.js",
+      "sha256": "ee6cb5151dcef10e6999be03efff35eebafd0eaa3e8ce9c31edfacdfc5a17198",
+      "original_sha256": "5cfc5d4520ded8813fcf17dec0cb4bc2f2eda938858e94783f66dd9d8afe2652",
+      "modified_in_revision": true
+    },
+    "src/core.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/core.js",
+      "sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4"
+    },
+    "src/index.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/index.js",
+      "sha256": "a31bbbac6fd5a8079ce8d0feab54d0b76734b60b484c66bd3e4536f8a3335731"
+    },
+    "src/iteration-kernels.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/iteration-kernels.js",
+      "sha256": "e88bb20f036c9513640a91646a651ebb4bb27bc9764c59df9fa6a5a5acfae46a"
+    },
+    "src/kmeans-wasm.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/kmeans-wasm.js",
+      "sha256": "d965d6fa255af90e4402c2ab1e9c67b772fdd4b9221bc5c40a17798acca67035"
+    },
+    "src/metric-scheduler.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/metric-scheduler.js",
+      "sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419"
+    },
+    "src/metric-wasm.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/metric-wasm.js",
+      "sha256": "fdd191b794a16ddb1b139afbe745ecd5ed6128fced82da0b5e5b536cc9301867"
+    },
+    "src/neighborhood.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/neighborhood.js",
+      "sha256": "1d2eee993cddd1967be771eaadf5b76a7178e40b071d655946866aaedb735627"
+    },
+    "src/realtime-worker-client.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/realtime-worker-client.js",
+      "sha256": "33085de840a7d401cc8ccd364f9b66e30dd7b0e3e78237966b30ec470b9a3018"
+    },
+    "src/realtime-worker.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/realtime-worker.js",
+      "sha256": "c1c0427eaf24156fe0eb191e1558e813adf92dfb894a0b7fc3a9b887e42c5850"
+    },
+    "src/rmcm-grid.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/rmcm-grid.js",
+      "sha256": "0160ab3602f0cdee146c985b1b46ab4ece23047ad38e72d861d7ec668b1f72b6"
+    },
+    "src/rmcm-wasm.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/rmcm-wasm.js",
+      "sha256": "92cfefef28cde149ffcebe6577d85adb56dede43eb8ca131d3f65917153c2de4"
+    },
+    "src/rmcm.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/rmcm.js",
+      "sha256": "2f3ba52b3af6026caacae0b0d3499dcaf7afffe27da1c99933951db9b0ce9ffc"
+    },
+    "src/session-hooks.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/session-hooks.js",
+      "sha256": "c6f0fffbb3f327807cb3fa1639c8ecc9becb209bdab50bf14a1f18223b1247b7"
+    },
+    "src/session-validation.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/session-validation.js",
+      "sha256": "ddd65bba164454428bda5a437976b2e87111af1251131b5a016f7c00bf08109c",
+      "original_sha256": "082d22e7cc2ed8784efae74d1fc0d662f9def8d1c6b5cfae892da12a0b9cffc8",
+      "modified_in_revision": true
+    },
+    "src/session.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/session.js",
+      "sha256": "a1dbe6ef9134a1201cb64569b302047d853705c7bb2cd1440ae5e6bd17fa1950"
+    },
+    "src/som-olp.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/som-olp.js",
+      "sha256": "0f57f6de386466e364d58e67666cc52c150df603646fde432bea1168bc63cd6f"
+    },
+    "src/som-pca-wasm.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/som-pca-wasm.js",
+      "sha256": "5965821d5e62cd854a7a3eb07d7d4f6e2663a3fc84e809f1c00711c5227fcdd6"
+    },
+    "src/som-training-wasm.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/som-training-wasm.js",
+      "sha256": "bb696919c35377af2568cb59760e73331e942d972f7f6c2267db661016a2df6d"
+    },
+    "src/worker-client.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/worker-client.js",
+      "sha256": "071d33390f79c576f996bf3b4472ca43fa887b1a6a83b40589a2e9f11bc18774"
+    },
+    "src/worker.js": {
+      "source_path": "acceleration_extension/candidate_final/javascript/worker.js",
+      "sha256": "617227dea2da418f9d6e83981c82a0fb7b5b587cde762c767efa69584e5b531c"
+    }
+  },
+  "public_exports": {
+    ".": "./src/index.js",
+    "./worker": "./src/worker-client.js",
+    "./session": "./src/session.js",
+    "./realtime-worker": "./src/realtime-worker-client.js",
+    "./metrics": "./src/metric-scheduler.js"
+  },
+  "revision": "private-review-fixes-20261002",
+  "revision_scope": "Buffer ownership; transactional execution-option validation; tiny-weight FCM coordinate-product and weight underflow"
+}
