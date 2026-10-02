@@ -454,8 +454,11 @@ def fit_fcm(X, n_clusters=None, *, init=None, m=2.0, max_iter=300,
                             return robust("squared_distance_overflow")
                         minimum = None if 1e-4 <= m - 1.0 and m <= 3.0 else _row_minimum(distances)
                         smallest = np.min(distances) if minimum is None else minimum.min()
-                        if 0 < smallest < np.finfo(float).tiny:
-                            return robust("subnormal_squared_distance")
+                        if smallest < np.finfo(float).tiny:
+                            # Exact coincidences must not hide other positive
+                            # subnormal squares in the same distance block.
+                            if smallest > 0 or np.any((distances > 0) & (distances < np.finfo(float).tiny)):
+                                return robust("subnormal_squared_distance")
                         if smallest == 0 and minimum is None:
                             minimum = _row_minimum(distances)
                         zero_points = np.flatnonzero(minimum[:, 0] == 0) if smallest == 0 else ()

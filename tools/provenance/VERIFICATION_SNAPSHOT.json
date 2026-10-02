@@ -91,7 +91,7 @@
     },
     {
       "path": "javascript/README.md",
-      "sha256": "cb14da14392c35129c70e04551863f4897909893d4d88ae66c69c175d0dded3c"
+      "sha256": "90e221523290e6bd999e927075075861c70453179c5751ca40e45777f11e91a2"
     },
     {
       "path": "javascript/SOM.md",
@@ -99,7 +99,7 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "103d139ecbd5052316be4dee37eef190edc6fbc1e4e353f85898ce49517d6faa"
+      "sha256": "e7cfad8859e52fdd903ab91df33064544b87bef9435975fab5ec9c91d97c3313"
     },
     {
       "path": "javascript/audit/audit-numerics.mjs",
@@ -203,7 +203,7 @@
     },
     {
       "path": "javascript/src/metric-scheduler.js",
-      "sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419"
+      "sha256": "5490bcefb12bdd3e7f413d1ea90a5333d23ad60b0a959ed1d4ae412d57f7800a"
     },
     {
       "path": "javascript/src/metric-wasm.js",
@@ -247,7 +247,7 @@
     },
     {
       "path": "javascript/src/session.js",
-      "sha256": "a31471b62e62b3ac5a1962ff3b4123ce6dd9344f0c093a1d7a9b781264d9674b"
+      "sha256": "11992b3e8f7aa6df9dd16caca417212de2ffce8de97a807cbe4000eb52e71985"
     },
     {
       "path": "javascript/src/som-elite.js",
@@ -310,6 +310,10 @@
       "sha256": "5d3f4167cfbd8de05621da7b98ce584f8f68097f2b0cd73e8df1fc90949dcf72"
     },
     {
+      "path": "javascript/tests/grid-update-regression.test.mjs",
+      "sha256": "e872d987623675584a01b4f4d3bec806d8faee2d0fa4d1e77991a06b0d8a395c"
+    },
+    {
       "path": "javascript/tests/highprecision-reference.json",
       "sha256": "84607655100b3ea479851ea6715e2d4007d191a790213d6cc69460814548d07b"
     },
@@ -328,6 +332,10 @@
     {
       "path": "javascript/tests/runtime-compatibility.mjs",
       "sha256": "02280882cbd0c3cad354e85dcaa704952de1cfc715cf8d9552a85c126ada7f35"
+    },
+    {
+      "path": "javascript/tests/scheduler-memory-regression.test.mjs",
+      "sha256": "fcabe34b744f7ccc461b24700512019e7ed2bfd3c23fae7d6731f86c4d1cb47e"
     },
     {
       "path": "javascript/tests/som-browser-compatibility.mjs",
@@ -1307,7 +1315,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "628a134c544d5349816792d06c3888315b201a7ac1e70ed7f139ae2f8e784493"
+      "sha256": "d58e029b849195e828c008f10ad204560cdd281407b6ce5ec37c579469a24e78"
     },
     {
       "path": "python/SOM.md",
@@ -1315,7 +1323,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "3a3bdd6bef7752ffd80342076524ac42b372cbf4e192e88589d31ef8c24685e0"
+      "sha256": "e98dcea638761c5e1e84519d58d9f6cfc156a6f7e4f416ef7d6a280157805f71"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -1387,7 +1395,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/fcm/core.py",
-      "sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8"
+      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346"
     },
     {
       "path": "python/src/ubukit/_impl/fcm/log_membership.py",
@@ -1719,7 +1727,7 @@
     },
     {
       "path": "python/verification/new_tests/test_extreme_numerics.py",
-      "sha256": "c1504b52ce15568bc4d5f2c6320f55b66351aa2d9cc70ce92e19d2b170c4e209"
+      "sha256": "5cd42fb384d974aa64bbedba77d852523b20b13e81a0bcaa139baad5c4187c43"
     },
     {
       "path": "python/verification/new_tests/test_optimization.py",
@@ -2207,7 +2215,7 @@
     },
     {
       "path": "tools/provenance/SOURCE_SNAPSHOT.json",
-      "sha256": "19c5c8375f2b99bfa3cd24a10fd72559c07359cb6355c395834e41f5ae01995b"
+      "sha256": "165bbbea9a5197b94a7f1bf12f21898b8ecfbb7848ec137e8985b4e2acb7ace4"
     },
     {
       "path": "tools/provenance/refresh.py",

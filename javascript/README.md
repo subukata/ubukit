@@ -1,11 +1,11 @@
 # UbuKit for JavaScript
 
-Clustering, self-organizing maps, evaluation metrics and parameter search for
+Clustering, self-organizing maps (SOM), evaluation metrics and parameter search for
 Node.js and browsers, using ES modules and no runtime npm dependencies.
 
 The package is `private: true` and unpublished. Project contributions use the
 [MIT License](LICENSE); [license scope](LICENSE-SCOPE.txt) identifies third-party
-terms and the pending-origin metric WASM exclusion. See the
+terms and the pending-origin metric WebAssembly (WASM) exclusion. See the
 [build instructions](../docs/getting-started.md#javascript) to create a local tarball from source.
 
 ## Install locally
@@ -17,6 +17,8 @@ npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-de
 There are no runtime npm dependencies or install scripts. Package metadata keeps
 the existing Node >=20 requirement. This integration was executed on Linux with
 Node 24.19.0; that does not validate all Node >=20 versions or other OSes.
+
+This example uses fuzzy c-means (FCM) for degrees of cluster membership.
 
 ```js
 import { run, createSession } from 'ubukit-js';
@@ -34,14 +36,22 @@ session.dispose();
 
 ## Supported package entrypoints
 
-- `ubukit-js`: functions, helpers, prepared RMCM/cache objects, generators, sessions,
-  Worker clients and the metric scheduler exported by `src/index.js`
+- `ubukit-js`: functions, helpers, prepared rough membership c-means (RMCM)
+  graphs/caches for fixed-radius neighborhoods, generators, sessions, Worker
+  clients and the metric scheduler exported by `src/index.js`
 - `ubukit-js/worker`: `createWorkerClient`
 - `ubukit-js/session`: `createSession`, `ClusteringSession`, `sessionAlgorithms`
 - `ubukit-js/realtime-worker`: `createRealtimeWorkerClient`
 - `ubukit-js/metrics`: `createMetricScheduler`
 - `ubukit-js/optimization`: optimizer and search-space helpers; see OPTIMIZATION.md
-- `ubukit-js/external-metrics`: ARI, AMI and shared-contingency joint scores; see EXTERNAL_METRICS.md
+- `ubukit-js/external-metrics`: adjusted Rand index (ARI), adjusted mutual information
+  (AMI) and shared-contingency joint scores for chance-adjusted cluster-label agreement;
+  see EXTERNAL_METRICS.md
+
+Rough c-means (RCM, `rcm`) and extended rough c-means (ExRCM, `exrcm`)
+allow overlapping cluster assignments. Self-organizing maps with optimized
+latent positions (SOM-OLP, `som-olp`) learn continuous sample positions using
+a supplied grid.
 
 The root algorithms registry contains `kmeans`, `fcm`, `rcm`, `exrcm`, `rmcm`,
 `som-olp`, `som`, `som_batch`, and `neighborhood`. `run`, `steps` and `runAsync` share that registry.
@@ -49,8 +59,9 @@ Neighborhood computes trustworthiness and continuity; it is a one-shot metric,
 not an iterative fitting session. ARI and AMI are separate exported scoring
 functions: `adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores`;
 see [EXTERNAL_METRICS.md](EXTERNAL_METRICS.md).
-Traditional `som` commits one sample update; `som_batch` commits one frozen-BMU
-epoch. See [SOM.md](SOM.md) for step units and explicit current-model projection.
+Online SOM (`som`) commits one sample update; batch SOM (`som_batch`, also called
+BatchSOM) commits one epoch with each sample's best-matching unit (BMU) held fixed.
+See [SOM.md](SOM.md) for step units and explicit current-model projection.
 Data is flat row-major with explicit dimensions. The result layouts below describe the existing API.
 
 ## Core inputs and results
@@ -78,8 +89,10 @@ membership; RMCM preserves the hard labels that produced its returned centers,
 without a final reassignment. These label meanings are not interchangeable.
 
 ARI/AMI take label arrays directly, outside `run`; see
-[external metrics](EXTERNAL_METRICS.md). TPE/random search takes an objective
-and search space; see [optimization](OPTIMIZATION.md).
+[external metrics](EXTERNAL_METRICS.md). Tree-structured Parzen Estimator (TPE)
+search uses earlier trial results to suggest parameter values; random search
+samples without that feedback. Both take an objective and search space; see
+[optimization](OPTIMIZATION.md).
 
 ## Sessions, updates and Workers
 
@@ -184,7 +197,8 @@ ranges, including when `kernelBackend: 'wasm'` is requested. Its diagnostics rep
 the actual fallback. The ordinary JavaScript and embedded WASM kernels retain
 their previous arithmetic. Exceptional recovery uses original-unit costs,
 exact binary cold weighted-product accumulation, gamma-weighted scaled norms, and a centered
-PCA scratch copy. The latter is included in memory/scratch budget checks.
+principal component analysis (PCA) scratch copy. The latter is included in
+memory/scratch budget checks.
 
 This is a bounded numerical extension, not support for every finite input.
 Positive composite costs that become zero or overflow raise a RangeError rather

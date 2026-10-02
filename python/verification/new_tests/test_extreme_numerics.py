@@ -122,6 +122,19 @@ def test_dynamic_range_distance_recovery(backend):
     assert out['numerical_diagnostics']['recovered_distance_pairs']>0
 
 
+@pytest.mark.parametrize('backend', BACKENDS)
+def test_exact_zero_does_not_hide_positive_subnormal_distances(backend):
+    # The singleton centers have exact-zero distances, while other rows have
+    # positive subnormal squared distances with large relative rounding error.
+    x = np.array([[0.], [6e-162], [12e-162], [1.]])
+    initial = np.array([[1., 0., 0.], [1., 0., 0.],
+                        [0., 1., 0.], [0., 0., 1.]])
+    out = fit_fcm(x, init=initial, m=2., max_iter=1, tol=0., backend=backend)
+    expected, _ = reference_step(x, out['centers'], 2.)
+    assert_allclose(out['membership'], expected, rtol=3e-14, atol=1e-15)
+    assert out['numerical_diagnostics']['recovered_distance_pairs'] > 0
+
+
 def test_tiny_lambda_exact_minimum_and_ties():
     costs=np.array([[1e308,1e308,-1e308],[1.,1.,2.],[1e-300,1e-300,2e-300]])
     normalize_costs_inplace(costs,np.nextafter(0.,1.))

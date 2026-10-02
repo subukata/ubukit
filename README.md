@@ -6,10 +6,12 @@
 
 A Python and JavaScript library for clustering, self-organizing maps, evaluation metrics, and lightweight parameter search.
 
-- **Clustering:** k-means, fuzzy c-means (FCM), RCM / ExRCM, and RMCM
-- **Self-organizing maps:** online SOM, BatchSOM, and SOM-OLP
-- **Evaluation:** trustworthiness, continuity, adjusted Rand index (ARI), and adjusted mutual information (AMI)
-- **Parameter search:** TPE and random search
+- **Clustering:** k-means assigns each sample to one cluster; fuzzy c-means (FCM) assigns degrees of membership
+- **Rough clustering:** rough c-means (RCM) and extended rough c-means (ExRCM) allow overlapping cluster assignments; rough membership c-means (RMCM) derives membership from fixed-radius neighborhoods
+- **Self-organizing maps (SOM):** online and batch training (BatchSOM) map samples to a grid for visualization
+- **Self-organizing maps with optimized latent positions (SOM-OLP):** learn continuous sample positions using a supplied grid
+- **Evaluation:** trustworthiness and continuity check neighborhood preservation; adjusted Rand index (ARI) and adjusted mutual information (AMI) measure chance-adjusted agreement between cluster labels
+- **Parameter search:** Tree-structured Parzen Estimator (TPE) search uses earlier trial results to suggest parameter values; random search samples without that feedback
 
 UbuKit is a pre-release preview and is not yet published to PyPI or npm. Follow [getting started](docs/getting-started.md) to build and install the packages locally.
 

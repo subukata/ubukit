@@ -1,6 +1,6 @@
 {
   "schema_version": 5,
-  "purpose": "private JS efficiency dev6 candidate based on immutable dev5; no public release or adoption",
+  "purpose": "Private JS dev6 safety candidate with classic-SOM grid update and metric-scheduler storage accounting repairs; no public release",
   "version": "0.1.0-dev.6",
   "runtime_files": {
     "src/clustering.js": {
@@ -41,10 +41,11 @@
       "pre_efficiency_dev5_sha256": "d965d6fa255af90e4402c2ab1e9c67b772fdd4b9221bc5c40a17798acca67035"
     },
     "src/metric-scheduler.js": {
-      "sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419",
+      "sha256": "5490bcefb12bdd3e7f413d1ea90a5333d23ad60b0a959ed1d4ae412d57f7800a",
       "baseline_sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419",
       "pre_som_dev4_sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419",
-      "pre_efficiency_dev5_sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419"
+      "pre_efficiency_dev5_sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419",
+      "pre_safety_sha256": "063ddd9e3e7396a48ea1b09fe5aac213ebde8e6b8e7471605aac267b2766e419"
     },
     "src/metric-wasm.js": {
       "sha256": "fdd191b794a16ddb1b139afbe745ecd5ed6128fced82da0b5e5b536cc9301867",
@@ -107,10 +108,11 @@
       "pre_efficiency_dev5_sha256": "d304c1160c05b8a1ea29031c5aa37384274a6fcc2c6c1228445672d09ad62def"
     },
     "src/session.js": {
-      "sha256": "a31471b62e62b3ac5a1962ff3b4123ce6dd9344f0c093a1d7a9b781264d9674b",
+      "sha256": "11992b3e8f7aa6df9dd16caca417212de2ffce8de97a807cbe4000eb52e71985",
       "baseline_sha256": "a1dbe6ef9134a1201cb64569b302047d853705c7bb2cd1440ae5e6bd17fa1950",
       "pre_som_dev4_sha256": "f9713461df1f4f999c2c851aae1d4354e4a53994e067dfef0de6ca03e2051b22",
-      "pre_efficiency_dev5_sha256": "85d800ab6e7931af8bc90791108878dcc322206082371d817ed3b03d6961cdde"
+      "pre_efficiency_dev5_sha256": "85d800ab6e7931af8bc90791108878dcc322206082371d817ed3b03d6961cdde",
+      "pre_safety_sha256": "a31471b62e62b3ac5a1962ff3b4123ce6dd9344f0c093a1d7a9b781264d9674b"
     },
     "src/som-numerics.js": {
       "sha256": "3aa2372680ed99d514776a0033214016edc0df801dc7e0f85c2f13a93b264b0d",
@@ -183,5 +185,14 @@
     "baseline_version": "0.1.0-dev.5",
     "private_candidate_version": "0.1.0-dev.6",
     "runtime_unchanged_for_version_identity": true
+  },
+  "safety_candidate": {
+    "base_commit": "59a577f273dbf0e5e3442a9013430ecc6e17d05e",
+    "changes": [
+      "Classic SOM grid updates preserve caller-explicit nClusters constraints without retaining implicit counts",
+      "Metric scheduler accounts for cached and executing-request numerical storage before ownership allocation"
+    ],
+    "memory_scope": "Owned numerical typed buffers and reserved kernel scratch; not total JavaScript heap",
+    "status": "local candidate; source compatibility does not replace installed-artifact qualification"
   }
 }

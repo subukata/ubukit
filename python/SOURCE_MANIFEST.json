@@ -1,7 +1,7 @@
 {
   "version": "0.0.0.dev6",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "Private ubukit-only namespace consolidation; 38 facade exports; numerical bodies, data, defaults, backend policy and stopping rules preserved",
+  "purpose": "Private ubukit-only namespace with a bounded FCM zero/subnormal recovery guard candidate; 38 facade exports and defaults preserved; no public release",
   "files": [
     {
       "path": "src/ubukit/_impl/_external_metrics_numba.py",
@@ -438,10 +438,11 @@
     {
       "path": "src/ubukit/_impl/fcm/core.py",
       "baseline_path": "src/ubukit_fcm/core.py",
-      "sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
+      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346",
       "baseline_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
-      "change": "unchanged_bytes",
-      "numerical_ast_equal": true
+      "change": "fcm_zero_subnormal_recovery_guard",
+      "numerical_ast_equal": false,
+      "pre_safety_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8"
     },
     {
       "path": "src/ubukit/_impl/fcm/log_membership.py",
@@ -504,5 +505,12 @@
       "sha256": "220b9b82e42641b3a8d8b0ba1931bda40655d4d45c2e6ec577576efe5981cede",
       "change": "new_private_package_marker"
     }
-  ]
+  ],
+  "safety_candidate": {
+    "base_commit": "59a577f273dbf0e5e3442a9013430ecc6e17d05e",
+    "changes": [
+      "FCM exact-zero distances no longer hide positive subnormal squared distances in the same block"
+    ],
+    "status": "local candidate; source checks do not replace installed-artifact qualification"
+  }
 }
