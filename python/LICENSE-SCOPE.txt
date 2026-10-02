@@ -10,13 +10,12 @@ THIRD_PARTY_LICENSES.txt; NOTICE-EXTERNAL-METRICS.txt identifies their scope.
 The package's MIT AND BSD-3-Clause expression records these combined declared
 source terms; it does not relicense the BSD portions under MIT alone.
 
-The JavaScript WebAssembly components excluded in the repository-level scope
-notice are not included in this Python distribution. External dependencies are
+The JavaScript WebAssembly components are not included in this Python
+distribution. External dependencies are
 not bundled and retain their respective licenses. Original third-party notices
 are retained unchanged; their historical statements do not override the current
 project-license selection.
 
-This private preview is not a public-release approval or a representation that
-all source-origin questions have been independently resolved. No additional
+This private preview is not a public-release approval. No additional
 conditions restrict rights granted by MIT or the applicable third-party terms.
 Keep the scoped notices with their respective material.

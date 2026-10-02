@@ -93,12 +93,12 @@
     {
       "language": "javascript",
       "path": "javascript/src/session-validation.js",
-      "sha256": "e4f72dbf845d8f7901790fa60a51eb0ce7c3931f37187b1dbbcdb3f62e5e1cb6"
+      "sha256": "4296647e57a507dc79f40a8fde75d478b932068f94bab41cc73d4ac7ebeac9f5"
     },
     {
       "language": "javascript",
       "path": "javascript/src/session.js",
-      "sha256": "11992b3e8f7aa6df9dd16caca417212de2ffce8de97a807cbe4000eb52e71985"
+      "sha256": "6a241895b4ff5fd43d0aef53a754a29a51f0e598e5841dc376ee9a1045b68120"
     },
     {
       "language": "javascript",
@@ -163,7 +163,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/_impl/external_metrics.py",
-      "sha256": "bd0e8931ad22516bc34b3166ef7ad35dfa3766f733960aae47eabfd9e7e65d9a"
+      "sha256": "66a2ccdd58e06134a7d90255580bc1de748ec06caff320fac50808d729cb2d23"
     },
     {
       "language": "python",
@@ -471,7 +471,7 @@
     },
     {
       "path": "javascript/LICENSE-SCOPE.txt",
-      "sha256": "b974516f77580e487d4c2f41344fd88554300b4627c98a7de1e65f5aa114bcd9"
+      "sha256": "c42413f498c882c1252190aae35d033243097a94ee6e17849f5dfddbf43d32cf"
     },
     {
       "path": "javascript/LICENSE-SOM.txt",
@@ -483,7 +483,7 @@
     },
     {
       "path": "javascript/NOTICE.txt",
-      "sha256": "d5a01a289a22a2de8c4fba627a23b8de9afe44cfea510f0197a4892cf60dd94c"
+      "sha256": "d29ac5f0609cb4c91d42a11aea10a5a418327306c74fb660f0a7341c1e2cc2ce"
     },
     {
       "path": "javascript/NUMERICAL_LIMITS.md",
@@ -495,7 +495,7 @@
     },
     {
       "path": "javascript/README.md",
-      "sha256": "90e221523290e6bd999e927075075861c70453179c5751ca40e45777f11e91a2"
+      "sha256": "f73cb8d9155be5847e306a7e8eb8af26fa76d2f3a81b9faeccf14a3c163b286d"
     },
     {
       "path": "javascript/SOM.md",
@@ -503,11 +503,11 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "e7cfad8859e52fdd903ab91df33064544b87bef9435975fab5ec9c91d97c3313"
+      "sha256": "8f0ac54a7d38cd7e9fc435e618b2bed5e2c0f8d4823a04464f7b1e8ed70a6f76"
     },
     {
       "path": "javascript/package.json",
-      "sha256": "18ff849efe0702335f189a257be0dc118df1f5523cda86cbb66737b8c98a7241"
+      "sha256": "b9c47b689f20ce48771e6ffa9dbadcba84c9721b79ae5677047da17d189c2528"
     },
     {
       "path": "javascript/src/clustering.js",
@@ -579,11 +579,11 @@
     },
     {
       "path": "javascript/src/session-validation.js",
-      "sha256": "e4f72dbf845d8f7901790fa60a51eb0ce7c3931f37187b1dbbcdb3f62e5e1cb6"
+      "sha256": "4296647e57a507dc79f40a8fde75d478b932068f94bab41cc73d4ac7ebeac9f5"
     },
     {
       "path": "javascript/src/session.js",
-      "sha256": "11992b3e8f7aa6df9dd16caca417212de2ffce8de97a807cbe4000eb52e71985"
+      "sha256": "6a241895b4ff5fd43d0aef53a754a29a51f0e598e5841dc376ee9a1045b68120"
     },
     {
       "path": "javascript/src/som-elite.js",
@@ -627,7 +627,7 @@
     },
     {
       "path": "python/LICENSE-SCOPE.txt",
-      "sha256": "59439ee95f4561e3d80c636fda03c9f3d00424e4b13fd5b6d658b82d43db1c35"
+      "sha256": "9e4f1133ae75d9ebb1311c2f0af0d72d9eeb5592b629dcf8c945dc05518bd7b8"
     },
     {
       "path": "python/LICENSE-SOM.txt",
@@ -663,7 +663,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "e98dcea638761c5e1e84519d58d9f6cfc156a6f7e4f416ef7d6a280157805f71"
+      "sha256": "8611bd262fb12d6eb256ae8a0d8f0c4db45e670d8d55e73881f383b16c673d35"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -691,7 +691,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/external_metrics.py",
-      "sha256": "bd0e8931ad22516bc34b3166ef7ad35dfa3766f733960aae47eabfd9e7e65d9a"
+      "sha256": "66a2ccdd58e06134a7d90255580bc1de748ec06caff320fac50808d729cb2d23"
     },
     {
       "path": "python/src/ubukit/_impl/fcm/__init__.py",

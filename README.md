@@ -63,4 +63,4 @@ See [development and verification](docs/contributing.md) for contributor instruc
 
 ## License
 
-UbuKit project contributions use the [MIT License](LICENSE). Third-party terms and pending-origin component exclusions are described in [license scope](LICENSE-SCOPE.txt). The private preview is not approved for public release.
+UbuKit project contributions use the [MIT License](LICENSE). Retained third-party terms are described in [license scope](LICENSE-SCOPE.txt). The private preview is not approved for public release.

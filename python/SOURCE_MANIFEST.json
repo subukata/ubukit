@@ -1,7 +1,7 @@
 {
   "version": "0.0.0.dev6",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "Private ubukit-only namespace with a bounded FCM zero/subnormal recovery guard candidate; 38 facade exports and defaults preserved; no public release",
+  "purpose": "Private ubukit-only namespace with bounded FCM recovery and NumPy EMI pair-order reuse candidates; 38 public facade exports preserved; no public release",
   "files": [
     {
       "path": "src/ubukit/_impl/_external_metrics_numba.py",
@@ -22,10 +22,11 @@
     {
       "path": "src/ubukit/_impl/external_metrics.py",
       "baseline_path": "src/external_metrics.py",
-      "sha256": "bd0e8931ad22516bc34b3166ef7ad35dfa3766f733960aae47eabfd9e7e65d9a",
+      "sha256": "66a2ccdd58e06134a7d90255580bc1de748ec06caff320fac50808d729cb2d23",
       "baseline_sha256": "66aa7d48cdba96a87afbb8596d51c41d2eeafd585384432171bb09036ff64c5c",
-      "change": "namespace_import_facade_or_doc_only",
-      "numerical_ast_equal": true
+      "change": "numpy_emi_presorted_pair_reuse",
+      "numerical_ast_equal": false,
+      "pre_presorted_emi_sha256": "bd0e8931ad22516bc34b3166ef7ad35dfa3766f733960aae47eabfd9e7e65d9a"
     },
     {
       "path": "src/ubukit/_impl/portable_accel/__init__.py",
@@ -512,5 +513,11 @@
       "FCM exact-zero distances no longer hide positive subnormal squared distances in the same block"
     ],
     "status": "local candidate; source checks do not replace installed-artifact qualification"
+  },
+  "metric_reuse_candidate": {
+    "base_commit": "b847c272bbbad5d152bf254467098a689c828f68",
+    "change": "The NumPy EMI dispatcher reuses the existing producer pair order; unsorted direct internal calls still sort by default",
+    "numerical_contract": "Same recurrence, normalizers, fallbacks and Numba path; no cross-call cache or public API change",
+    "performance": "Existing small fixture-specific gains on a noisy host; not a general speedup guarantee"
   }
 }

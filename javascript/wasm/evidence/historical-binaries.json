@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Captured historical bytes only; neither fixture is a current runtime kernel. Original-source provenance remains unresolved for the older RMCM module.",
+  "description": "Captured historical project bytes only; neither fixture is a current runtime kernel. The older RMCM standalone source was not captured; a labeled reconstruction derived from preserved later WAT reproduces its exact bytes. See ../DEVELOPMENT.md.",
   "binaries": [
     {
       "sha256": "63768dc7e7388372fbbc1a6517e4e99b570699cbfb8f9d18b9ccbd897ca9ebd8",

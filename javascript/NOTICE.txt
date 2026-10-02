@@ -1,6 +1,6 @@
 UbuKit private research preview. Project-owned contributions use the MIT License
-in LICENSE. LICENSE-SCOPE.txt preserves separate terms and explicitly excludes
-the pending-origin metric WebAssembly component from the project MIT grant.
+in LICENSE, including the project-developed WebAssembly kernels.
+LICENSE-SCOPE.txt preserves the separate terms of the material identified below.
 
 The original SOM-OLP reference and corresponding derived implementations use
 source from https://github.com/subukata/som-olp at commit
@@ -9,8 +9,9 @@ unchanged in LICENSE-SOM.txt. External-metric attribution and the retained BSD
 notice are in NOTICE-EXTERNAL-METRICS.txt and LICENSE-SCIKIT-LEARN.txt.
 
 The runtime in src/ derives from the selected acceleration candidate; source
-hashes and changes are recorded in SOURCE_MANIFEST.json. Hashes and byte-exact
-rebuilds do not establish original authorship or release clearance. Original
+hashes and changes are recorded in SOURCE_MANIFEST.json. The repository's
+wasm/DEVELOPMENT.md records the maintainer's development clarification and the
+distinction between preserved original and reconstructed source. Original
 external-metrics provenance notices retain their historical wording.
 
 The npm package remains configured private, and maintainer release review is

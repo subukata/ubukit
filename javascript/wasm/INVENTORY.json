@@ -142,6 +142,16 @@
       "origin": "historical acceleration-extension WAT, preserved unchanged"
     }
   ],
-  "provenance_warning": "Four current kernels have matching preserved original WAT. Metric and historical pre-Float32 RMCM original standalone sources are absent from the inspected evidence. Reconstruction proves byte equality, not authorship or license clearance.",
-  "runtime_package_version": "0.1.0-dev.6"
+  "provenance_warning": "The maintainer confirmed in-project development with AI assistance on 2026-10-02. Four current kernels have matching preserved original WAT. Metric and historical pre-Float32 RMCM original standalone sources were not captured; their labeled reconstructions reproduce the retained bytes. See DEVELOPMENT.md. Rebuild equality is technical evidence, not a legal determination.",
+  "runtime_package_version": "0.1.0-dev.6",
+  "derived_wat": [
+    {
+      "path": "derived-wat/rmcm/pre_f32_radius_candidates.wat",
+      "sha256": "74104026ba50646db26b87e11d3c93774f8e692a1885b73cd51b8eaeb2d7dec5",
+      "origin": "Deterministically derived from preserved later RMCM WAT by reversing documented additions; not a recovered original file",
+      "source": "original-wat/rmcm/radius_candidates.wat",
+      "matching_binary_sha256": "63768dc7e7388372fbbc1a6517e4e99b570699cbfb8f9d18b9ccbd897ca9ebd8",
+      "write_debug_names": true
+    }
+  ]
 }

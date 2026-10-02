@@ -171,10 +171,12 @@ def _emi_numpy_reference(n, pairs):
     return math.fsum(int(mult) * _pair_emi_numpy(n, int(a), int(b)) for a, b, mult in pairs)
 
 
-def _emi_numpy(n, pairs):
+def _emi_numpy(n, pairs, *, presorted=False):
     """Bounded-memory batching of the same full-support recurrence."""
     # Similar support lengths are adjacent, limiting padded zero work.
-    pairs = pairs[np.argsort(pairs[:, 0], kind="stable")]
+    # _margin_pairs already orders (low, high) lexicographically.
+    if not presorted:
+        pairs = pairs[np.argsort(pairs[:, 0], kind="stable")]
     result = []
     start = 0
     budget = 131_072
@@ -216,7 +218,7 @@ def _emi_numpy(n, pairs):
 def _emi(n, a, b, backend):
     pairs = _margin_pairs(a, b)
     if backend == "numpy":
-        return _emi_numpy(n, pairs)
+        return _emi_numpy(n, pairs, presorted=True)
     if backend == "numba":
         from ._external_metrics_numba import emi_numba
         return float(emi_numba(n, pairs))

@@ -220,9 +220,10 @@
     },
     {
       "path": "evidence/historical-binaries.json",
-      "bytes": 5797,
-      "sha256": "53e5baf16f97660e9c78461f3337699ba5f9e5afdb7bf24516b4cfb1bf1fcebc",
-      "status": "new encoded historical fixture"
+      "bytes": 5892,
+      "sha256": "9e75e7cd5ea9b0f7c60fe5cffe373be5851e940cd16766250de9b32929abb547",
+      "status": "Encoded historical fixture; binary entries unchanged, description corrected after maintainer development clarification",
+      "previous_metadata_sha256": "53e5baf16f97660e9c78461f3337699ba5f9e5afdb7bf24516b4cfb1bf1fcebc"
     },
     {
       "path": "evidence/work/rmcm/results/wasm_reproducibility.json",
@@ -259,6 +260,13 @@
       "bytes": 9450,
       "sha256": "0c8d4d32497597deeeedd55766fe44462b18bb2f592b906999cebfa257363a75",
       "status": "preserved unchanged from supplied recovery supplement"
+    },
+    {
+      "path": "derived-wat/rmcm/pre_f32_radius_candidates.wat",
+      "bytes": 21375,
+      "sha256": "74104026ba50646db26b87e11d3c93774f8e692a1885b73cd51b8eaeb2d7dec5",
+      "status": "Derived historical reconstruction from preserved later project WAT, not a recovered original file",
+      "derived_from": "original-wat/rmcm/radius_candidates.wat"
     }
   ]
 }

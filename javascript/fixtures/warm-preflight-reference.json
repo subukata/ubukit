@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "purpose": "Exact public FCM result fixtures from the pinned pre-fix source; no numerical tolerance was added to the original regression comparisons",
+  "source_commit": "b847c272bbbad5d152bf254467098a689c828f68",
+  "source_files": [
+    {
+      "path": "src/clustering.js",
+      "sha256": "b2c75c49e7567a25ccb51ae41adaaed770fc059c0536c19533cfd262ac9a2532"
+    },
+    {
+      "path": "src/core.js",
+      "sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4"
+    },
+    {
+      "path": "src/fcm-stable.js",
+      "sha256": "1680ac7961c75b8c968fb46bc1800f68d4305bdb8567ae3738ad99f674dad674"
+    },
+    {
+      "path": "src/iteration-kernels.js",
+      "sha256": "23cfb5c2dc8820d3731fa1f70970a56a25db92040822de17485aaa7ce6142043"
+    },
+    {
+      "path": "src/kmeans-wasm.js",
+      "sha256": "a9dbb94e2204f567955a6665be2ba22ba3aa39f28a8884bb7cb0ee4f3e7384df"
+    },
+    {
+      "path": "src/rmcm-grid.js",
+      "sha256": "0160ab3602f0cdee146c985b1b46ab4ece23047ad38e72d861d7ec668b1f72b6"
+    },
+    {
+      "path": "src/rmcm-wasm.js",
+      "sha256": "92cfefef28cde149ffcebe6577d85adb56dede43eb8ca131d3f65917153c2de4"
+    },
+    {
+      "path": "src/rmcm.js",
+      "sha256": "2f3ba52b3af6026caacae0b0d3499dcaf7afffe27da1c99933951db9b0ce9ffc"
+    },
+    {
+      "path": "src/session-hooks.js",
+      "sha256": "d26f19225417c525cbb8b1f4384daf0ca355883d77c6891a8175ce717efc7789"
+    },
+    {
+      "path": "src/session-validation.js",
+      "sha256": "e4f72dbf845d8f7901790fa60a51eb0ce7c3931f37187b1dbbcdb3f62e5e1cb6"
+    },
+    {
+      "path": "src/session.js",
+      "sha256": "11992b3e8f7aa6df9dd16caca417212de2ffce8de97a807cbe4000eb52e71985"
+    },
+    {
+      "path": "src/som-elite.js",
+      "sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3"
+    },
+    {
+      "path": "src/som-numerics.js",
+      "sha256": "3aa2372680ed99d514776a0033214016edc0df801dc7e0f85c2f13a93b264b0d"
+    },
+    {
+      "path": "src/som-olp.js",
+      "sha256": "d8c8a6c40e743d0d8932047f7ebf62b555f2f7130ba3c820a5d8edf236569ea2"
+    },
+    {
+      "path": "src/som-pca-wasm.js",
+      "sha256": "5965821d5e62cd854a7a3eb07d7d4f6e2663a3fc84e809f1c00711c5227fcdd6"
+    },
+    {
+      "path": "src/som-training-wasm.js",
+      "sha256": "bb696919c35377af2568cb59760e73331e942d972f7f6c2267db661016a2df6d"
+    },
+    {
+      "path": "src/som.js",
+      "sha256": "797b7b760052542e88d985999038579f15943efccff31d0eda69cc666c9347cc"
+    }
+  ],
+  "generation_node": "v24.19.0",
+  "results": {
+    "continued-done": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          4.821156392094496e-19,
+          -5.755977884290382e-20,
+          4,
+          4
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          0.8011840109036038,
+          0.19881598909639608,
+          0.5292458789785668,
+          0.4707541210214332,
+          0.5253164052726289,
+          0.4746835947273711,
+          0,
+          1,
+          0.4767371718779205,
+          0.5232628281220796,
+          0.47623236488827286,
+          0.5237676351117271
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      "objective": 5.516459709486639e-19,
+      "objectiveLog": -42.04138046933229,
+      "objectiveRepresentation": "finite",
+      "fpc": 0.6144380366293937,
+      "delta": 0.28116826819674484,
+      "iterations": 1,
+      "converged": false,
+      "nSamples": 6,
+      "nFeatures": 2,
+      "nClusters": 2,
+      "m": 64,
+      "backend": "javascript-float64",
+      "centerRelativeDelta": 0.48809523809523814,
+      "membershipConvergenceOnly": false,
+      "numericalMode": "log-domain",
+      "membershipResolutionLostRows": 0
+    },
+    "tiny-continued": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          5e-101,
+          1
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          1,
+          2.5e-201,
+          1,
+          2.5e-201,
+          0,
+          1
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          1
+        ]
+      },
+      "objective": 5e-201,
+      "fpc": 1,
+      "delta": 7.905694150420949e-201,
+      "iterations": 1,
+      "converged": false,
+      "nSamples": 3,
+      "nFeatures": 1,
+      "nClusters": 2,
+      "m": 2,
+      "backend": "javascript-float64"
+    },
+    "continued-partial": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          6.986919048730144e-13,
+          -8.341681591114442e-14,
+          4,
+          4
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          0.7197747742511807,
+          0.2802252257488193,
+          0.5292458789785978,
+          0.47075412102140224,
+          0.5253164052726498,
+          0.47468359472735033,
+          0,
+          1,
+          0.47673717187792103,
+          0.523262828122079,
+          0.4762323648882735,
+          0.5237676351117265
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      "objective": 5.51645970947982e-19,
+      "objectiveLog": -42.041380469333525,
+      "objectiveRepresentation": "finite",
+      "fpc": 0.6003010842871197,
+      "delta": 0.11513004657629766,
+      "iterations": 2,
+      "converged": false,
+      "nSamples": 6,
+      "nFeatures": 2,
+      "nClusters": 2,
+      "m": 64,
+      "backend": "javascript-float64",
+      "centerRelativeDelta": 1.6248637738543609e-13,
+      "membershipConvergenceOnly": false,
+      "numericalMode": "log-domain",
+      "membershipResolutionLostRows": 0
+    },
+    "warm-64-2": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          1.1636157241657978,
+          1.1404002050395436,
+          3.0900678015699663,
+          3.084227767518338
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          0.8777594391203437,
+          0.12224056087965637,
+          0.8772455177377905,
+          0.12275448226220947,
+          0.8956366223563367,
+          0.10436337764366332,
+          0.09316424554825656,
+          0.9068357544517434,
+          0.11832661476120039,
+          0.8816733852387997,
+          0.096837815052145,
+          0.9031621849478549
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      "objective": 11.764622842569544,
+      "objectiveLog": 2.4650969640853213,
+      "objectiveRepresentation": "finite",
+      "fpc": 0.8050914543063978,
+      "delta": 1.0442054745218523,
+      "iterations": 1,
+      "converged": false,
+      "nSamples": 6,
+      "nFeatures": 2,
+      "nClusters": 2,
+      "m": 2,
+      "backend": "javascript-float64",
+      "centerRelativeDelta": 0.2715238583427485,
+      "membershipConvergenceOnly": false,
+      "numericalMode": "log-domain",
+      "membershipResolutionLostRows": 0
+    },
+    "warm-64-128": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          1.5795903941270876e-24,
+          -5.483415967584191e-25,
+          4,
+          4
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          0.7087791905221781,
+          0.2912208094778219,
+          0.5145202933970584,
+          0.4854797066029416,
+          0.5125666332748072,
+          0.4874333667251927,
+          0,
+          1,
+          0.4884538875152696,
+          0.5115461124847305,
+          0.48820305307283424,
+          0.5117969469271658
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      "objective": 3.109652035293541e-38,
+      "objectiveLog": -86.36372269959998,
+      "objectiveRepresentation": "finite",
+      "fpc": 0.5980766634192028,
+      "delta": 0.13563649352129997,
+      "iterations": 1,
+      "converged": false,
+      "nSamples": 6,
+      "nFeatures": 2,
+      "nClusters": 2,
+      "m": 128,
+      "backend": "javascript-float64",
+      "centerRelativeDelta": 1.1211954874861755e-19,
+      "membershipConvergenceOnly": false,
+      "numericalMode": "log-domain",
+      "membershipResolutionLostRows": 0
+    },
+    "warm-2-64": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          0.099254803117539,
+          -0.00074529874554735,
+          4.0320500593138,
+          4.096310442365975
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          0.5321686288425214,
+          0.4678313711574787,
+          0.5321725647455776,
+          0.4678274352544224,
+          0.5290148752819628,
+          0.4709851247180372,
+          0.4682315634594953,
+          0.5317684365405047,
+          0.4755212176081153,
+          0.5244787823918847,
+          0.475477975008486,
+          0.524522024991514
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      "objective": 5.407672598996252e-19,
+      "objectiveLog": -42.061297970105265,
+      "objectiveRepresentation": "finite",
+      "fpc": 0.5017071772162821,
+      "delta": 1.6282398492661754,
+      "iterations": 1,
+      "converged": false,
+      "nSamples": 6,
+      "nFeatures": 2,
+      "nClusters": 2,
+      "m": 64,
+      "backend": "javascript-float64",
+      "centerRelativeDelta": 0.0008378568908882222,
+      "membershipConvergenceOnly": false,
+      "numericalMode": "log-domain",
+      "membershipResolutionLostRows": 0
+    },
+    "tiny-warm-2-4": {
+      "algorithm": "fcm",
+      "centers": {
+        "$typed": "Float64Array",
+        "values": [
+          5e-101,
+          1
+        ]
+      },
+      "membership": {
+        "$typed": "Float64Array",
+        "values": [
+          1,
+          1.3572088082974415e-67,
+          1,
+          1.3572088082974415e-67,
+          0,
+          1
+        ]
+      },
+      "membershipLayout": "samples-clusters",
+      "labels": {
+        "$typed": "Int32Array",
+        "values": [
+          0,
+          0,
+          1
+        ]
+      },
+      "objective": 4.99999999999988e-201,
+      "objectiveLog": -461.2101657793691,
+      "objectiveRepresentation": "finite",
+      "fpc": 1,
+      "delta": 1.919383103666468e-67,
+      "iterations": 1,
+      "converged": false,
+      "nSamples": 3,
+      "nFeatures": 1,
+      "nClusters": 2,
+      "m": 4,
+      "backend": "javascript-float64",
+      "centerRelativeDelta": 0,
+      "membershipConvergenceOnly": false,
+      "numericalMode": "log-domain",
+      "membershipResolutionLostRows": 0
+    }
+  }
+}
