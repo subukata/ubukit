@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "repository": "subukata/ubukit",
-  "approved_source_sha": null,
-  "approved_source_snapshot_sha256": null,
+  "approved_source_sha": "ea0f222fa81f6805dcdf983eda04ae3af0714556",
+  "approved_source_snapshot_sha256": "c35e60386fbf66a7ca1f1d7944572a387bf8c04311865ea24789b5a1f5e5679f",
   "approved_build_harness_sha": null,
-  "status": "unselected_after_product_layout_migration",
+  "status": "selected_reviewed_product_layout_source",
   "historical_source_sha": "86321a9f1bc405ddb3251facfe1d876064c9c9dd",
   "historical_main_sha": "5a197111b605c495f3f2a7ba69a6e09bb44e8caf",
   "note": "Select a reviewed immutable product-layout source SHA and source snapshot digest in a separate reviewed change. For reuse, also pin the successful build harness SHA. A dispatch input cannot authorize a new source.",
