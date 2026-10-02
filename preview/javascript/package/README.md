@@ -1,9 +1,9 @@
-# UbuKit JavaScript: dev3 private preview
+# UbuKit JavaScript: dev4 private preview
 
 This repository snapshot contains the reviewed JavaScript candidate
-`0.1.0-dev.3`, with 24 runtime files and six package entrypoints. It includes
+`0.1.0-dev.4`, with 25 runtime files and seven package entrypoints. It includes
 FCM/SOM extreme-range repairs, snapshot ownership and session validation fixes,
-and optional lightweight TPE/random optimization. SOURCE_MANIFEST.json binds
+optional lightweight TPE/random optimization, and ARI/AMI external metrics. SOURCE_MANIFEST.json binds
 the current runtime files to SHA-256 hashes.
 
 The package remains `private: true` and unpublished. No project-wide license
@@ -14,7 +14,7 @@ in the repository are historical, not this package's current implementation.
 ## Install locally
 
 ```sh
-npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.3.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.4.tgz
 ```
 
 There are no runtime npm dependencies or install scripts. Package metadata keeps
@@ -44,6 +44,7 @@ session.dispose();
 - `ubukit-js/realtime-worker`: `createRealtimeWorkerClient`
 - `ubukit-js/metrics`: `createMetricScheduler`
 - `ubukit-js/optimization`: optimizer and search-space helpers; see OPTIMIZATION.md
+- `ubukit-js/external-metrics`: ARI, AMI and shared-contingency joint scores; see EXTERNAL_METRICS.md
 
 The root algorithms registry contains `kmeans`, `fcm`, `rcm`, `exrcm`, `rmcm`,
 `som-olp`, and `neighborhood`. `run`, `steps` and `runAsync` share that registry.
@@ -180,3 +181,17 @@ evaluated by dividing before subtraction.
 ## Lightweight optimization
 
 The dependency-free optional TPE optimizer and random baseline are exported from the root and `ubukit-js/optimization`. See OPTIMIZATION.md for examples, numerical contracts, and limitations.
+
+## External clustering agreement (dev4)
+
+`adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores` are exported
+from the package root and `ubukit-js/external-metrics`. The joint API shares one
+contingency table. Additional runtime dependencies: none. See
+[EXTERNAL_METRICS.md](EXTERNAL_METRICS.md) for input types, normalization choices,
+numerical policy, supported limits, and error codes. Definitions follow
+scikit-learn's arithmetic-default ARI/AMI conventions; stable high-K answers
+intentionally do not reproduce its floating-point artifacts.
+
+Node execution is tested from an installed tarball. The module has no Node-only
+imports and is designed for modern browsers; an actual browser smoke run could
+not be completed because the cloud browser blocked the local test URL.

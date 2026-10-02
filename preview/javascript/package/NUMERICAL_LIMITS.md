@@ -96,3 +96,12 @@ benchmarks do not establish universal performance bounds. Extreme correctness
 recovery can be slower, including about 5.1x in one Python high-m warm smoke case.
 No public push, package-registry publication, deployment or upload was performed
 while constructing this local bundle.
+
+## JavaScript external metrics (dev4)
+
+ARI uses exact integer combinatorics and one final binary64 quotient. AMI uses
+full-support normalized hypergeometric recurrence with compensated summation
+and direct conditional entropies. See [EXTERNAL_METRICS.md](EXTERNAL_METRICS.md)
+for accepted label types, the 2**26 AMI sample cap, work budget, explicit optional
+min/singleton singular rejection, and finite-precision caveats. High-K scikit-learn
+roundoff is not a correctness oracle; independent 80-digit checks are supplied.

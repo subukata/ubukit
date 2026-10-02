@@ -1,7 +1,7 @@
 {
   "schema_version": 4,
-  "purpose": "combined private candidate; no public release",
-  "version": "0.1.0-dev.3",
+  "purpose": "private JavaScript dev4 external-metrics candidate, built on immutable verified dev3",
+  "version": "0.1.0-dev.4",
   "runtime_files": {
     "src/clustering.js": {
       "sha256": "d9499f51895ea3fa4012a9550f359bacc338df2061041c9efe3fee1f14edea04",
@@ -16,8 +16,9 @@
       "baseline_sha256": null
     },
     "src/index.js": {
-      "sha256": "80b7d7741d68394f89fbb79f371be994839ff2ecbadd2db21e6ec072248a9363",
-      "baseline_sha256": "a31bbbac6fd5a8079ce8d0feab54d0b76734b60b484c66bd3e4536f8a3335731"
+      "sha256": "952b263f056ee90b6b3d1197d8630626d21efc3c3d59ebcc81f79f8fccf00771",
+      "baseline_sha256": "a31bbbac6fd5a8079ce8d0feab54d0b76734b60b484c66bd3e4536f8a3335731",
+      "pre_external_metrics_sha256": "80b7d7741d68394f89fbb79f371be994839ff2ecbadd2db21e6ec072248a9363"
     },
     "src/iteration-kernels.js": {
       "sha256": "f96456bdd19f92ab9e14a37de54f83db9b2a2792038c0be75bd1f70c5e25b520",
@@ -98,6 +99,15 @@
     "src/worker.js": {
       "sha256": "617227dea2da418f9d6e83981c82a0fb7b5b587cde762c767efa69584e5b531c",
       "baseline_sha256": "617227dea2da418f9d6e83981c82a0fb7b5b587cde762c767efa69584e5b531c"
+    },
+    "src/external-metrics.js": {
+      "baseline_sha256": null,
+      "sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
     }
+  },
+  "external_metrics_extension": {
+    "base": "0.1.0-dev.3",
+    "status": "independently validated private dev4 candidate; unpublished",
+    "new_runtime": "src/external-metrics.js"
   }
 }

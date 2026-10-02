@@ -1,0 +1,114 @@
+{
+  "status": "passed",
+  "node": "v24.19.0",
+  "runtimePath": "../consumer/node_modules/ubukit-js/src/external-metrics.js",
+  "runtimeSHA256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
+  "reference": "80-digit Decimal original MI/EMI formula with exact integer hypergeometric probabilities",
+  "counts": {
+    "ari": 3043,
+    "ami": 12040,
+    "singular": 132,
+    "shared": 12040,
+    "invariance": 36120,
+    "invalid": 74,
+    "exactHighK": 12,
+    "syntheticARI": 6,
+    "syntheticConditional": 8,
+    "syntheticAMI": 80,
+    "earlySampleLimit": 2,
+    "symmetricWorkLimit": 16
+  },
+  "maximumAbsoluteErrors": {
+    "ari": 0,
+    "ami": 3.3306690738754696e-16,
+    "invariance": 0
+  },
+  "worstAMI": {
+    "name": "correlated-17-10-20",
+    "method": "max",
+    "value": 0.7255948531488426,
+    "reference": 0.7255948531488423,
+    "error": 3.3306690738754696e-16
+  },
+  "highK": [
+    {
+      "n": 1000,
+      "exact": -2.002006010022042e-06,
+      "methods": {
+        "arithmetic": {
+          "actual": -2.002006010028985e-06,
+          "absoluteError": 6.9431290686435e-18,
+          "milliseconds": 0.5574210000000335
+        },
+        "geometric": {
+          "actual": -2.002006010028985e-06,
+          "absoluteError": 6.9431290686435e-18,
+          "milliseconds": 0.3896780000000035
+        },
+        "min": {
+          "actual": -2.002006010028985e-06,
+          "absoluteError": 6.9431290686435e-18,
+          "milliseconds": 0.38186600000000226
+        },
+        "max": {
+          "actual": -2.002006010028985e-06,
+          "absoluteError": 6.9431290686435e-18,
+          "milliseconds": 0.5776409999999714
+        }
+      }
+    },
+    {
+      "n": 3000,
+      "exact": -2.2229637041155283e-07,
+      "methods": {
+        "arithmetic": {
+          "actual": -2.222963705721574e-07,
+          "absoluteError": 1.606045671701282e-16,
+          "milliseconds": 0.7210080000000403
+        },
+        "geometric": {
+          "actual": -2.222963705721574e-07,
+          "absoluteError": 1.606045671701282e-16,
+          "milliseconds": 0.7393560000000434
+        },
+        "min": {
+          "actual": -2.222963705721574e-07,
+          "absoluteError": 1.606045671701282e-16,
+          "milliseconds": 0.7017890000000193
+        },
+        "max": {
+          "actual": -2.222963705721574e-07,
+          "absoluteError": 1.606045671701282e-16,
+          "milliseconds": 0.9140489999999772
+        }
+      }
+    },
+    {
+      "n": 100000,
+      "exact": -2.00002000060001e-10,
+      "methods": {
+        "arithmetic": {
+          "actual": -2.0000201555207579e-10,
+          "absoluteError": 1.5492074794729915e-17,
+          "milliseconds": 43.74250799999999
+        },
+        "geometric": {
+          "actual": -2.0000201555207579e-10,
+          "absoluteError": 1.5492074794729915e-17,
+          "milliseconds": 42.67706500000003
+        },
+        "min": {
+          "actual": -2.0000201555207579e-10,
+          "absoluteError": 1.5492074794729915e-17,
+          "milliseconds": 40.458091999999965
+        },
+        "max": {
+          "actual": -2.0000201555207579e-10,
+          "absoluteError": 1.5492074794729915e-17,
+          "milliseconds": 41.809572
+        }
+      }
+    }
+  ],
+  "elapsedSeconds": 0.45932478
+}

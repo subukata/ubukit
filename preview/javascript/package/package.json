@@ -1,6 +1,6 @@
 {
   "name": "ubukit-js",
-  "version": "0.1.0-dev.3",
+  "version": "0.1.0-dev.4",
   "private": true,
   "description": "Zero-dependency Float64Array CPU clustering, stateful sessions and neighborhood evaluation for browsers and Node",
   "type": "module",
@@ -10,7 +10,8 @@
     "./session": "./src/session.js",
     "./realtime-worker": "./src/realtime-worker-client.js",
     "./metrics": "./src/metric-scheduler.js",
-    "./optimization": "./src/optimization.js"
+    "./optimization": "./src/optimization.js",
+    "./external-metrics": "./src/external-metrics.js"
   },
   "engines": {
     "node": ">=20"
@@ -45,6 +46,10 @@
     "src/som-numerics.js",
     "src/optimization.js",
     "OPTIMIZATION.md",
-    "NUMERICAL_LIMITS.md"
+    "NUMERICAL_LIMITS.md",
+    "src/external-metrics.js",
+    "EXTERNAL_METRICS.md",
+    "NOTICE-EXTERNAL-METRICS.txt",
+    "LICENSE-SCIKIT-LEARN.txt"
   ]
 }
