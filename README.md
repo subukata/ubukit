@@ -4,7 +4,13 @@
 
 # UbuKit
 
+**Uncertainty-Based Unsupervised Knowledge Inference Toolkit**
+
 A Python and JavaScript library for clustering, self-organizing maps, evaluation metrics, and lightweight parameter search.
+
+![UbuKit workflow: data, models, results, evaluation, and parameter search](docs/assets/ubukit-overview-en.png)
+
+[Overview SVG](docs/assets/ubukit-overview-en.svg) · [Mascot character sheet](docs/assets/ubukit-mascot.png)
 
 - **Clustering:** k-means assigns each sample to one cluster; fuzzy c-means (FCM) assigns degrees of membership
 - **Rough clustering:** rough c-means (RCM) and extended rough c-means (ExRCM) allow overlapping cluster assignments; rough membership c-means (RMCM) derives membership from fixed-radius neighborhoods
