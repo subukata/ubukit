@@ -1,10 +1,15 @@
+import { validateSOM } from './som.js';
+import { needsStableFCM } from './fcm-stable.js';
 import { normalizeInput, positiveInteger, finiteNumber, seededRandom, assertFinite } from './core.js';
 
-export const sessionAlgorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'rmcm', 'som-olp']);
+export const sessionAlgorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'rmcm', 'som-olp', 'som', 'som_batch']);
 export function cloneOwned(value, seen = new Map()) {
   if (value == null || typeof value !== 'object') return value;
   if (seen.has(value)) return seen.get(value);
-  if (ArrayBuffer.isView(value) && !(value instanceof DataView)) { const copy = value.slice(); seen.set(value, copy); return copy; }
+  if (ArrayBuffer.isView(value) && !(value instanceof DataView)) {
+    // Call the intrinsic TypedArray slice: Node Buffer.slice() aliases storage.
+    const copy = Uint8Array.prototype.slice.call(value); seen.set(value, copy); return copy;
+  }
   if (value instanceof ArrayBuffer) return value.slice(0);
   // AbortSignal remains a live cancellation control, not numerical state.
   if (typeof value.addEventListener === 'function' && 'aborted' in value) return value;
@@ -29,12 +34,27 @@ function nonnegativeInteger(value, name) {
 // Argument validation only. Numerical over/underflow may still fail while stepping.
 export function validateSession(algorithm, input, options) {
   if (!sessionAlgorithms.includes(algorithm)) throw new RangeError(`Stateful fitting requires ${sessionAlgorithms.join(', ')}; neighborhood is a one-shot metric`);
+  if (algorithm === 'som' || algorithm === 'som_batch') {
+    const cfg = validateSOM(input, options, algorithm === 'som_batch');
+    let optionBytes = 0;
+    for (const value of Object.values(options)) if (ArrayBuffer.isView(value)) optionBytes += value.byteLength;
+    const reserveBytes = 8 * cfg.n * cfg.d + optionBytes + 2 * (8 * cfg.k * cfg.d + 20 * cfg.n);
+    const kernelMemoryBytes = cfg.maxMemoryBytes - reserveBytes;
+    if (!Number.isSafeInteger(reserveBytes) || cfg.estimatedPrimaryBytes > kernelMemoryBytes) throw new RangeError('Session owned input and checkpoint state exceed maxMemoryBytes');
+    return { ...cfg, reserveBytes, kernelMemoryBytes };
+  }
   const x = normalizeInput(input), n = x.nSamples, d = x.nFeatures;
   seededRandom(options.seed ?? 0);
   positiveInteger(options.blockRows ?? (algorithm === 'som-olp' || algorithm === 'rmcm' ? 128 : 512), 'blockRows');
   const maxIterations = algorithm === 'som-olp' ? nonnegativeInteger(options.maxIterations ?? 100, 'maxIterations') : positiveInteger(options.maxIterations ?? 100, 'maxIterations');
-  const maxMemoryBytes = finiteNumber(options.maxMemoryBytes ?? 512 * 1024 ** 2, 'maxMemoryBytes', 1);
+  const maxMemoryBytes = algorithm === 'som-olp'
+    ? positiveInteger(options.maxMemoryBytes ?? 512 * 1024 ** 2, 'maxMemoryBytes')
+    : finiteNumber(options.maxMemoryBytes ?? 512 * 1024 ** 2, 'maxMemoryBytes', 1);
   finiteNumber(options.tolerance ?? 0, 'tolerance', 0);
+  if (algorithm === 'kmeans' && options.wasmCenterCache != null && typeof options.wasmCenterCache !== 'boolean') throw new TypeError('wasmCenterCache must be a boolean');
+  // Validate execution options before an update abandons a committed revision.
+  // These checks must also run when an existing prepared graph is reused.
+  if (['kmeans', 'som-olp'].includes(algorithm) && !['javascript', 'wasm'].includes(options.kernelBackend ?? 'javascript')) throw new RangeError("kernelBackend must be 'javascript' or 'wasm'");
   let k, q = 0, grid = null;
   if (algorithm === 'som-olp') {
     grid = normalizeInput(options.grid); k = grid.nSamples; q = grid.nFeatures;
@@ -86,6 +106,7 @@ export function validateSession(algorithm, input, options) {
       if ((options.tolerance ?? 0) !== 0) throw new RangeError('RMCM requires tolerance=0');
       if (k > n) throw new RangeError('RMCM nClusters cannot exceed nSamples');
       if (!['adjoint', 'reference'].includes(options.backend ?? 'adjoint')) throw new RangeError('Unknown RMCM backend');
+      if (!['scalar', 'wasm-simd', 'grid'].includes(options.graphBackend ?? 'scalar')) throw new RangeError("graphBackend must be 'scalar', 'wasm-simd', or 'grid'");
       nonnegativeInteger(options.cycleWindow ?? 32, 'cycleWindow');
       const maxEdges = positiveInteger(options.maxEdges ?? 10_000_000, 'maxEdges');
       if (maxEdges > 0xffffffff || n > maxEdges || n > 0xffffffff) throw new RangeError('RMCM edge/index limit invalid');
@@ -103,7 +124,8 @@ export function validateSession(algorithm, input, options) {
     if (ArrayBuffer.isView(value)) optionBytes += value.byteLength;
     else if (value?.data && ArrayBuffer.isView(value.data)) optionBytes += value.data.byteLength;
   }
-  const checkpointBytes = 8 * k * d + 8 * n * k + 8 * n * q + 12 * n + 8 * maxIterations;
+  const stableFCM = algorithm === 'fcm' && needsStableFCM(x, options, options.m ?? 2);
+  const checkpointBytes = (algorithm === 'fcm' ? 8*n*k+8*n : 0) + 8 * k * d + 8 * n * k + 8 * n * q + 12 * n + 8 * maxIterations;
   const reserveBytes = 8 * n * d + optionBytes + checkpointBytes * 2;
   const kernelMemoryBytes = maxMemoryBytes - reserveBytes;
   const minimumKernelBytes = 16 * n * d + 16 * n * k + 32 * k * d;
@@ -125,7 +147,8 @@ export function validateSession(algorithm, input, options) {
   } else if (algorithm === 'rcm' || algorithm === 'exrcm') {
     const window = Math.max(1, options.cycleWindow ?? 16);
     primary = 16 * n * d + (9 + window) * n * k + (24 + 8 * window) * k * d + 16 * k;
-  } else primary = 16 * n * d + (algorithm === 'fcm' ? 16 * n * k : 8 * n) + 24 * k * d + 32 * k;
+  } else primary = 16 * n * d + (algorithm === 'fcm' ? 16 * n * k + d : 8 * n) + 24 * k * d + 32 * k;
+  if (stableFCM) primary = 16*n*d+24*n*k+328*n+32*k*d+48*k+16*d+8*maxIterations;
   if (!Number.isSafeInteger(primary) || primary > kernelMemoryBytes) throw new RangeError('Session kernel arrays exceed maxMemoryBytes after checkpoint reserve');
   return { n, d, k, q, grid, maxIterations, reserveBytes, kernelMemoryBytes };
 }

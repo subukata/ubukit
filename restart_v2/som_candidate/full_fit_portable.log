@@ -1,5 +1,0 @@
-{"event": "cold_fit_complete", "mode": "portable", "seconds": 13.251172363000478, "initialization_seconds": null, "n_iter": 36}
-{"event": "warm_fit_complete", "mode": "portable", "repetition": 1, "seconds": 14.078700334999667, "initialization_seconds": null, "n_iter": 36}
-{"event": "warm_fit_complete", "mode": "portable", "repetition": 2, "seconds": 13.626693229000011, "initialization_seconds": null, "n_iter": 36}
-{"event": "warm_fit_complete", "mode": "portable", "repetition": 3, "seconds": 12.76227351399939, "initialization_seconds": null, "n_iter": 36}
-{"mode": "portable", "status": "ok", "median_seconds": 13.626693229000011, "median_initialization_seconds": null, "n_iter": 36, "repeats_completed": 3, "error": null}

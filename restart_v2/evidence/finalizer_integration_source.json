@@ -1,7 +1,0 @@
-{
-  "source": "kmeans_candidate/finalizer.py",
-  "source_sha256": "6d9e57288f86439f102ff269dc981ff58b29e9ce632e3f7e15f996b2fafb8a05",
-  "target": "portable_accel/_backends/kmeans_finalizer.py",
-  "target_sha256": "256a4a77a9e1ab66f7e7b5ac3413d97797339f5d3d78bd3da5155977681624e4",
-  "adaptation": "package-relative import only"
-}

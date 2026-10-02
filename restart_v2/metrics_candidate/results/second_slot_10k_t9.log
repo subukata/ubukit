@@ -1,8 +1,0 @@
-sklearn            9.537960s ± 0.011368  RSS 2432.0MiB
-numpy_broadcast    3.337684s ± 0.038238  RSS 938.7MiB
-numba              1.231928s ± 0.008106  RSS 1040.0MiB
-sqrt_numba         1.128320s ± 0.004657  RSS 1040.2MiB
-sklearn 1.0 scores True penalties None
-numpy_broadcast 2.857658088452575 scores True penalties True
-numba 7.742300368795275 scores True penalties True
-sqrt_numba 8.453242038109442 scores True penalties True

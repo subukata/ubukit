@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+import * as api from '../consumer/node_modules/ubukit-js/src/index.js';
+const base=new URL('../consumer/node_modules/ubukit-js/',import.meta.url);
+const pkg=JSON.parse(fs.readFileSync(new URL('package.json',base),'utf8'));
+const manifest=JSON.parse(fs.readFileSync(new URL('SOURCE_MANIFEST.json',base),'utf8'));
+const localContract=new URL('../PRODUCT_CONTRACT.json',import.meta.url);
+const contract=JSON.parse(fs.readFileSync(fs.existsSync(localContract)?localContract:new URL('../../tools/provenance/PRODUCT_CONTRACT.json',import.meta.url),'utf8')).languages.javascript;
+const readme=fs.readFileSync(new URL('README.md',base),'utf8');
+assert.equal(pkg.version,manifest.version);
+assert.deepEqual(Object.keys(pkg.exports).sort(),[...contract.entrypoints].sort());
+assert.deepEqual(pkg.files.filter(path=>path.startsWith('src/')).sort(),Object.keys(manifest.runtime_files).sort());
+assert.deepEqual([...api.algorithms].sort(),[...contract.algorithms].sort());
+for(const name of ['som','som_batch','adjustedRandScore','adjustedMutualInfoScore','adjustedScores'])assert.ok(readme.includes(name));
+for(const path of ['SOM.md','EXTERNAL_METRICS.md','OPTIMIZATION.md'])assert.ok(fs.existsSync(new URL(path,base)));
+const consumer=JSON.parse(fs.readFileSync(new URL('../consumer/package.json',import.meta.url),'utf8'));
+assert.equal(consumer.dependencies['ubukit-js'],`file:../artifacts/${pkg.name}-${pkg.version}.tgz`);
+console.log(JSON.stringify({status:'passed',version:pkg.version,runtimeFiles:Object.keys(manifest.runtime_files).length,entrypoints:Object.keys(pkg.exports).length,registryNames:api.algorithms.length,ariAmiDocs:true,somDocs:true}));

@@ -24,17 +24,19 @@ build/
 .idea/
 .vscode/
 
-# Private preview: source is tracked; local builds and validation output are not
+# Local builds and validation output
 node_modules/
 .npm-cache/
-preview/python/artifacts/
-preview/python/environments/
-preview/python/wheelhouse/
-preview/python/validation/
-preview/javascript/artifacts/
-preview/javascript/consumer/package-lock.json
-preview/**/results/
-preview/**/numba_cache/
-preview/**/numba-cache/
-preview/validation-output/
-
+python/artifacts/
+python/environments/
+python/wheelhouse/
+python/verification/**/results/
+javascript/artifacts/
+javascript/consumer/package-lock.json
+javascript/wasm/.generated/
+javascript/wasm/verification/
+**/results/
+**/numba_cache/
+**/numba-cache/
+**/benchmark_replay_reports/
+validation-output/
