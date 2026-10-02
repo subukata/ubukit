@@ -56,6 +56,7 @@ needs it. No global module aliases recreate old names.
 | --- | --- | --- |
 | k-means: one cluster per sample | `fit_kmeans(X, init, ...)` | dict; labels `(N,)` |
 | Fuzzy c-means (FCM): degrees of cluster membership | `fit_fcm(X, n_clusters, ...)` | dict; membership `(N,K)` |
+| Entropy-regularized fuzzy c-means: temperature-controlled memberships | `fit_entropy_fcm(X, n_clusters, tau=1.0, ...)` | dict; membership `(N,K)` |
 | Rough c-means (RCM): overlapping cluster assignments | `fit_rcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
 | Extended rough c-means (ExRCM): rough clustering with adjustable exponent `p` | `fit_exrcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
 | Rough membership c-means (RMCM): membership from fixed-radius neighborhoods | `fit_rmcm(X, n_clusters, delta=..., ...)` | result object; memberships `(N,K)` |
@@ -147,6 +148,42 @@ Array and bounds-tuple object identities are not guaranteed: changing a
 returned array's shape or dtype does not change the prepared snapshot or later
 results. Repeated `prepare(prepared)` and cached `as_dtype()` calls still reuse `PreparedData`
 objects. Use an array's `.copy()` when you need writable values.
+
+### Entropy-regularized fuzzy c-means
+
+```python
+efcm = uk.fit_entropy_fcm(X, 2, tau=0.5, random_state=4, return_history=True)
+print(efcm["membership"], efcm["objective"])
+```
+
+The objective is `sum(u * squared_distance) + tau * sum(u * log(u))`,
+with nonnegative memberships summing to one per sample and `0*log(0)=0`.
+Centers are weighted by `u`. There is no fuzzifier `m`.
+
+`X` must be a nonempty finite real `(N,D)` matrix. `tau` must remain finite and
+positive after float64 conversion; larger values produce softer memberships.
+`init` accepts an `(N,K)` nonnegative membership matrix with positive row sums;
+it is normalized on an owned copy and can supply `K` when `n_clusters` is omitted.
+Otherwise `random_state` initializes memberships with NumPy's generator.
+`max_iter=300`, `tol=1e-5`, `backend="numpy"`, and `return_history=False` are defaults.
+`backend="reference"` selects the range-preserving scalar reference.
+Both backends use float64; the guarded NumPy path uses the reference arithmetic
+for exceptional scales and cancellation. They need not be bit-identical.
+Distance gaps are retained before division by `tau`; a large common distance
+must not erase a smaller difference that changes membership. The NumPy route
+falls back when its distance-rounding bound is significant relative to `tau`.
+
+The result contains owned `centers (K,D)`, `membership (N,K)`, `labels (N,)`,
+`objective`, `fpc`, `n_iter`, `converged`, `delta`, `tau`, `backend`, and
+`numerical_diagnostics`; `objective_history` is added when requested.
+Each iteration updates centers from the previous membership, then membership
+from the returned centers. The objective evaluates that returned pair.
+Empty clusters retain their previous center, initially the data mean.
+Convergence means the absolute Frobenius membership change is below `tol`;
+`tol=0` runs exactly `max_iter`, and membership convergence alone does not certify
+stationary centers. A signed objective outside float64 range is reported as
+infinity or zero with `objective_status`, `objective_sign`, and
+`log_abs_objective` diagnostics. See the [equations and scaling guide](../docs/entropy-fcm.md).
 
 ### Rough clustering
 

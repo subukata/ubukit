@@ -18,6 +18,7 @@
   },
   "files": [
     "src/clustering.js",
+    "src/entropy-fcm.js",
     "src/core.js",
     "src/index.js",
     "src/iteration-kernels.js",
@@ -39,6 +40,7 @@
     "src/worker-client.js",
     "src/worker.js",
     "README.md",
+    "ENTROPY_FCM.md",
     "NOTICE.txt",
     "LICENSE-SOM.txt",
     "SOURCE_MANIFEST.json",

@@ -53,7 +53,7 @@ allow overlapping cluster assignments. Self-organizing maps with optimized
 latent positions (SOM-OLP, `som-olp`) learn continuous sample positions using
 a supplied grid.
 
-The root algorithms registry contains `kmeans`, `fcm`, `rcm`, `exrcm`, `rmcm`,
+The root algorithms registry contains `kmeans`, `fcm`, `entropy-fcm`, `rcm`, `exrcm`, `rmcm`,
 `som-olp`, `som`, `som_batch`, and `neighborhood`. `run`, `steps` and `runAsync` share that registry.
 Neighborhood computes trustworthiness and continuity; it is a one-shot metric,
 not an iterative fitting session. ARI and AMI are separate exported scoring
@@ -76,6 +76,7 @@ flat row-major typed arrays: `(N,K)` means `N*K` values, and sample `i`, cluster
 | --- | --- | --- |
 | `kmeans` | `{ nClusters: K }` | `centers` `(K,D)`, `labels` `(N,)` |
 | `fcm` | `{ nClusters: K }`; optional `m` defaults to 2 | `centers` `(K,D)`, `membership` `(N,K)`, `labels` `(N,)` |
+| `entropy-fcm` | `{ nClusters: K, tau: 1 }` | `centers` `(K,D)`, `membership` `(N,K)`, `labels` `(N,)`; see [ENTROPY_FCM.md](ENTROPY_FCM.md) |
 | `rcm`, `exrcm` | `{ nClusters: K }`; `rcm` fixes `p=1` | `centers` `(K,D)`, `membership` and `mask` `(N,K)`, `labels` `(N,)` |
 | `rmcm` | `{ nClusters: K, delta: radius }` | `centers` `(K,D)`, `membership` `(N,K)`, `labels` `(N,)`; membership is `null` with `returnMembership: false` |
 | `som-olp` | `{ grid }`, where `grid` uses the same input-object format for `M` grid points with `Q` coordinates | `centers` / `W` `(M,D)`, `membership` / `P` `(N,M)`, `embedding` / `V` `(N,Q)`, `labels` `(N,)`; embedding is `null` when `maxIterations: 0` |
@@ -95,6 +96,10 @@ samples without that feedback. Both take an objective and search space; see
 [optimization](OPTIMIZATION.md).
 
 ## Sessions, updates and Workers
+
+Entropy-regularized FCM supports the one-shot and cooperative APIs and one-shot
+Worker. Stateful sessions and the realtime Worker are outside its first scope;
+see [ENTROPY_FCM.md](ENTROPY_FCM.md).
 
 Sessions expose `step`, `snapshot`, `updateData`, `updateParameters`, `configure`,
 `reset` and `dispose`. Compatible warm state may be retained; changed data,

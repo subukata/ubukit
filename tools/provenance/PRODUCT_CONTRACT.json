@@ -43,6 +43,7 @@
         "assign_rcm",
         "categorical",
         "fit_exrcm",
+        "fit_entropy_fcm",
         "fit_fcm",
         "fit_fcm_numpy",
         "fit_kmeans",
@@ -101,6 +102,7 @@
       "algorithms": [
         "kmeans",
         "fcm",
+        "entropy-fcm",
         "rcm",
         "exrcm",
         "rmcm",

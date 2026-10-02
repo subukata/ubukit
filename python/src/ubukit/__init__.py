@@ -32,6 +32,7 @@ _EXPORTS = {
     "joint_quality": ("._impl.portable_accel", "joint_quality"),
     "fit_fcm": ("._impl.fcm", "fit_fcm"),
     "fit_fcm_numpy": ("._impl.fcm", "fit_fcm_numpy"),
+    "fit_entropy_fcm": ("._impl.entropy_fcm", "fit_entropy_fcm"),
     "fit_rcm": ("._impl.rough_cmeans", "fit_rcm"),
     "fit_exrcm": ("._impl.rough_cmeans", "fit_exrcm"),
     "assign_rcm": ("._impl.rough_cmeans", "assign"),

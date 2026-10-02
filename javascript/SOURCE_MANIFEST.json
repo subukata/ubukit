@@ -1,6 +1,6 @@
 {
   "schema_version": 5,
-  "purpose": "Private JS dev6 safety candidate including classic-SOM updates, metric-scheduler storage accounting and retained FCM warm-state preflight, plus guarded dense-label encoding; no public release",
+  "purpose": "Private JS dev6 candidate with preserved safety and metric fixes plus entropy-regularized FCM; no public release",
   "version": "0.1.0-dev.6",
   "runtime_files": {
     "src/clustering.js": {
@@ -15,6 +15,18 @@
       "pre_som_dev4_sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4",
       "pre_efficiency_dev5_sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4"
     },
+    "src/entropy-fcm.js": {
+      "sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a",
+      "baseline_sha256": null,
+      "change": "new_entropy_regularized_fcm"
+    },
+    "src/external-metrics.js": {
+      "baseline_sha256": null,
+      "sha256": "97e57a54e7f09e814959fd7b8dafc1f188a3eae43a7b2cbf83628c84d40c6e93",
+      "pre_som_dev4_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
+      "pre_efficiency_dev5_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
+      "pre_dense_label_encoding_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
+    },
     "src/fcm-stable.js": {
       "sha256": "1680ac7961c75b8c968fb46bc1800f68d4305bdb8567ae3738ad99f674dad674",
       "baseline_sha256": null,
@@ -22,11 +34,12 @@
       "pre_efficiency_dev5_sha256": "1680ac7961c75b8c968fb46bc1800f68d4305bdb8567ae3738ad99f674dad674"
     },
     "src/index.js": {
-      "sha256": "cda5b3de63d09e8b39bafb418932d1bea6ae7869290772a8ae820e480b727d8b",
+      "sha256": "cc870519e55e9b6fa73360b6dd960d56805ba67986caf2eeb68ab85cc00b7a04",
       "baseline_sha256": "a31bbbac6fd5a8079ce8d0feab54d0b76734b60b484c66bd3e4536f8a3335731",
       "pre_external_metrics_sha256": "80b7d7741d68394f89fbb79f371be994839ff2ecbadd2db21e6ec072248a9363",
       "pre_som_dev4_sha256": "952b263f056ee90b6b3d1197d8630626d21efc3c3d59ebcc81f79f8fccf00771",
-      "pre_efficiency_dev5_sha256": "cda5b3de63d09e8b39bafb418932d1bea6ae7869290772a8ae820e480b727d8b"
+      "pre_efficiency_dev5_sha256": "cda5b3de63d09e8b39bafb418932d1bea6ae7869290772a8ae820e480b727d8b",
+      "pre_entropy_fcm_sha256": "cda5b3de63d09e8b39bafb418932d1bea6ae7869290772a8ae820e480b727d8b"
     },
     "src/iteration-kernels.js": {
       "sha256": "23cfb5c2dc8820d3731fa1f70970a56a25db92040822de17485aaa7ce6142043",
@@ -116,6 +129,12 @@
       "pre_safety_sha256": "a31471b62e62b3ac5a1962ff3b4123ce6dd9344f0c093a1d7a9b781264d9674b",
       "pre_warm_preflight_sha256": "11992b3e8f7aa6df9dd16caca417212de2ffce8de97a807cbe4000eb52e71985"
     },
+    "src/som-elite.js": {
+      "sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3",
+      "pre_efficiency_dev5_sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3",
+      "preserved_original_path": "src/som.js",
+      "purpose": "Byte-for-byte full scalar SOM module retained as independent elite JIT path"
+    },
     "src/som-numerics.js": {
       "sha256": "3aa2372680ed99d514776a0033214016edc0df801dc7e0f85c2f13a93b264b0d",
       "baseline_sha256": null,
@@ -140,6 +159,12 @@
       "pre_som_dev4_sha256": "bb696919c35377af2568cb59760e73331e942d972f7f6c2267db661016a2df6d",
       "pre_efficiency_dev5_sha256": "bb696919c35377af2568cb59760e73331e942d972f7f6c2267db661016a2df6d"
     },
+    "src/som.js": {
+      "baseline_sha256": null,
+      "pre_som_dev4_sha256": null,
+      "sha256": "797b7b760052542e88d985999038579f15943efccff31d0eda69cc666c9347cc",
+      "pre_efficiency_dev5_sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3"
+    },
     "src/worker-client.js": {
       "sha256": "071d33390f79c576f996bf3b4472ca43fa887b1a6a83b40589a2e9f11bc18774",
       "baseline_sha256": "071d33390f79c576f996bf3b4472ca43fa887b1a6a83b40589a2e9f11bc18774",
@@ -151,25 +176,6 @@
       "baseline_sha256": "617227dea2da418f9d6e83981c82a0fb7b5b587cde762c767efa69584e5b531c",
       "pre_som_dev4_sha256": "617227dea2da418f9d6e83981c82a0fb7b5b587cde762c767efa69584e5b531c",
       "pre_efficiency_dev5_sha256": "617227dea2da418f9d6e83981c82a0fb7b5b587cde762c767efa69584e5b531c"
-    },
-    "src/external-metrics.js": {
-      "baseline_sha256": null,
-      "sha256": "97e57a54e7f09e814959fd7b8dafc1f188a3eae43a7b2cbf83628c84d40c6e93",
-      "pre_som_dev4_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
-      "pre_efficiency_dev5_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
-      "pre_dense_label_encoding_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
-    },
-    "src/som.js": {
-      "baseline_sha256": null,
-      "pre_som_dev4_sha256": null,
-      "sha256": "797b7b760052542e88d985999038579f15943efccff31d0eda69cc666c9347cc",
-      "pre_efficiency_dev5_sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3"
-    },
-    "src/som-elite.js": {
-      "sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3",
-      "pre_efficiency_dev5_sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3",
-      "preserved_original_path": "src/som.js",
-      "purpose": "Byte-for-byte full scalar SOM module retained as independent elite JIT path"
     }
   },
   "external_metrics_extension": {

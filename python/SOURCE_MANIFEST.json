@@ -1,8 +1,22 @@
 {
   "version": "0.0.0.dev6",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "Private ubukit-only namespace with bounded FCM recovery and NumPy EMI pair-order reuse and uniform-margin pair construction and PreparedData header-isolation and optimizer import-capture candidates; 38 public facade exports preserved; no public release",
+  "purpose": "Private ubukit namespace with preserved safety and metric candidates; adds entropy-regularized FCM and its 39th public facade export; no public release",
   "files": [
+    {
+      "path": "src/ubukit/__init__.py",
+      "baseline_path": "src/ubukit/__init__.py",
+      "sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483",
+      "baseline_sha256": "8a78105ca555f14b79e26bb6479071d606888943ba0b44dd85ecf41e4391a8f0",
+      "change": "add_entropy_fcm_public_export",
+      "numerical_ast_equal": true,
+      "pre_entropy_fcm_sha256": "84b05a87cf414e08db4649c05ba7f923b5f16e39fe6abd425905db2b6dc82e09"
+    },
+    {
+      "path": "src/ubukit/_impl/__init__.py",
+      "sha256": "220b9b82e42641b3a8d8b0ba1931bda40655d4d45c2e6ec577576efe5981cede",
+      "change": "new_private_package_marker"
+    },
     {
       "path": "src/ubukit/_impl/_external_metrics_numba.py",
       "baseline_path": "src/_external_metrics_numba.py",
@@ -20,6 +34,12 @@
       "numerical_ast_equal": true
     },
     {
+      "path": "src/ubukit/_impl/entropy_fcm.py",
+      "sha256": "9cf392946a7d33406703851ae92dcbe22fb73ddd147347132bfb173559b0d56b",
+      "change": "new_entropy_regularized_fcm",
+      "numerical_ast_equal": false
+    },
+    {
       "path": "src/ubukit/_impl/external_metrics.py",
       "baseline_path": "src/external_metrics.py",
       "sha256": "9f34977c96bf80025d268f37ce64fdf35f1056dc35f08d24b2c4f78cb6598857",
@@ -28,6 +48,55 @@
       "numerical_ast_equal": false,
       "pre_presorted_emi_sha256": "bd0e8931ad22516bc34b3166ef7ad35dfa3766f733960aae47eabfd9e7e65d9a",
       "pre_uniform_margin_sha256": "66a2ccdd58e06134a7d90255580bc1de748ec06caff320fac50808d729cb2d23"
+    },
+    {
+      "path": "src/ubukit/_impl/fcm/__init__.py",
+      "baseline_path": "src/ubukit_fcm/__init__.py",
+      "sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
+      "baseline_sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
+      "change": "unchanged_bytes",
+      "numerical_ast_equal": true
+    },
+    {
+      "path": "src/ubukit/_impl/fcm/_numba.py",
+      "baseline_path": "src/ubukit_fcm/_numba.py",
+      "sha256": "4b3511c5c47d27292a1afae56a9674ace9977acbc0f6bcafe2d6265dee5ae4a9",
+      "baseline_sha256": "4b3511c5c47d27292a1afae56a9674ace9977acbc0f6bcafe2d6265dee5ae4a9",
+      "change": "unchanged_bytes",
+      "numerical_ast_equal": true
+    },
+    {
+      "path": "src/ubukit/_impl/fcm/_robust.py",
+      "baseline_path": "src/ubukit_fcm/_robust.py",
+      "sha256": "05b75e4c28cfe4d4bd924b1310912dfdcd16d0dde15fbd067d379e312b4670d6",
+      "baseline_sha256": "05b75e4c28cfe4d4bd924b1310912dfdcd16d0dde15fbd067d379e312b4670d6",
+      "change": "unchanged_bytes",
+      "numerical_ast_equal": true
+    },
+    {
+      "path": "src/ubukit/_impl/fcm/_threadpools.py",
+      "baseline_path": "src/ubukit_fcm/_threadpools.py",
+      "sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
+      "baseline_sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
+      "change": "unchanged_bytes",
+      "numerical_ast_equal": true
+    },
+    {
+      "path": "src/ubukit/_impl/fcm/core.py",
+      "baseline_path": "src/ubukit_fcm/core.py",
+      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346",
+      "baseline_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
+      "change": "fcm_zero_subnormal_recovery_guard",
+      "numerical_ast_equal": false,
+      "pre_safety_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8"
+    },
+    {
+      "path": "src/ubukit/_impl/fcm/log_membership.py",
+      "baseline_path": "src/ubukit_fcm/log_membership.py",
+      "sha256": "a7b30cee117b151d633e6e2ffc13df53b2ea9137c2fd14d4f3b7396d01850d52",
+      "baseline_sha256": "a7b30cee117b151d633e6e2ffc13df53b2ea9137c2fd14d4f3b7396d01850d52",
+      "change": "unchanged_bytes",
+      "numerical_ast_equal": true
     },
     {
       "path": "src/ubukit/_impl/portable_accel/__init__.py",
@@ -375,88 +444,6 @@
       "numerical_ast_equal": true
     },
     {
-      "path": "src/ubukit/_impl/rough_cmeans.py",
-      "baseline_path": "src/rough_cmeans.py",
-      "sha256": "6fd01ada8a3ee48523b5f135c1f285c9f0ead0a0e3a2040ed02fc42e15619d2c",
-      "baseline_sha256": "7dbacae214af49496be99df8a0956125116686ed4e600821c7f50ab8166ee6d9",
-      "change": "namespace_import_facade_or_doc_only",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/__init__.py",
-      "baseline_path": "src/ubukit/__init__.py",
-      "sha256": "84b05a87cf414e08db4649c05ba7f923b5f16e39fe6abd425905db2b6dc82e09",
-      "baseline_sha256": "8a78105ca555f14b79e26bb6479071d606888943ba0b44dd85ecf41e4391a8f0",
-      "change": "namespace_import_facade_or_doc_only",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/_rough_memberships.py",
-      "baseline_path": "src/ubukit/_rough_memberships.py",
-      "sha256": "b7f0197b4435e7c2ab960fa5e92059daf6a6366d0db4017d6cc3fe8e747ec83d",
-      "baseline_sha256": "6c265c3dce9945204e09d69f75bba731826ae4486f48c73280d73e83f2c09d07",
-      "change": "namespace_import_facade_or_doc_only",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/optimization.py",
-      "baseline_path": "src/ubukit/optimization.py",
-      "sha256": "225e395f8c677679c417489898e70d2631c348f626548c6dba92419010690df9",
-      "baseline_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429",
-      "change": "imported_observation_capture_once",
-      "numerical_ast_equal": false,
-      "pre_import_capture_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429"
-    },
-    {
-      "path": "src/ubukit/_impl/fcm/__init__.py",
-      "baseline_path": "src/ubukit_fcm/__init__.py",
-      "sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
-      "baseline_sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
-      "change": "unchanged_bytes",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/_impl/fcm/_numba.py",
-      "baseline_path": "src/ubukit_fcm/_numba.py",
-      "sha256": "4b3511c5c47d27292a1afae56a9674ace9977acbc0f6bcafe2d6265dee5ae4a9",
-      "baseline_sha256": "4b3511c5c47d27292a1afae56a9674ace9977acbc0f6bcafe2d6265dee5ae4a9",
-      "change": "unchanged_bytes",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/_impl/fcm/_robust.py",
-      "baseline_path": "src/ubukit_fcm/_robust.py",
-      "sha256": "05b75e4c28cfe4d4bd924b1310912dfdcd16d0dde15fbd067d379e312b4670d6",
-      "baseline_sha256": "05b75e4c28cfe4d4bd924b1310912dfdcd16d0dde15fbd067d379e312b4670d6",
-      "change": "unchanged_bytes",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/_impl/fcm/_threadpools.py",
-      "baseline_path": "src/ubukit_fcm/_threadpools.py",
-      "sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
-      "baseline_sha256": "349b18944ebe16bcefa5314de26a9ddb6fbf2e1d9de52c2a0c3cec71dd732a1a",
-      "change": "unchanged_bytes",
-      "numerical_ast_equal": true
-    },
-    {
-      "path": "src/ubukit/_impl/fcm/core.py",
-      "baseline_path": "src/ubukit_fcm/core.py",
-      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346",
-      "baseline_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
-      "change": "fcm_zero_subnormal_recovery_guard",
-      "numerical_ast_equal": false,
-      "pre_safety_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8"
-    },
-    {
-      "path": "src/ubukit/_impl/fcm/log_membership.py",
-      "baseline_path": "src/ubukit_fcm/log_membership.py",
-      "sha256": "a7b30cee117b151d633e6e2ffc13df53b2ea9137c2fd14d4f3b7396d01850d52",
-      "baseline_sha256": "a7b30cee117b151d633e6e2ffc13df53b2ea9137c2fd14d4f3b7396d01850d52",
-      "change": "unchanged_bytes",
-      "numerical_ast_equal": true
-    },
-    {
       "path": "src/ubukit/_impl/rmcm/__init__.py",
       "baseline_path": "src/ubukit_rmcm/__init__.py",
       "sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a",
@@ -505,9 +492,29 @@
       "numerical_ast_equal": true
     },
     {
-      "path": "src/ubukit/_impl/__init__.py",
-      "sha256": "220b9b82e42641b3a8d8b0ba1931bda40655d4d45c2e6ec577576efe5981cede",
-      "change": "new_private_package_marker"
+      "path": "src/ubukit/_impl/rough_cmeans.py",
+      "baseline_path": "src/rough_cmeans.py",
+      "sha256": "6fd01ada8a3ee48523b5f135c1f285c9f0ead0a0e3a2040ed02fc42e15619d2c",
+      "baseline_sha256": "7dbacae214af49496be99df8a0956125116686ed4e600821c7f50ab8166ee6d9",
+      "change": "namespace_import_facade_or_doc_only",
+      "numerical_ast_equal": true
+    },
+    {
+      "path": "src/ubukit/_rough_memberships.py",
+      "baseline_path": "src/ubukit/_rough_memberships.py",
+      "sha256": "b7f0197b4435e7c2ab960fa5e92059daf6a6366d0db4017d6cc3fe8e747ec83d",
+      "baseline_sha256": "6c265c3dce9945204e09d69f75bba731826ae4486f48c73280d73e83f2c09d07",
+      "change": "namespace_import_facade_or_doc_only",
+      "numerical_ast_equal": true
+    },
+    {
+      "path": "src/ubukit/optimization.py",
+      "baseline_path": "src/ubukit/optimization.py",
+      "sha256": "225e395f8c677679c417489898e70d2631c348f626548c6dba92419010690df9",
+      "baseline_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429",
+      "change": "imported_observation_capture_once",
+      "numerical_ast_equal": false,
+      "pre_import_capture_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429"
     }
   ],
   "safety_candidate": {
