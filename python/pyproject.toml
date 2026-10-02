@@ -8,8 +8,9 @@ version = "0.0.0.dev6"
 description = "Local-only UbuKit prototype with sample-major membership axes"
 readme = "README.md"
 requires-python = ">=3.10"
-# No project-wide license has been selected. Retain original third-party notices.
-license-files = ["LICENSE-SOM.txt", "NOTICE.txt", "NOTICE-EXTERNAL-METRICS.txt", "THIRD_PARTY_LICENSES.txt"]
+# Project contributions are MIT; adapted compatibility portions retain BSD-3-Clause.
+license = "MIT AND BSD-3-Clause"
+license-files = ["LICENSE", "LICENSE-SCOPE.txt", "LICENSE-SOM.txt", "NOTICE.txt", "NOTICE-EXTERNAL-METRICS.txt", "THIRD_PARTY_LICENSES.txt"]
 classifiers = ["Private :: Do Not Upload"]
 dependencies = [
   "numpy>=1.24",

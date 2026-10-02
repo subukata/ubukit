@@ -462,8 +462,16 @@
       "sha256": "92d51b73fb42832160ad588d481aac97340d3f823c6714d2ff70f4673afed7fa"
     },
     {
+      "path": "javascript/LICENSE",
+      "sha256": "07576471ad4a12764d65b7d91ded777e11ec96cc8804138aebb5ff2ab048a83e"
+    },
+    {
       "path": "javascript/LICENSE-SCIKIT-LEARN.txt",
       "sha256": "2893593ce7f576271fc7d176f05897e41049fd118c47c06aa858ee18070cc88d"
+    },
+    {
+      "path": "javascript/LICENSE-SCOPE.txt",
+      "sha256": "b974516f77580e487d4c2f41344fd88554300b4627c98a7de1e65f5aa114bcd9"
     },
     {
       "path": "javascript/LICENSE-SOM.txt",
@@ -475,7 +483,7 @@
     },
     {
       "path": "javascript/NOTICE.txt",
-      "sha256": "92534d99e9f44a3f14ebdf05ee1ff060bb9e66eb5bb92b228d00b73072f5fc61"
+      "sha256": "d5a01a289a22a2de8c4fba627a23b8de9afe44cfea510f0197a4892cf60dd94c"
     },
     {
       "path": "javascript/NUMERICAL_LIMITS.md",
@@ -487,7 +495,7 @@
     },
     {
       "path": "javascript/README.md",
-      "sha256": "20a7d7a3f04ce5246abaffeac7caff1a0b72c74bb8729f1fa4ce30772fa833db"
+      "sha256": "cb14da14392c35129c70e04551863f4897909893d4d88ae66c69c175d0dded3c"
     },
     {
       "path": "javascript/SOM.md",
@@ -499,7 +507,7 @@
     },
     {
       "path": "javascript/package.json",
-      "sha256": "6bec7a67aa65b0d9d94487ebabfe90c45310657bfe15c2c6543d28ed72ec393e"
+      "sha256": "18ff849efe0702335f189a257be0dc118df1f5523cda86cbb66737b8c98a7241"
     },
     {
       "path": "javascript/src/clustering.js",
@@ -614,12 +622,20 @@
       "sha256": "8b4086f488b64d54f70d499ab4c34377dc0ea9660946b3f25c3e1e73c402903b"
     },
     {
+      "path": "python/LICENSE",
+      "sha256": "07576471ad4a12764d65b7d91ded777e11ec96cc8804138aebb5ff2ab048a83e"
+    },
+    {
+      "path": "python/LICENSE-SCOPE.txt",
+      "sha256": "59439ee95f4561e3d80c636fda03c9f3d00424e4b13fd5b6d658b82d43db1c35"
+    },
+    {
       "path": "python/LICENSE-SOM.txt",
       "sha256": "07576471ad4a12764d65b7d91ded777e11ec96cc8804138aebb5ff2ab048a83e"
     },
     {
       "path": "python/MANIFEST.in",
-      "sha256": "f749726f1472d003c19fb046fd904765e608f4d41dc25e6f7fcddb2fa1fd00e7"
+      "sha256": "1f872f23624a7528483ed9bb8cd17f3d34e582059948fdf77e676b8ef3ad19b0"
     },
     {
       "path": "python/NOTICE-EXTERNAL-METRICS.txt",
@@ -627,7 +643,7 @@
     },
     {
       "path": "python/NOTICE.txt",
-      "sha256": "7d660e3dce9aa1f861b3a7d42c47602735b349555afc1da780ea3dc92e7bef9d"
+      "sha256": "95a4123bbac3e8d2212886397bb4becba9ceb61369f98f9c0242d02e956778d1"
     },
     {
       "path": "python/NUMERICAL_LIMITS.md",
@@ -639,7 +655,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "eabb65e87dc7887fbc4497a8116673abf0c63a423d8c27e4feb63ba3afeb6397"
+      "sha256": "628a134c544d5349816792d06c3888315b201a7ac1e70ed7f139ae2f8e784493"
     },
     {
       "path": "python/SOM.md",
@@ -655,7 +671,7 @@
     },
     {
       "path": "python/pyproject.toml",
-      "sha256": "2a76cb9dbaf320c25b7c3b822d251f0b0c0911119c64249cda3f278e99b1f863"
+      "sha256": "09b547563c459c4ae4b34843ee36ca593b0dca20b13cf34fccc87997baf53298"
     },
     {
       "path": "python/src/ubukit/__init__.py",
@@ -911,7 +927,7 @@
     },
     {
       "path": "tools/provenance/PRODUCT_CONTRACT.json",
-      "sha256": "1bdd77527aa7c1bc2156769b2f7bcb2a79abb1b2500638d1d01a1d016eebe4b3"
+      "sha256": "2cc454bf773b120b62934e9cb194db15c82f1eee9d91b32e74e48bda3e090040"
     }
   ]
 }

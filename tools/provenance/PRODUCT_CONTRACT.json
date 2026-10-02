@@ -11,6 +11,8 @@
       "distribution": "ubukit-bundled-local-preview",
       "package_metadata": [
         "EXPERIMENTAL_LOCALIZED_SOM.md",
+        "LICENSE",
+        "LICENSE-SCOPE.txt",
         "LICENSE-SOM.txt",
         "MANIFEST.in",
         "NOTICE-EXTERNAL-METRICS.txt",
