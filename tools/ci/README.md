@@ -1,10 +1,12 @@
-# Private product-layout candidate validation
+# Exact alpha candidate validation
 
 This manual-only harness builds wheel, sdist and npm tarball once, then consumes the same frozen artifacts in separately approved OS stages. It does not publish packages, enable paid runners, change billing settings, or start the next stage automatically.
 
+See [EXACT_ALPHA.md](EXACT_ALPHA.md) for the frozen-alpha identity, two-commit selection process and exact-artifact release handoff. The workflow remains private and manual-only.
+
 ## Current state: intentionally blocked
 
-`candidate-policy.json` has no approved product-layout source SHA or source-snapshot digest. The new layout is therefore not dispatch-ready. A dispatch input cannot approve a candidate, select `HEAD`, or substitute any other arbitrary revision.
+`candidate-policy.json` has no approved alpha source SHA or source-snapshot digest. The exact alpha is therefore not dispatch-ready. A dispatch input cannot approve a candidate, select `HEAD`, or substitute any other arbitrary revision.
 
 The preserved pre-migration source was `86321a9f1bc405ddb3251facfe1d876064c9c9dd`; the archived main snapshot was `5a197111b605c495f3f2a7ba69a6e09bb44e8caf`. Their test results remain historical evidence. They do not validate artifacts built from the new product layout, and the historical source cannot satisfy its new path contract.
 

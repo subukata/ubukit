@@ -3,7 +3,7 @@
   "files": [
     {
       "path": ".github/workflows/private-candidate.yml",
-      "sha256": "4c335035b3aac39a7b4cb2d04bd8fec9d91b54ef0181f69c3749ffe84af893d7"
+      "sha256": "6b9a2f0a11279117d9548b229b1e466a145b2d91dd5e04e5d99270746d2f1432"
     },
     {
       "path": "examples/README.md",
@@ -2210,8 +2210,12 @@
       "sha256": "4ac58f00b168ec8a6297d0b492fab6613611b1edd2d948150ee1dc6376977279"
     },
     {
+      "path": "tools/ci/EXACT_ALPHA.md",
+      "sha256": "de92fca70f31c6f62be46f4a138fe0b63cfe6f41058f15c9f78931e34e1f4121"
+    },
+    {
       "path": "tools/ci/README.md",
-      "sha256": "389535ce913428d0eaaed913c9159372569c2f33ba0d5b8261d70b9a99a8d988"
+      "sha256": "ffd57bb8dc9ee5c77c9debd5d3eb0bdacfd50a0bb5f6dcdf116d3b7e8e42be37"
     },
     {
       "path": "tools/ci/browser/package-lock.json",
@@ -2235,7 +2239,7 @@
     },
     {
       "path": "tools/ci/candidate-policy.json",
-      "sha256": "40f605a7cc8cd79d0d03c4a88bd0a740f6919a6a98cd2d1e03fd2aad76d45c2f"
+      "sha256": "de3506fbd7b9a776076c75741f1632f717a6415e4340767cc6cabe84820bd998"
     },
     {
       "path": "tools/ci/constraints/base-py312.txt",
@@ -2246,12 +2250,20 @@
       "sha256": "af7ae6553ffa0af334e6737f2e42007d6679efc3b971329e7b8eb1b04ec2ad14"
     },
     {
+      "path": "tools/ci/exact-alpha.json",
+      "sha256": "fba3a39a34486689d98af08ea479eb41eaa4dbfdc7f701d8fbd299e54d582b7e"
+    },
+    {
       "path": "tools/ci/scripts/build_candidate.py",
       "sha256": "9b73111eded09b72774a50b5e8fa131d36e61dc556cd3f0f96d6ed44974f1b6d"
     },
     {
       "path": "tools/ci/scripts/collect_evidence.py",
       "sha256": "6c72b6a9704e084472fd1c1e45662736a19dd5676c89f18e621aeba1cd45051a"
+    },
+    {
+      "path": "tools/ci/scripts/exact_alpha.py",
+      "sha256": "daa997d894425033673b3b92ca683e5f7a597c64889a482b3c820190b606ea79"
     },
     {
       "path": "tools/ci/scripts/installed_python_gate.py",
@@ -2292,6 +2304,10 @@
     {
       "path": "tools/tests/check_browser_assets.mjs",
       "sha256": "07a52321d023fccf694150b179bb3207c3eda41fe1c2216a12e748be5c2b3fa8"
+    },
+    {
+      "path": "tools/tests/test_exact_alpha.py",
+      "sha256": "8f2479e82f5d16787f7e4686bf519b15bd0c2c7859d3f284fc1a70631b431b0b"
     },
     {
       "path": "tools/tests/test_release_contract.py",
