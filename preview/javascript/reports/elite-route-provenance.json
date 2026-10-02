@@ -1,0 +1,35 @@
+{
+  "direct_dependencies": [
+    {
+      "candidate_path": "src/som-elite.js",
+      "baseline_path": "src/som.js",
+      "byte_identical": true,
+      "sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3"
+    },
+    {
+      "candidate_path": "src/core.js",
+      "baseline_path": "src/core.js",
+      "byte_identical": true,
+      "sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4"
+    },
+    {
+      "candidate_path": "src/session-hooks.js",
+      "baseline_path": "src/session-hooks.js",
+      "byte_identical": true,
+      "sha256": "d26f19225417c525cbb8b1f4384daf0ca355883d77c6891a8175ce717efc7789"
+    },
+    {
+      "candidate_path": "src/som-olp.js",
+      "baseline_path": "src/som-olp.js",
+      "byte_identical": true,
+      "sha256": "d8c8a6c40e743d0d8932047f7ebf62b555f2f7130ba3c820a5d8edf236569ea2"
+    },
+    {
+      "candidate_path": "src/som-numerics.js",
+      "baseline_path": "src/som-numerics.js",
+      "byte_identical": true,
+      "sha256": "3aa2372680ed99d514776a0033214016edc0df801dc7e0f85c2f13a93b264b0d"
+    }
+  ],
+  "indirect_dependencies_note": "Full candidate runtime dependency closure is bound in SOURCE_MANIFEST.json, including additive iteration-kernels exports; established numerical kernel bodies unchanged."
+}

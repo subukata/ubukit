@@ -1,7 +1,7 @@
 {
   "versions": {
-    "python": "0.0.0.dev4",
-    "javascript": "0.1.0-dev.5"
+    "python": "0.0.0.dev5",
+    "javascript": "0.1.0-dev.6"
   },
   "runtime_files": [
     {
@@ -221,6 +221,11 @@
     },
     {
       "language": "python",
+      "path": "python/staging/src/portable_accel/som_olp_localized.py",
+      "sha256": "115887d87e6523cee1f4663cfd6c46cdb672a0a76028de4bd6b71f1da825785a"
+    },
+    {
+      "language": "python",
       "path": "python/staging/src/portable_accel/som_prepared.py",
       "sha256": "4271f8a3232dca764bddcbb7ee547837f0bdd02004b7b57a6bf58d42b546fea9"
     },
@@ -237,7 +242,7 @@
     {
       "language": "python",
       "path": "python/staging/src/ubukit/__init__.py",
-      "sha256": "1eb489a669a4cd3a163b4da62019c4c7bcea9c72627bc746ec7b8dbb1c388087"
+      "sha256": "8a78105ca555f14b79e26bb6479071d606888943ba0b44dd85ecf41e4391a8f0"
     },
     {
       "language": "python",
@@ -312,7 +317,7 @@
     {
       "language": "javascript",
       "path": "javascript/package/src/clustering.js",
-      "sha256": "d9499f51895ea3fa4012a9550f359bacc338df2061041c9efe3fee1f14edea04"
+      "sha256": "b2c75c49e7567a25ccb51ae41adaaed770fc059c0536c19533cfd262ac9a2532"
     },
     {
       "language": "javascript",
@@ -337,12 +342,12 @@
     {
       "language": "javascript",
       "path": "javascript/package/src/iteration-kernels.js",
-      "sha256": "f96456bdd19f92ab9e14a37de54f83db9b2a2792038c0be75bd1f70c5e25b520"
+      "sha256": "23cfb5c2dc8820d3731fa1f70970a56a25db92040822de17485aaa7ce6142043"
     },
     {
       "language": "javascript",
       "path": "javascript/package/src/kmeans-wasm.js",
-      "sha256": "d965d6fa255af90e4402c2ab1e9c67b772fdd4b9221bc5c40a17798acca67035"
+      "sha256": "a9dbb94e2204f567955a6665be2ba22ba3aa39f28a8884bb7cb0ee4f3e7384df"
     },
     {
       "language": "javascript",
@@ -397,12 +402,17 @@
     {
       "language": "javascript",
       "path": "javascript/package/src/session-validation.js",
-      "sha256": "d304c1160c05b8a1ea29031c5aa37384274a6fcc2c6c1228445672d09ad62def"
+      "sha256": "e4f72dbf845d8f7901790fa60a51eb0ce7c3931f37187b1dbbcdb3f62e5e1cb6"
     },
     {
       "language": "javascript",
       "path": "javascript/package/src/session.js",
-      "sha256": "85d800ab6e7931af8bc90791108878dcc322206082371d817ed3b03d6961cdde"
+      "sha256": "a31471b62e62b3ac5a1962ff3b4123ce6dd9344f0c093a1d7a9b781264d9674b"
+    },
+    {
+      "language": "javascript",
+      "path": "javascript/package/src/som-elite.js",
+      "sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3"
     },
     {
       "language": "javascript",
@@ -427,7 +437,7 @@
     {
       "language": "javascript",
       "path": "javascript/package/src/som.js",
-      "sha256": "c115482d3fce85a93bec20f46597dd12b3ddf125a508775ba7ccf3561afb36c3"
+      "sha256": "797b7b760052542e88d985999038579f15943efccff31d0eda69cc666c9347cc"
     },
     {
       "language": "javascript",

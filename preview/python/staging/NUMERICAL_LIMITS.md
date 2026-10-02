@@ -106,3 +106,11 @@ and language-specific floating-point accumulation limit trajectory parity.
 See [SOM.md](SOM.md) for initialization, cancellation, projection, scratch-memory
 and exceptional-range contracts. No global convergence or hard realtime bound
 is claimed.
+
+## Opt-in localized SOM-OLP probability tails
+
+The explicit `portable_accel.som_olp_localized` functions are experimental and
+do not change the existing defaults. Direct float64 reductions and heuristic
+cancellation guards can produce different nonconvex trajectories. Extreme
+inputs, optional backends and insufficient scratch budgets retain the original
+implementation. See [EXPERIMENTAL_LOCALIZED_SOM.md](EXPERIMENTAL_LOCALIZED_SOM.md).

@@ -9,3 +9,5 @@ prune validation
 include OPTIMIZATION.md NUMERICAL_LIMITS.md
 
 include SOM.md
+
+include EXPERIMENTAL_LOCALIZED_SOM.md

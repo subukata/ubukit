@@ -1,0 +1,26 @@
+{
+  "status": "passed",
+  "previous_private_candidate_version": "0.0.0.dev4",
+  "current_private_candidate_version": "0.0.0.dev5",
+  "previous_wheel_sha256": "ccc2f857ad0f1b9705cb3657027497429bb501f0e7754f1891fec644cdfa4c7e",
+  "current_wheel_sha256": "f4bc8f5facefd159b5970077ac230254d50a273fb9fc137f6807035553b18fdd",
+  "runtime_files_compared": 62,
+  "byte_identical_runtime_files_to_previous_candidate": 61,
+  "only_changed_runtime_file": "ubukit/__init__.py",
+  "only_change": "facade version literal: 0.0.0.dev4 to 0.0.0.dev5",
+  "numerical_candidate_sha256": "115887d87e6523cee1f4663cfd6c46cdb672a0a76028de4bd6b71f1da825785a",
+  "carried_evidence": {
+    "reports/paired_matrix_final.json": "acd65046ea2d335b3a0f4dd53bb6720d7fb92e2b433e6327f29dfbb39110c014",
+    "reports/hpo_replay_final.json": "888e05c3dc4954c78e428376bbd6c243ec0c1224c8117eddfd5fd0a774a529f3",
+    "reports/cold_memory_final.jsonl": "6a28305115ff36ab5efb13da5f14ad03eb711b112f40e73e0ab04290ed82b953",
+    "reports/full_installed_tests_final.log": "61905519b4b0243f011b3317dc812b99e104b88b9ab8600a7fdf1b46a4591b61"
+  },
+  "new_checks": [
+    "private distribution/facade version",
+    "lazy facade and 38 exports",
+    "62 source/wheel/sdist/installed-runtime bindings",
+    "27 candidate tests",
+    "113 high-precision and baseline checks"
+  ],
+  "current_sdist_sha256": "588e3f947033c55a3e2a067e45224738df410a7e0bf4768a8ed57a16d68b38cb"
+}

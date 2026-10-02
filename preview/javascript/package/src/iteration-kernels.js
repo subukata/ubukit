@@ -761,3 +761,92 @@ export function somMembershipGroupedBlock(data, w, v, r, p, cost, start, end, d,
   }
   accum.distortion=distortion;accum.entropy=entropy;
 }
+
+/** Allocation-free BMU: original grouped KMeans lane arithmetic, with no
+ * changes to the established KMeans hot loops. First-index ties and the
+ * cutoff-sensitive underflow/overflow checks match core.squaredDistance. */
+export function nearestCenterGrouped(data, io, centers, d, k) {
+ let best=0,bestDistance=Infinity,c=0;
+  for(;c+3<k;c+=4) {
+   const o0=c*d,o1=o0+d,o2=o1+d,o3=o2+d;
+   let s0=0,s1=0,s2=0,s3=0,f=0;
+   for(;f+3<d;f+=4) {
+    const x0=data[io+f+0];
+    const a00=x0-centers[o0+f+0];s0+=a00*a00;
+    const a01=x0-centers[o1+f+0];s1+=a01*a01;
+    const a02=x0-centers[o2+f+0];s2+=a02*a02;
+    const a03=x0-centers[o3+f+0];s3+=a03*a03;
+    const x1=data[io+f+1];
+    const a10=x1-centers[o0+f+1];s0+=a10*a10;
+    const a11=x1-centers[o1+f+1];s1+=a11*a11;
+    const a12=x1-centers[o2+f+1];s2+=a12*a12;
+    const a13=x1-centers[o3+f+1];s3+=a13*a13;
+    const x2=data[io+f+2];
+    const a20=x2-centers[o0+f+2];s0+=a20*a20;
+    const a21=x2-centers[o1+f+2];s1+=a21*a21;
+    const a22=x2-centers[o2+f+2];s2+=a22*a22;
+    const a23=x2-centers[o3+f+2];s3+=a23*a23;
+    const x3=data[io+f+3];
+    const a30=x3-centers[o0+f+3];s0+=a30*a30;
+    const a31=x3-centers[o1+f+3];s1+=a31*a31;
+    const a32=x3-centers[o2+f+3];s2+=a32*a32;
+    const a33=x3-centers[o3+f+3];s3+=a33*a33;
+    if(s0>bestDistance&&s1>bestDistance&&s2>bestDistance&&s3>bestDistance)break;
+   }
+   if(s0>bestDistance&&s1>bestDistance&&s2>bestDistance&&s3>bestDistance)continue;
+   for(;f<d;++f){const x=data[io+f];
+    const a0=x-centers[o0+f];s0+=a0*a0;
+    const a1=x-centers[o1+f];s1+=a1*a1;
+    const a2=x-centers[o2+f];s2+=a2*a2;
+    const a3=x-centers[o3+f];s3+=a3*a3;
+    if(s0>bestDistance&&s1>bestDistance&&s2>bestDistance&&s3>bestDistance)break;
+   }
+   if(s0<=bestDistance){
+    if(s0>0&&s0<MIN_NORMAL)throw new RangeError('squared distance is subnormal; rescale input');
+    if(s0===0)for(let f=0;f<d;++f)if(data[io+f]!==centers[o0+f])throw new RangeError('squared distance underflow; rescale input');
+    if(!Number.isFinite(s0))throw new RangeError('squared distance overflow; rescale input');
+    if(s0<bestDistance){best=c+0;bestDistance=s0;}
+   }
+   if(s1<=bestDistance){
+    if(s1>0&&s1<MIN_NORMAL)throw new RangeError('squared distance is subnormal; rescale input');
+    if(s1===0)for(let f=0;f<d;++f)if(data[io+f]!==centers[o1+f])throw new RangeError('squared distance underflow; rescale input');
+    if(!Number.isFinite(s1))throw new RangeError('squared distance overflow; rescale input');
+    if(s1<bestDistance){best=c+1;bestDistance=s1;}
+   }
+   if(s2<=bestDistance){
+    if(s2>0&&s2<MIN_NORMAL)throw new RangeError('squared distance is subnormal; rescale input');
+    if(s2===0)for(let f=0;f<d;++f)if(data[io+f]!==centers[o2+f])throw new RangeError('squared distance underflow; rescale input');
+    if(!Number.isFinite(s2))throw new RangeError('squared distance overflow; rescale input');
+    if(s2<bestDistance){best=c+2;bestDistance=s2;}
+   }
+   if(s3<=bestDistance){
+    if(s3>0&&s3<MIN_NORMAL)throw new RangeError('squared distance is subnormal; rescale input');
+    if(s3===0)for(let f=0;f<d;++f)if(data[io+f]!==centers[o3+f])throw new RangeError('squared distance underflow; rescale input');
+    if(!Number.isFinite(s3))throw new RangeError('squared distance overflow; rescale input');
+    if(s3<bestDistance){best=c+3;bestDistance=s3;}
+   }
+  }
+  for(;c<k;++c){const co=c*d;let sum=0;
+   for(let f=0;f<d;++f){const delta=data[io+f]-centers[co+f];sum+=delta*delta;if(sum>bestDistance)break;}
+   if(sum>bestDistance)continue;
+   if(sum>0&&sum<MIN_NORMAL)throw new RangeError('squared distance is subnormal; rescale input');
+   if(sum===0)for(let f=0;f<d;++f)if(data[io+f]!==centers[co+f])throw new RangeError('squared distance underflow; rescale input');
+   if(!Number.isFinite(sum))throw new RangeError('squared distance overflow; rescale input');
+   if(sum<bestDistance){best=c;bestDistance=sum;}
+  }
+ return best;
+}
+
+/** Dedicated 2D BMU; no full row scratch, no distance-vector allocation. */
+export function nearestCenter2d(data, io, centers, d, k) {
+ const x=data[io],y=data[io+1];let best=0,bestDistance=Infinity;
+ for(let c=0;c<k;c++) {
+  const co=2*c,dx=x-centers[co],dy=y-centers[co+1],distance=dx*dx+dy*dy;
+  if(distance>bestDistance)continue;
+  if(distance>0&&distance<MIN_NORMAL)throw new RangeError('squared distance is subnormal; rescale input');
+  if(distance===0&&(x!==centers[co]||y!==centers[co+1]))throw new RangeError('squared distance underflow; rescale input');
+  if(!Number.isFinite(distance))throw new RangeError('squared distance overflow; rescale input');
+  if(distance<bestDistance){bestDistance=distance;best=c;}
+ }
+ return best;
+}

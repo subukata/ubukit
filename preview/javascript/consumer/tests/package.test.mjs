@@ -19,7 +19,7 @@ function consume(it){for(;;){const next=it.next();if(next.done)return next.value
 test('installed package is a real tarball copy with exact private metadata and additive external-metric exports',async()=>{
  assert.match(moduleURL,/consumer\/node_modules\/ubukit-js\/src\/index\.js$/);
  assert.equal(fs.lstatSync(packageURL).isSymbolicLink(),false);
- assert.equal(pkg.name,'ubukit-js');assert.equal(pkg.version,'0.1.0-dev.5');assert.equal(pkg.private,true);
+ assert.equal(pkg.name,'ubukit-js');assert.equal(pkg.version,'0.1.0-dev.6');assert.equal(pkg.private,true);
  assert.deepEqual(pkg.exports,{'.':'./src/index.js','./worker':'./src/worker-client.js','./session':'./src/session.js','./realtime-worker':'./src/realtime-worker-client.js','./metrics':'./src/metric-scheduler.js','./optimization':'./src/optimization.js','./external-metrics':'./src/external-metrics.js'});
  assert.equal(pkg.dependencies,undefined);assert.equal(pkg.scripts,undefined);assert.equal(pkg.license,undefined);
  const expected=['adjustedRandScore','adjustedMutualInfoScore','adjustedScores','adjusted_rand_score','adjusted_mutual_info_score','adjusted_scores','ExternalMetricDomainError','TPEOptimizer','SearchSpaceExhaustedError','ProposalError','floatRange','intRange','categorical','optimize','optimizeAsync','ClusteringSession','PreparedRMCM','RMCMGraphCache','algorithms','createMetricScheduler','createRealtimeWorkerClient','createSession','createWorkerClient','exrcm','fcm','kmeans','membershipsFromSquaredDistances','neighborhood','neighborhoodSteps','normalizeInput','prepareRMCM','prepareRMCMSteps','rcm','rmcm','rmcmReference','rmcmSteps','roughAdmissible','run','runAsync','seededRandom','sessionAlgorithms','somOlp','somOlpSteps','steps','som','somBatch','som_batch','somSteps','somBatchSteps','somProject'];
@@ -29,7 +29,7 @@ test('installed package is a real tarball copy with exact private metadata and a
 });
 test('every installed runtime hash matches the reviewed package manifest',()=>{
  const manifest=JSON.parse(fs.readFileSync(new URL('SOURCE_MANIFEST.json',packageURL)));
- assert.equal(Object.keys(manifest.runtime_files).length,26);
+ assert.equal(Object.keys(manifest.runtime_files).length,27);
  for(const[path,{sha256}]of Object.entries(manifest.runtime_files))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(new URL(path,packageURL))).digest('hex'),sha256,path);
 });
 for(const algorithm of root.algorithms)test(`public root ${algorithm}: run/steps/runAsync agree and inputs remain unchanged`,async()=>{

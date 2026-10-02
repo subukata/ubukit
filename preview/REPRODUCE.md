@@ -1,4 +1,4 @@
-# Reproduce Python dev4 / JavaScript dev5 from repository source
+# Reproduce Python dev5 / JavaScript dev6 from repository source
 
 Run from the repository root. Python examples below use POSIX virtualenv paths;
 Windows requires the corresponding `Scripts/python.exe` path and is unverified.
@@ -16,7 +16,7 @@ python3.12 -m venv .venv-build
 mkdir -p preview/python/artifacts
 .venv-build/bin/python -m build --no-isolation --outdir preview/python/artifacts preview/python/staging
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -c preview/python/constraints-som-verified.txt preview/python/artifacts/ubukit_bundled_local_preview-0.0.0.dev4-py3-none-any.whl
+.venv/bin/python -m pip install -c preview/python/constraints-som-verified.txt preview/python/artifacts/ubukit_bundled_local_preview-0.0.0.dev5-py3-none-any.whl
 .venv/bin/python -m pip install pytest==8.4.2
 ```
 
@@ -55,7 +55,7 @@ For a Numba environment pass `--with-numba` to both `run_installed.py` commands,
 Frozen baseline files under `_oracles/` are test references, not runtime imports.
 Runtime harness exclusions/skips are documented in VERIFICATION.md. Add
 `--include-large-sparse` for the two inherited 8,000-sample sparse cases; they
-were not rerun for this additive SOM integration. Repeat the 85-test focused
+were not rerun for this additive SOM integration. Repeat the focused
 gate, examples, ownership and artifact-origin checks in a fresh sdist-installed
 venv, using `base-sdist` for `check_artifact_origins.py`. The sdist build requires the build dependencies from the build step.
 
@@ -81,9 +81,9 @@ cd ../..
 
 Tests use the actual installed tarball in `consumer/node_modules/ubukit-js`,
 including real Node Workers, cancellation/restart, source hashes and entrypoints.
-The consumer dependency points to `ubukit-js-0.1.0-dev.5.tgz`. Use a clean
+The consumer dependency points to `ubukit-js-0.1.0-dev.6.tgz`. Use a clean
 consumer without an old node_modules or package-lock.json for a fresh replay.
-The exact glob above runs 945 tests; it does not treat helper scripts as tests.
+The exact glob above runs 1,041 tests; it does not treat helper scripts as tests.
 The oracle audit and runtime smoke are separate checks. The test/audit commands
 may regenerate report JSON files; preserve committed measurements when comparing
 a replay, and review those differences before committing. See
@@ -112,13 +112,42 @@ The JS command overwrites `reports/som-bounded-benchmark.json`; preserve the
 committed record when reviewing the replay. These online/batch budgets differ
 and do not establish equal-quality algorithm superiority.
 
+## Efficiency and backend compatibility checks
+
+The focused Python suite now includes the opt-in localized-tail tests and the
+intentional duplicate-backend contracts. With Numba absent the compiled-only
+class is skipped; the source guard still runs. Additional exact-arithmetic tests:
+
+```sh
+.venv/bin/python -I -B preview/python/tools/check_package.py
+.venv/bin/python -I -B preview/python/tools/check_high_precision.py
+python3.12 preview/python/tools/check_duplicate_backend.py
+```
+
+`check_package.py` expects both freshly built archive forms under
+`preview/python/artifacts` and verifies all 62 source/archive/installed modules.
+`check_high_precision.py` runs 113 oracle and preserved-baseline cases. To check
+an installed duplicate-backend pair instead of repository sources, set
+`UBUKIT_SOURCE_ROOT` to that environment's site-packages before running its
+`test_backend_contracts.py`. The default intentionally audits repository sources.
+
+WASM byte-exact rebuild and bounded checks are a separate development-only step:
+
+```sh
+(cd preview/javascript/wasm-rebuild && npm ci --ignore-scripts --no-audit --no-fund && npm run verify)
+```
+
+WABT is a pinned development tool, not an installed UbuKit runtime dependency.
+See [EFFICIENCY.md](EFFICIENCY.md) for bounded serial benchmark commands and
+[wasm-rebuild/README.md](javascript/wasm-rebuild/README.md) for provenance limits.
+
 ## Source integrity
 
 ```sh
 python3.12 preview/tools/verify_snapshot.py
 ```
 
-This checks all 87 runtime files (61 Python dev4 and 26 JavaScript dev5) against SOURCE_SNAPSHOT.json, plus the test/reference/evidence bytes in
+This checks all 89 runtime files (62 Python dev5 and 27 JavaScript dev6) against SOURCE_SNAPSHOT.json, plus the test/reference/evidence bytes in
 VERIFICATION_SNAPSHOT.json. Run it on a clean checkout before replay commands
 regenerate report JSON, or restore the committed evidence afterward. Package
 documentation was updated for GitHub; archive-byte equality with earlier

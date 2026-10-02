@@ -1,7 +1,7 @@
-# Reproduce JavaScript dev5 SOM and external metrics
+# Reproduce JavaScript dev6 efficiency, SOM and external metrics
 
-This repository snapshot pairs JavaScript `0.1.0-dev.5` with Python
-`0.0.0.dev4`. Both add traditional SOM; the external-metric runtime is unchanged. Runtime dependencies added: zero. The source is a private preview;
+This repository snapshot pairs JavaScript `0.1.0-dev.6` with Python
+`0.0.0.dev5`. Both retain traditional SOM; the external-metric runtime is unchanged. Runtime dependencies added: zero. The source is a private preview;
 no npm/PyPI publication or deployment is implied. For both languages, start with
 [the aggregate replay instructions](../REPRODUCE.md).
 
@@ -14,7 +14,7 @@ mkdir -p artifacts
 cd package
 npm pack --ignore-scripts --pack-destination ../artifacts
 cd ../consumer
-npm install --ignore-scripts --no-audit --no-fund ../artifacts/ubukit-js-0.1.0-dev.5.tgz
+npm install --ignore-scripts --no-audit --no-fund ../artifacts/ubukit-js-0.1.0-dev.6.tgz
 cd ..
 node --test --test-concurrency=1 tests/*.test.mjs consumer/tests/*.test.mjs validation/tests/*.js validation/tests/*.mjs
 UBUKIT_AUDIT_SOURCE=../consumer/node_modules/ubukit-js/src/external-metrics.js node audit/audit-numerics.mjs
@@ -25,7 +25,7 @@ node --experimental-vm-modules tests/som-browser-compatibility.mjs
 
 Use a clean consumer without an old node_modules or package-lock.json for a
 fresh replay. All candidate test imports resolve to a real installed tarball copy. The package
-manifest verifies all 26 runtime hashes. The complete regression suite has 945
+manifest verifies all 27 runtime hashes. The complete regression suite has 1,041
 tests; the independent numerical audit is separate and contains thousands of
 scalar, joint, invariance, domain and synthetic-count checks.
 
@@ -131,3 +131,7 @@ Do not transplant only `index.js`: the SOM runtime, session validation, session
 implementation, shared PCA export, package metadata and manifest must travel
 together. Preserve the external-metric file, export map and BSD notice as well.
 The current aggregate scope is documented in [../VERIFICATION.md](../VERIFICATION.md).
+
+## Efficiency routes and reproducibility
+
+See [EFFICIENCY.md](../EFFICIENCY.md) for explicit scalar/uncached alternatives, shape cutoffs, preserved source comparison and benchmark caveats. `validation/efficiency_baseline_package/` is frozen dev5 runtime/package source, not a dependency or part of the packed dev6 runtime. Rebuildable WAT lives separately under [wasm-rebuild](wasm-rebuild/README.md).
