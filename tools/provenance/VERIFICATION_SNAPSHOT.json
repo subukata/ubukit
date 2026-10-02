@@ -99,7 +99,7 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "8f0ac54a7d38cd7e9fc435e618b2bed5e2c0f8d4823a04464f7b1e8ed70a6f76"
+      "sha256": "95989b3946afdf4b42a8812d28066f1f68b71fbb82cdbddd49382e1536a150b2"
     },
     {
       "path": "javascript/audit/audit-numerics.mjs",
@@ -128,6 +128,10 @@
     {
       "path": "javascript/consumer/package.json",
       "sha256": "c116fbb81dca0a3013d741e44bc78ae93625f65d4e47d8825469f3c8b2ddf39a"
+    },
+    {
+      "path": "javascript/consumer/tests/external-metrics-encoding.test.mjs",
+      "sha256": "92a8e5f18178389076948babc06ab69bbd57f11e059fc910800cafc5ab886996"
     },
     {
       "path": "javascript/consumer/tests/package.test.mjs",
@@ -187,7 +191,7 @@
     },
     {
       "path": "javascript/src/external-metrics.js",
-      "sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
+      "sha256": "97e57a54e7f09e814959fd7b8dafc1f188a3eae43a7b2cbf83628c84d40c6e93"
     },
     {
       "path": "javascript/src/fcm-stable.js",
@@ -1339,7 +1343,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "d58e029b849195e828c008f10ad204560cdd281407b6ce5ec37c579469a24e78"
+      "sha256": "9efc88014f42147d867f1d151ef9a7788cd2b99a5ef11470cf5d3eba67cd4d3f"
     },
     {
       "path": "python/SOM.md",
@@ -1347,7 +1351,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "8611bd262fb12d6eb256ae8a0d8f0c4db45e670d8d55e73881f383b16c673d35"
+      "sha256": "f599cfa698a97713993260df8c12469f18775d4d343a2202c6d15efc77468427"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -1399,7 +1403,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/external_metrics.py",
-      "sha256": "66a2ccdd58e06134a7d90255580bc1de748ec06caff320fac50808d729cb2d23"
+      "sha256": "9f34977c96bf80025d268f37ce64fdf35f1056dc35f08d24b2c4f78cb6598857"
     },
     {
       "path": "python/src/ubukit/_impl/fcm/__init__.py",
@@ -1575,7 +1579,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/portable_accel/prepared.py",
-      "sha256": "6533150fe640a62603a9a3cbcd7503ba784aa35abce01b7d18ef02dd15868635"
+      "sha256": "3a42dea3220d820ced9ca2ff1b50c4bf478f156fee9d32aba929322046a08a40"
     },
     {
       "path": "python/src/ubukit/_impl/portable_accel/registry.py",
@@ -1631,7 +1635,7 @@
     },
     {
       "path": "python/src/ubukit/optimization.py",
-      "sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429"
+      "sha256": "225e395f8c677679c417489898e70d2631c348f626548c6dba92419010690df9"
     },
     {
       "path": "python/tests/conftest.py",
@@ -1650,12 +1654,24 @@
       "sha256": "700a5d07636bb721d781a74a630a4d2d428f7de6b255367dfd7b8cc8d5857ca0"
     },
     {
+      "path": "python/tests/test_external_metrics_uniform.py",
+      "sha256": "28d8c8246ec9c30207827d4f2f2e93ba66aa201469d0e8017eee867a51add99c"
+    },
+    {
       "path": "python/tests/test_localized_tails.py",
       "sha256": "d0fbef84134ebfe0e1f95a9a44d615ec9aed0087ed3773e545aa3e0984713e18"
     },
     {
       "path": "python/tests/test_namespace.py",
       "sha256": "1f4a992c652c8f75519a3b1f8bbfd83d171e90932922ff57769b3b0d741355f7"
+    },
+    {
+      "path": "python/tests/test_optimizer_import_capture.py",
+      "sha256": "c1ad103143ceeb5b5c2a89ff0d0b86688755639c240bde94641f393dfb0bd3b3"
+    },
+    {
+      "path": "python/tests/test_prepared_data.py",
+      "sha256": "8ab72b40f80f4e903e4343c33d060e69eebc984215c72caf0ec2d8dbc553d9b5"
     },
     {
       "path": "python/tests/test_som.py",
@@ -2027,7 +2043,7 @@
     },
     {
       "path": "python/verification/runtime_tests/legacy/restart_v2/test_foundation.py",
-      "sha256": "945896a55cc8fa2d9a7dc50b084abf10fb991ed2f146ebf497e12d1b0411b8bd"
+      "sha256": "2e60b71dec453533123a23a756c8274bed38b86bd6f7f5562c1e405fd91a6364"
     },
     {
       "path": "python/verification/runtime_tests/legacy/restart_v2/test_metric_portable.py",
@@ -2243,7 +2259,7 @@
     },
     {
       "path": "tools/provenance/SOURCE_SNAPSHOT.json",
-      "sha256": "c71d712141e68fdf3b370e637767af0cdf5fdfcbbf0d57063f4111d762e7a472"
+      "sha256": "347bcea799540fabcdc9b768d2b9daa2d4e8527a54e99c765ab7b2ab43287e43"
     },
     {
       "path": "tools/provenance/refresh.py",

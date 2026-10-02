@@ -141,6 +141,13 @@ print(fcm["membership"])               # Shape (samples, clusters)
 shape. Use `uk.prepare(X)` or `uk.PreparedData(X)` for an owned, reusable data
 snapshot. Set optional Numba backends only when Numba is installed.
 
+`PreparedData.X`, `feature_bounds()`, `centered()`, and `norms()` return
+read-only array views with independent headers and shared snapshot/cache bytes.
+Array and bounds-tuple object identities are not guaranteed: changing a
+returned array's shape or dtype does not change the prepared snapshot or later
+results. Repeated `prepare(prepared)` and cached `as_dtype()` calls still reuse `PreparedData`
+objects. Use an array's `.copy()` when you need writable values.
+
 ### Rough clustering
 
 ```python

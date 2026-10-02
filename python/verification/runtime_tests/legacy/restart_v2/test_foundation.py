@@ -9,7 +9,9 @@ class Foundation(unittest.TestCase):
         x=np.arange(30.).reshape(10,3);p=prepare(x);x[:]=0;self.assertEqual(p.X[1,0],3.)
         with self.assertRaises(ValueError):p.X.setflags(write=True)
         original=p.norms();self.assertFalse(np.array_equal(original,p.norms(preprocessing='mean-centered')))
-        self.assertIs(original,p.norms());self.assertEqual(p.cache_info()['hits'],1)
+        again=p.norms();self.assertIsNot(original,again);self.assertTrue(np.shares_memory(original,again));self.assertEqual(p.cache_info()['hits'],1)
+        expected=again.copy();original.shape=(2,5);original.dtype=np.int64
+        np.testing.assert_array_equal(p.norms(),expected);self.assertEqual(p.norms().shape,(10,))
     def test_kmeans_core(self):
         rng=np.random.default_rng(7)
         for x,init in [(rng.normal(size=(17,4)),rng.normal(size=(5,4))),(np.zeros((9,2)),np.array([[0.,0.],[0.,0.],[20.,20.]]))]:
