@@ -19,3 +19,11 @@ if len(sys.argv)>2:
         assert not Path(name).is_absolute() and '..' not in Path(name).parts
         assert hashlib.sha256((bundle/name).read_bytes()).hexdigest()==digest,name
     print('Frozen artifact manifest and source binding passed')
+
+if len(sys.argv)>3:
+    verification=Path(sys.argv[3]).resolve()
+    harness_sha=os.environ['GITHUB_SHA']
+    assert subprocess.check_output(['git','-C',str(verification),'rev-parse','HEAD'],text=True).strip()==harness_sha
+    verify(verification/'preview')
+    assert (verification/'preview/SOURCE_SNAPSHOT.json').read_bytes()==(root/'preview/SOURCE_SNAPSHOT.json').read_bytes(), 'Verification checkout changes reviewed runtime bytes'
+    print('Workflow-bound verification snapshot and identical runtime manifest passed')

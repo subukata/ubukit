@@ -1835,7 +1835,7 @@
     },
     {
       "path": "python/verification/runtime_tests/som_kmeans_extension/test_scipy_blas.py",
-      "sha256": "8a6c8b950466bdbb72a9f16f9d9f541f446c1a05349f22803559d238f7194ef0"
+      "sha256": "eff244bff62c295c064660b27d25f5789a909d368bcf8b2fe05d03f3a365c5ed"
     },
     {
       "path": "python/verification/runtime_tests/test_installed_optional_fallbacks.py",
