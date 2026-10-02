@@ -10,11 +10,11 @@ def pytest_sessionstart(session):
     import ubukit
     import portable_accel._som_classic as som_module
     distribution = metadata.distribution('ubukit-bundled-local-preview')
-    assert distribution.version == ubukit.__version__ == '0.0.0.dev4'
+    assert distribution.version == ubukit.__version__ == '0.0.0.dev5'
     purelib = Path(sysconfig.get_paths()['purelib']).resolve()
     owned = {str(path) for path in distribution.files}
     manifest = json.loads((Path(__file__).resolve().parents[1] / 'staging/SOURCE_MANIFEST.json').read_text())
-    assert len(manifest['files']) == 61
+    assert len(manifest['files']) == 62
     for entry in manifest['files']:
         name = entry['path'].removeprefix('src/')
         assert name in owned, name

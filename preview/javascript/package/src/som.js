@@ -3,6 +3,8 @@
  * No sample×unit×feature tensor, no runtime dependencies.
  */
 import { normalizeInput, positiveInteger, finiteNumber, seededRandom, assertFinite, squaredDistance, checkCancelled, progress } from './core.js';
+import { somSteps as eliteSomSteps, somBatchSteps as eliteSomBatchSteps } from './som-elite.js';
+import { nearestCenter2d, nearestCenterGrouped } from './iteration-kernels.js';
 import { checkpoint } from './session-hooks.js';
 import { pcaPrototypes } from './som-olp.js';
 import { somStablePcaInput, somStableMean } from './som-numerics.js';
@@ -39,6 +41,7 @@ export function validateSOM(input, options = {}, batch = false) {
   if (batch && (Object.hasOwn(options, 'learningRate') || Object.hasOwn(options, 'learningRateEnd'))) throw new RangeError('BatchSOM uses exact weighted means, not a learning rate');
   if (!['geometric', 'linear'].includes(options.schedule ?? 'geometric')) throw new RangeError("schedule must be 'geometric' or 'linear'");
   if (!['sample', 'pca'].includes(options.initializer ?? 'sample')) throw new RangeError("initializer must be 'sample' or 'pca'");
+  if (!['auto', 'scalar', 'grouped'].includes(options.bmuBackend ?? 'auto')) throw new RangeError("bmuBackend must be 'auto', 'scalar', or 'grouped'");
   if (options.kernelBackend != null && options.kernelBackend !== 'javascript') throw new RangeError("Traditional SOM currently uses kernelBackend:'javascript'");
   if (options.shuffle != null && options.shuffle !== false) throw new RangeError('SOM currently uses sequential input order; shuffle must be false');
   if ((options.tolerance ?? 0) !== 0) throw new RangeError('SOM uses a fixed schedule; tolerance must be 0');
@@ -101,6 +104,10 @@ function* train(input, options, batch) {
   const cfg = validateSOM(input, options, batch);
   const { n, d, k, width, height, total, initial, blockRows, blockUnits } = cfg;
   const algorithm = batch ? 'som_batch' : 'som', unit = batch ? 'epoch' : 'sample';
+  // Retain the original cutoff BMU as an explicit elite fallback.
+  // Small grids and higher-dimensional cutoff-friendly data retain the
+  // established scalar route; grouped is an explicit option for wider data.
+  const groupedBMU = options.bmuBackend === 'grouped' || ((options.bmuBackend ?? 'auto') === 'auto' && k >= 16 && d <= 8);
   // Direct iterators, as well as sessions, own their numerical inputs after start.
   const data = Float64Array.from(cfg.x.data), x = { data, nSamples: n, nFeatures: d };
   let w = initial == null ? new Float64Array(k * d) : Float64Array.from(initial), next = new Float64Array(k * d);
@@ -143,7 +150,7 @@ function* train(input, options, batch) {
     checkCancelled(options);
     const sigma = somSchedule(cfg.sigma, cfg.sigmaEnd, t, total, options.schedule);
     if (!batch) {
-      const i = t % n, best = bmu(data, i * d, w, d, k), bx = best % width, by = Math.floor(best / width);
+      const i = t % n, best = (groupedBMU ? (d === 2 ? nearestCenter2d(data, i * d, w, d, k) : nearestCenterGrouped(data, i * d, w, d, k)) : bmu(data, i * d, w, d, k)), bx = best % width, by = Math.floor(best / width);
       const eta = somSchedule(cfg.learningRate, cfg.learningRateEnd, t, total, options.schedule);
       for (let start = 0; start < k; start += blockUnits) {
         checkCancelled(options);
@@ -160,7 +167,7 @@ function* train(input, options, batch) {
       for (let start = 0; start < n; start += blockRows) {
         checkCancelled(options);
         for (let i = start; i < Math.min(n, start + blockRows); i++) {
-          const best = bmu(data, i * d, w, d, k), offset = best * stride; labels[i] = best;
+          const best = (groupedBMU ? (d === 2 ? nearestCenter2d(data, i * d, w, d, k) : nearestCenterGrouped(data, i * d, w, d, k)) : bmu(data, i * d, w, d, k)), offset = best * stride; labels[i] = best;
           const previous = groups[offset + d], count = previous + 1;
           for (let f = 0; f < d; f++) groups[offset + f] = weightedAverage(groups[offset + f], data[i * d + f], previous, 1, count);
           groups[offset + d] = count;
@@ -225,15 +232,33 @@ function* train(input, options, batch) {
   const embedding = new Float64Array(n * 2);
   for (let start = 0; start < n; start += blockRows) {
     checkCancelled(options);
-    for (let i = start; i < Math.min(n, start + blockRows); i++) { const best = bmu(data, i * d, w, d, k); labels[i] = best; embedding[2 * i] = best % width; embedding[2 * i + 1] = Math.floor(best / width); }
+    for (let i = start; i < Math.min(n, start + blockRows); i++) { const best = (groupedBMU ? (d === 2 ? nearestCenter2d(data, i * d, w, d, k) : nearestCenterGrouped(data, i * d, w, d, k)) : bmu(data, i * d, w, d, k)); labels[i] = best; embedding[2 * i] = best % width; embedding[2 * i + 1] = Math.floor(best / width); }
     yield* emit(options, { algorithm, phase: 'final-labels', unit, completed: Math.min(n, start + blockRows), total: n });
   }
   return state(total, { ...last, labels, embedding, V: embedding, projectionStatus: 'current-prototypes', stats: { stableBatchRepair: usedStableRepair, estimatedPrimaryBytes: cfg.estimatedPrimaryBytes, primaryTrainingScratchBytes: cfg.trainScratch, blockRows, blockUnits,
     complexity: batch ? 'O(epochs*(N*M*D+M*D*(width+height))); O(N*D+M*D+width^2+height^2+N) space' : 'O(updates*M*D+N*M*D); O(N*D+M*D+N) space',
     training: batch ? 'frozen BMUs; grouped sufficient statistics; separable Gaussian weighted means' : 'sequential samples; eta*h*(x-w)' } });
 }
-export function* somSteps(input, options = {}) { return yield* train(input, options, false); }
-export function* somBatchSteps(input, options = {}) { return yield* train(input, options, true); }
+/** The unmodified full scalar kernel remains its own JIT compilation unit.
+ * Lightweight shape dispatch does not duplicate input scans or allocations;
+ * the selected implementation performs full numerical and option validation.
+ * Malformed shapes use the original validator. Invalid route names use the
+ * candidate validator so the additive option is rejected consistently. */
+function useEliteSOM(input, options) {
+  const route = options?.bmuBackend ?? 'auto';
+  if (route === 'scalar') return true;
+  if (route !== 'auto') return false;
+  const d = input?.nFeatures, shape = options?.gridShape;
+  if (!Number.isSafeInteger(d) || d < 1 || d > 8) return true;
+  if (shape == null) return false; // The validated default is 16 by 16.
+  if ((!Array.isArray(shape) && !ArrayBuffer.isView(shape)) || shape.length !== 2) return true;
+  const width = shape[0], height = shape[1];
+  if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1) return true;
+  const k = width * height;
+  return !Number.isSafeInteger(k) || k < 16 || k > 0x7fffffff;
+}
+export function* somSteps(input, options = {}) { return yield* (useEliteSOM(input, options) ? eliteSomSteps(input, options) : train(input, options, false)); }
+export function* somBatchSteps(input, options = {}) { return yield* (useEliteSOM(input, options) ? eliteSomBatchSteps(input, options) : train(input, options, true)); }
 const consume = it => { for (;;) { const step = it.next(); if (step.done) return step.value; } };
 export const som = (input, options = {}) => consume(somSteps(input, options));
 export const somBatch = (input, options = {}) => consume(somBatchSteps(input, options));
@@ -247,3 +272,6 @@ export function somProject(input, model, options = {}) {
   const result = som(x, { ...options, gridShape: model.gridShape, initialPrototypes: model.centers ?? model.prototypes, maxIterations: 0 });
   return { labels: result.labels, embedding: result.embedding, projectionStatus: 'current-prototypes' };
 }
+
+// Internal differential-test entry point; package root exports stay unchanged.
+export { bmu as somBmuScalar };

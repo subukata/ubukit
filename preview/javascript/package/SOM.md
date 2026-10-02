@@ -1,4 +1,4 @@
-# Traditional SOM and BatchSOM (private dev5)
+# Traditional SOM and BatchSOM (private dev6 efficiency candidate)
 
 The additive registry names are `som` and `som_batch`. They are separate from
 SOM-OLP (`som-olp`) and from neighborhood quality evaluation (`neighborhood`).
@@ -129,3 +129,24 @@ claimed for these new variants. Runtime dependencies added: zero.
 
 Algorithm reference: [SOM Toolbox algorithms](https://www.cis.hut.fi/somtoolbox/documentation/somalg.shtml).
 The new implementation is independent; existing SOM-OLP notices remain intact.
+
+## Private efficiency candidate: BMU route selection
+
+`bmuBackend` accepts `"auto"` (default), `"scalar"`, or `"grouped"`.
+`"scalar"` retains the original direct-distance cutoff implementation.
+`"grouped"` uses a dedicated 2D loop or four independent center lanes while
+preserving increasing-feature summation, first-index ties, and the original
+cutoff-sensitive overflow/underflow exceptions. It allocates no extra scratch.
+`"auto"` uses specialized BMUs only for at least 16 units and at most 8 features;
+small grids and higher-dimensional inputs retain scalar BMUs. Grouped loops can
+win for higher-dimensional dense work but lose when early features exclude
+most units. No route is claimed to win on every shape, dataset or JS engine.
+This option applies to online SOM, BatchSOM, projection and their sessions.
+
+The scalar elite route retains the complete original dev5 SOM module, byte for
+byte, in `src/som-elite.js`. Scalar and high-D/small-grid auto calls dispatch to
+that separate module rather than an old BMU body inside a rewritten training
+loop. This preserves the original V8 compilation unit as well as the arithmetic.
+The additional internal file is included in the package manifest; public root
+exports and package entrypoints remain unchanged. Benchmarks verify the actual
+packed route rather than assuming byte preservation guarantees identical speed.

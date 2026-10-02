@@ -18,16 +18,22 @@ export function kmeansWasmWorkspace(n,d,k,blockRows,maxExtraBytes) {
   if(allocated>65536)memory.grow(allocated/65536-1);
   const x=new Float64Array(memory.buffer,0,rows*d),ct=new Float64Array(memory.buffer,cOffset,stride*d);
   const labels=new Int32Array(memory.buffer,lOffset,rows),distances=new Float64Array(memory.buffer,dOffset,rows),flags=new Int32Array(memory.buffer,fOffset,rows);
+  let prepared = false;
   return {rows,labels,distances,flags,allocatedBytes:allocated,
-   centers(centers){ct.fill(Infinity);for(let f=0;f<d;f++)for(let c=0;c<k;c++)ct[f*stride+c]=centers[c*d+f];},
+   invalidateCenters(){prepared=false;},
+   centers(centers,cache=false){
+    if(cache&&prepared)return;
+    ct.fill(Infinity);for(let f=0;f<d;f++)for(let c=0;c<k;c++)ct[f*stride+c]=centers[c*d+f];
+    prepared=true;
+   },
    nearest(data,start,end){x.set(data.subarray(start*d,end*d));instance.exports.nearest(0,cOffset,end-start,d,k,stride,lOffset,dOffset,fOffset);}
   };
  }catch(error){if(error instanceof WebAssembly.CompileError){unsupported=true;return null;}if(error instanceof RangeError||error instanceof TypeError||error?.name==='SecurityError'||error instanceof WebAssembly.LinkError)return null;throw error;}
 }
 
 export function assignWasmBlock(workspace, data, centers, labels, sums, counts,
-                                start, end, d, k, fallback, execution) {
-  workspace.centers(centers);
+                                start, end, d, k, fallback, execution, cacheCenters = false) {
+  workspace.centers(centers, cacheCenters);
   let changed = 0, nativeRows = 0, fallbackRows = 0;
   for (let from = start; from < end; from += workspace.rows) {
     const stop = Math.min(end, from + workspace.rows);
@@ -51,8 +57,8 @@ export function assignWasmBlock(workspace, data, centers, labels, sums, counts,
 }
 
 export function finalizeWasmBlock(workspace, data, centers, labels,
-                                  start, end, d, k, inertia, fallback, execution) {
-  workspace.centers(centers);
+                                  start, end, d, k, inertia, fallback, execution, cacheCenters = false) {
+  workspace.centers(centers, cacheCenters);
   let nativeRows = 0, fallbackRows = 0;
   for (let from = start; from < end; from += workspace.rows) {
     const stop = Math.min(end, from + workspace.rows);

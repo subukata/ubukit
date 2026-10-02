@@ -6,7 +6,7 @@ otherwise standardized. All original runtime imports retain their contracts.
 """
 from importlib import import_module
 
-__version__ = "0.0.0.dev4"
+__version__ = "0.0.0.dev5"
 _EXPORTS = {
     "TPEOptimizer": ("ubukit.optimization", "TPEOptimizer"),
     "optimize": ("ubukit.optimization", "optimize"),

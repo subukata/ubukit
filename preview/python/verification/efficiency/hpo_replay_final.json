@@ -1,0 +1,902 @@
+{
+  "actual_package_version": "0.0.0.dev4",
+  "candidate_source_sha256": "115887d87e6523cee1f4663cfd6c46cdb672a0a76028de4bd6b71f1da825785a",
+  "baseline_som_olp_sha256": "175fb02ceefd7cdb6c026a285601f130c6a23d29d8a8543e384c13ee25d6af28",
+  "timing_protocol": "One serial replay per original failed configuration, 2s wall timer around fit, scientific imports preloaded, single BLAS thread, identical StandardScaler full-dataset inputs, no quality-metric time inside fit timer",
+  "source": "review_plan_20261002/hyperparameter_benchmark/final_results/trials.jsonl",
+  "source_sha256": "11e7733ea348fc995785c97525d28d8e5daf867c36153bd7eb082518492efdbb",
+  "historical_failed_cases": 53,
+  "scope": "Same fixed parameter sets only, not rerun HPO; historical dev3 failures compared with dev4 opt-in candidate; paired dev4 timings reported separately",
+  "replays": [
+    {
+      "task": "som_iris",
+      "sampler": "shared_startup",
+      "search_seed": 0,
+      "trial": 8,
+      "params": {
+        "gamma": 3.6375361652737697,
+        "lam": 0.10334288639248834,
+        "pca_scale": 2.59009286733778
+      },
+      "state": "completed",
+      "fit_seconds": 0.02723074599998654,
+      "n_iter": 24,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 0,
+      "trial": 29,
+      "params": {
+        "gamma": 0.8765432466690685,
+        "lam": 0.11016868589391271,
+        "pca_scale": 1.4701460544602014
+      },
+      "state": "completed",
+      "fit_seconds": 0.05818314300267957,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "shared_startup",
+      "search_seed": 1,
+      "trial": 10,
+      "params": {
+        "gamma": 1.6252589444087568,
+        "lam": 0.22416997621663215,
+        "pca_scale": 2.9213883139364767
+      },
+      "state": "completed",
+      "fit_seconds": 0.05694603099982487,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 1,
+      "trial": 12,
+      "params": {
+        "gamma": 0.7607147236469031,
+        "lam": 0.10126781571029958,
+        "pca_scale": 1.818617600190919
+      },
+      "state": "completed",
+      "fit_seconds": 0.05632006700034253,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 1,
+      "trial": 33,
+      "params": {
+        "gamma": 1.8571295592811583,
+        "lam": 0.12151641037794013,
+        "pca_scale": 1.857391822635527
+      },
+      "state": "completed",
+      "fit_seconds": 0.039488139998866245,
+      "n_iter": 66,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 1,
+      "trial": 12,
+      "params": {
+        "gamma": 0.7607147236469031,
+        "lam": 0.10126781571029958,
+        "pca_scale": 1.818617600190919
+      },
+      "state": "completed",
+      "fit_seconds": 0.05581135000102222,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 1,
+      "trial": 19,
+      "params": {
+        "gamma": 0.03737840244078265,
+        "lam": 0.12174732287971284,
+        "pca_scale": 1.5684548897552304
+      },
+      "state": "completed",
+      "fit_seconds": 0.0564268380003341,
+      "n_iter": 81,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 2,
+      "trial": 18,
+      "params": {
+        "gamma": 8.219404327078218,
+        "lam": 0.11978495011907024,
+        "pca_scale": 2.787994466314558
+      },
+      "state": "completed",
+      "fit_seconds": 0.009472011999605456,
+      "n_iter": 13,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 2,
+      "trial": 25,
+      "params": {
+        "gamma": 8.83563935584857,
+        "lam": 0.1396486996191548,
+        "pca_scale": 2.930932594288606
+      },
+      "state": "completed",
+      "fit_seconds": 0.019297385999379912,
+      "n_iter": 23,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "shared_startup",
+      "search_seed": 3,
+      "trial": 3,
+      "params": {
+        "gamma": 0.7961148771184422,
+        "lam": 0.1550937452817785,
+        "pca_scale": 2.73011256676826
+      },
+      "state": "completed",
+      "fit_seconds": 0.06762245800200617,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "shared_startup",
+      "search_seed": 3,
+      "trial": 5,
+      "params": {
+        "gamma": 1.1476558611581436,
+        "lam": 0.1023059998326434,
+        "pca_scale": 2.3228600554284258
+      },
+      "state": "completed",
+      "fit_seconds": 0.059136963998753345,
+      "n_iter": 89,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 3,
+      "trial": 12,
+      "params": {
+        "gamma": 1.4477059244306874,
+        "lam": 0.11948800806897102,
+        "pca_scale": 1.640480481844861
+      },
+      "state": "completed",
+      "fit_seconds": 0.06405534499936039,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 12,
+      "params": {
+        "gamma": 1.4477059244306874,
+        "lam": 0.11948800806897102,
+        "pca_scale": 1.640480481844861
+      },
+      "state": "completed",
+      "fit_seconds": 0.06389760699676117,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 23,
+      "params": {
+        "gamma": 0.010100009548509226,
+        "lam": 0.10392299143806173,
+        "pca_scale": 1.6957729901769198
+      },
+      "state": "completed",
+      "fit_seconds": 0.06057727799998247,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 33,
+      "params": {
+        "gamma": 0.0148138577958649,
+        "lam": 0.13561370781852078,
+        "pca_scale": 1.843982211255934
+      },
+      "state": "completed",
+      "fit_seconds": 0.05960331799724372,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "optuna5_default",
+      "search_seed": 4,
+      "trial": 29,
+      "params": {
+        "gamma": 4.053894147586849,
+        "lam": 0.1528849958592281,
+        "pca_scale": 2.5312413392335724
+      },
+      "state": "completed",
+      "fit_seconds": 0.061517124999227235,
+      "n_iter": 100,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 4,
+      "trial": 13,
+      "params": {
+        "gamma": 7.1701858726185375,
+        "lam": 0.1379941631564136,
+        "pca_scale": 2.766872843975766
+      },
+      "state": "completed",
+      "fit_seconds": 0.014212063000741182,
+      "n_iter": 20,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_iris",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 4,
+      "trial": 24,
+      "params": {
+        "gamma": 6.465312524560625,
+        "lam": 0.20359506499010108,
+        "pca_scale": 2.923454830714036
+      },
+      "state": "completed",
+      "fit_seconds": 0.03363823299878277,
+      "n_iter": 54,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 0,
+      "trial": 0,
+      "params": {
+        "gamma": 0.11589512681036185,
+        "lam": 0.4565322204702504,
+        "pca_scale": 2.8920087208348972
+      },
+      "state": "completed",
+      "fit_seconds": 0.06607103599890252,
+      "n_iter": 74,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 0,
+      "trial": 8,
+      "params": {
+        "gamma": 3.6375361652737697,
+        "lam": 0.10334288639248834,
+        "pca_scale": 2.59009286733778
+      },
+      "state": "completed",
+      "fit_seconds": 0.049408136001147795,
+      "n_iter": 13,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 0,
+      "trial": 10,
+      "params": {
+        "gamma": 0.3031928113665348,
+        "lam": 0.16653402510290252,
+        "pca_scale": 1.5604077216838865
+      },
+      "state": "completed",
+      "fit_seconds": 0.019000428001163527,
+      "n_iter": 12,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 0,
+      "trial": 12,
+      "params": {
+        "gamma": 0.06299232329868322,
+        "lam": 0.10015196891644197,
+        "pca_scale": 1.0581800689105876
+      },
+      "state": "completed",
+      "fit_seconds": 0.08267958500073291,
+      "n_iter": 14,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 0,
+      "trial": 12,
+      "params": {
+        "gamma": 0.06299232329868322,
+        "lam": 0.10015196891644197,
+        "pca_scale": 1.0581800689105876
+      },
+      "state": "completed",
+      "fit_seconds": 0.08310297400021227,
+      "n_iter": 14,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 0,
+      "trial": 29,
+      "params": {
+        "gamma": 0.8765432466690685,
+        "lam": 0.11016868589391271,
+        "pca_scale": 1.4701460544602014
+      },
+      "state": "completed",
+      "fit_seconds": 0.06711572200219962,
+      "n_iter": 15,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 0,
+      "trial": 31,
+      "params": {
+        "gamma": 0.01704013557451829,
+        "lam": 0.10273089877536963,
+        "pca_scale": 0.9223663758602925
+      },
+      "state": "completed",
+      "fit_seconds": 0.055514758998469915,
+      "n_iter": 16,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 1,
+      "trial": 10,
+      "params": {
+        "gamma": 1.6252589444087568,
+        "lam": 0.22416997621663215,
+        "pca_scale": 2.9213883139364767
+      },
+      "state": "completed",
+      "fit_seconds": 0.04727967399958288,
+      "n_iter": 25,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 1,
+      "trial": 11,
+      "params": {
+        "gamma": 5.501529927464861,
+        "lam": 0.10239926393159354,
+        "pca_scale": 0.686477583917523
+      },
+      "state": "completed",
+      "fit_seconds": 0.07050944300135598,
+      "n_iter": 9,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "optuna5_default",
+      "search_seed": 1,
+      "trial": 12,
+      "params": {
+        "gamma": 9.230792823811571,
+        "lam": 0.13761261693031168,
+        "pca_scale": 2.1586572888157916
+      },
+      "state": "completed",
+      "fit_seconds": 0.026375494999228977,
+      "n_iter": 9,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 1,
+      "trial": 12,
+      "params": {
+        "gamma": 0.7607147236469031,
+        "lam": 0.10126781571029958,
+        "pca_scale": 1.818617600190919
+      },
+      "state": "completed",
+      "fit_seconds": 0.06412193100186414,
+      "n_iter": 11,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 1,
+      "trial": 12,
+      "params": {
+        "gamma": 0.7607147236469031,
+        "lam": 0.10126781571029958,
+        "pca_scale": 1.818617600190919
+      },
+      "state": "completed",
+      "fit_seconds": 0.04754439300086233,
+      "n_iter": 11,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 1,
+      "trial": 19,
+      "params": {
+        "gamma": 0.03737840244078265,
+        "lam": 0.12174732287971284,
+        "pca_scale": 1.5684548897552304
+      },
+      "state": "completed",
+      "fit_seconds": 0.02935224599787034,
+      "n_iter": 12,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 1,
+      "trial": 22,
+      "params": {
+        "gamma": 1.8850745144954768,
+        "lam": 0.24301219182887265,
+        "pca_scale": 2.30236932967091
+      },
+      "state": "completed",
+      "fit_seconds": 0.02604412499931641,
+      "n_iter": 16,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 1,
+      "trial": 35,
+      "params": {
+        "gamma": 1.2977352524996417,
+        "lam": 0.21503757498784629,
+        "pca_scale": 2.1920225133071654
+      },
+      "state": "completed",
+      "fit_seconds": 0.05533901399758179,
+      "n_iter": 28,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 2,
+      "trial": 7,
+      "params": {
+        "gamma": 0.011433206993765793,
+        "lam": 0.32604044875726335,
+        "pca_scale": 2.201714792685479
+      },
+      "state": "completed",
+      "fit_seconds": 0.009139208999840776,
+      "n_iter": 12,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 2,
+      "trial": 11,
+      "params": {
+        "gamma": 0.10628226978303314,
+        "lam": 0.10935820289307477,
+        "pca_scale": 1.165953763165739
+      },
+      "state": "completed",
+      "fit_seconds": 0.054230821999226464,
+      "n_iter": 13,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "optuna5_default",
+      "search_seed": 2,
+      "trial": 12,
+      "params": {
+        "gamma": 0.02683867084815725,
+        "lam": 0.16584880351736267,
+        "pca_scale": 2.4293073347508227
+      },
+      "state": "completed",
+      "fit_seconds": 0.04865174500082503,
+      "n_iter": 29,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "optuna5_default",
+      "search_seed": 2,
+      "trial": 13,
+      "params": {
+        "gamma": 0.07460603422334175,
+        "lam": 0.1381852623365555,
+        "pca_scale": 2.8837111654320227
+      },
+      "state": "completed",
+      "fit_seconds": 0.027250664999883156,
+      "n_iter": 15,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 2,
+      "trial": 18,
+      "params": {
+        "gamma": 8.219404327078218,
+        "lam": 0.11978495011907024,
+        "pca_scale": 2.787994466314558
+      },
+      "state": "completed",
+      "fit_seconds": 0.021142479999980424,
+      "n_iter": 9,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 2,
+      "trial": 25,
+      "params": {
+        "gamma": 8.83563935584857,
+        "lam": 0.1396486996191548,
+        "pca_scale": 2.930932594288606
+      },
+      "state": "completed",
+      "fit_seconds": 0.01983984300022712,
+      "n_iter": 11,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 2,
+      "trial": 26,
+      "params": {
+        "gamma": 0.382096952305565,
+        "lam": 0.2451980993119177,
+        "pca_scale": 2.194730227754917
+      },
+      "state": "completed",
+      "fit_seconds": 0.01844576100120321,
+      "n_iter": 18,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 2,
+      "trial": 32,
+      "params": {
+        "gamma": 0.4405093282855311,
+        "lam": 0.4217011120275306,
+        "pca_scale": 2.756444110244047
+      },
+      "state": "completed",
+      "fit_seconds": 0.02501344899792457,
+      "n_iter": 37,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 3,
+      "trial": 3,
+      "params": {
+        "gamma": 0.7961148771184422,
+        "lam": 0.1550937452817785,
+        "pca_scale": 2.73011256676826
+      },
+      "state": "completed",
+      "fit_seconds": 0.022653678999631666,
+      "n_iter": 13,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 3,
+      "trial": 5,
+      "params": {
+        "gamma": 1.1476558611581436,
+        "lam": 0.1023059998326434,
+        "pca_scale": 2.3228600554284258
+      },
+      "state": "completed",
+      "fit_seconds": 0.037326658002712065,
+      "n_iter": 12,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 3,
+      "trial": 7,
+      "params": {
+        "gamma": 0.0105317874732366,
+        "lam": 0.27697513503803095,
+        "pca_scale": 2.3869121371901283
+      },
+      "state": "completed",
+      "fit_seconds": 0.016226552997977706,
+      "n_iter": 23,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 3,
+      "trial": 12,
+      "params": {
+        "gamma": 1.4477059244306874,
+        "lam": 0.11948800806897102,
+        "pca_scale": 1.640480481844861
+      },
+      "state": "completed",
+      "fit_seconds": 0.04426548700212152,
+      "n_iter": 13,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 12,
+      "params": {
+        "gamma": 1.4477059244306874,
+        "lam": 0.11948800806897102,
+        "pca_scale": 1.640480481844861
+      },
+      "state": "completed",
+      "fit_seconds": 0.04394871800104738,
+      "n_iter": 13,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 20,
+      "params": {
+        "gamma": 4.286107898406282,
+        "lam": 0.41763224582248515,
+        "pca_scale": 2.842054521141108
+      },
+      "state": "completed",
+      "fit_seconds": 0.013304192998475628,
+      "n_iter": 19,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 23,
+      "params": {
+        "gamma": 0.010100009548509226,
+        "lam": 0.10392299143806173,
+        "pca_scale": 1.6957729901769198
+      },
+      "state": "completed",
+      "fit_seconds": 0.03383271599886939,
+      "n_iter": 15,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 3,
+      "trial": 33,
+      "params": {
+        "gamma": 0.0148138577958649,
+        "lam": 0.13561370781852078,
+        "pca_scale": 1.843982211255934
+      },
+      "state": "completed",
+      "fit_seconds": 0.03518737899867119,
+      "n_iter": 14,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 4,
+      "trial": 8,
+      "params": {
+        "gamma": 2.979190054263378,
+        "lam": 0.10116815350759267,
+        "pca_scale": 0.9119201814274025
+      },
+      "state": "completed",
+      "fit_seconds": 0.10539099199741031,
+      "n_iter": 15,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "shared_startup",
+      "search_seed": 4,
+      "trial": 9,
+      "params": {
+        "gamma": 0.2506734896983352,
+        "lam": 0.17105850319483618,
+        "pca_scale": 1.7905292722558428
+      },
+      "state": "completed",
+      "fit_seconds": 0.034590418999869144,
+      "n_iter": 22,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "random",
+      "search_seed": 4,
+      "trial": 33,
+      "params": {
+        "gamma": 1.271326209649549,
+        "lam": 0.10252357547530351,
+        "pca_scale": 1.0989641605992801
+      },
+      "state": "completed",
+      "fit_seconds": 0.07896336799967685,
+      "n_iter": 12,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    },
+    {
+      "task": "som_wine",
+      "sampler": "ubukit_multivariate",
+      "search_seed": 4,
+      "trial": 24,
+      "params": {
+        "gamma": 3.073348363646045,
+        "lam": 0.2729123497907718,
+        "pca_scale": 2.9877074701926905
+      },
+      "state": "completed",
+      "fit_seconds": 0.018854165999073302,
+      "n_iter": 24,
+      "variant": "experimental_localized_probability_tails",
+      "finite": true
+    }
+  ],
+  "full_baseline_comparison": {
+    "task": "som_iris",
+    "params": {
+      "gamma": 3.6375361652737697,
+      "lam": 0.10334288639248834,
+      "pca_scale": 2.59009286733778
+    },
+    "state": "completed",
+    "dev4_seconds": 4.399057361999439,
+    "dev4_n_iter": 24,
+    "candidate_n_iter": 24,
+    "agreement": {
+      "W": {
+        "shape_match": true,
+        "max_absolute_error": 1.3322676295501878e-15,
+        "allclose_1e_10": true
+      },
+      "V": {
+        "shape_match": true,
+        "max_absolute_error": 2.220446049250313e-16,
+        "allclose_1e_10": true
+      },
+      "P": {
+        "shape_match": true,
+        "max_absolute_error": 8.743006318923108e-16,
+        "allclose_1e_10": true
+      },
+      "history": {
+        "shape_match": true,
+        "max_absolute_error": 3.552713678800501e-15,
+        "allclose_1e_10": true
+      }
+    },
+    "dev4_quality": {
+      "trustworthiness": 0.97019083023544,
+      "continuity": 0.9675241635687732
+    },
+    "candidate_quality": {
+      "trustworthiness": 0.97019083023544,
+      "continuity": 0.9675241635687732
+    }
+  }
+}

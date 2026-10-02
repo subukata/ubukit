@@ -1,0 +1,27 @@
+{
+  "kmeans-wasm.js": {
+    "equal": true,
+    "wasm_bytes": 5526,
+    "sha256": "7ebf62044d0c023db3a9c090bbe7e3abcb1186ef86acb30ae688a14df4abba20"
+  },
+  "som-training-wasm.js": {
+    "equal": true,
+    "wasm_bytes": 9429,
+    "sha256": "3cc6399d0c0a190daf937e3a319e7a54d5a334d26f87f6672d07ad74949d456c"
+  },
+  "som-pca-wasm.js": {
+    "equal": true,
+    "wasm_bytes": 474,
+    "sha256": "57bdca8ae332945e3f56cf4bfdf6178dee1020f237991aa5810a8489a680d6a9"
+  },
+  "rmcm-wasm.js": {
+    "equal": true,
+    "wasm_bytes": 4620,
+    "sha256": "0e3f36d0aab2ec913f3cc78a2fb1fd840fe84b58f0f3fd2d3e7c9264f7c030f3"
+  },
+  "metric-wasm.js": {
+    "equal": true,
+    "wasm_bytes": 1246,
+    "sha256": "b7b68848eecdca210e2bf13288c5313ee38d47bb315046c40ff143654cb61656"
+  }
+}

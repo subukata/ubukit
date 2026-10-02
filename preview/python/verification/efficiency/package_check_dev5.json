@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "package_version": "0.0.0.dev5",
+  "runtime_files_checked": 62,
+  "byte_identical_baseline_modules": 60,
+  "version_only_facade_changes": 1,
+  "new_modules": 1,
+  "numerical_candidate_unchanged": true,
+  "facade_exports": 38,
+  "artifacts": {
+    "ubukit_bundled_local_preview-0.0.0.dev5-py3-none-any.whl": "f4bc8f5facefd159b5970077ac230254d50a273fb9fc137f6807035553b18fdd",
+    "ubukit_bundled_local_preview-0.0.0.dev5.tar.gz": "588e3f947033c55a3e2a067e45224738df410a7e0bf4768a8ed57a16d68b38cb"
+  }
+}

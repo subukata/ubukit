@@ -51,6 +51,7 @@ export function validateSession(algorithm, input, options) {
     ? positiveInteger(options.maxMemoryBytes ?? 512 * 1024 ** 2, 'maxMemoryBytes')
     : finiteNumber(options.maxMemoryBytes ?? 512 * 1024 ** 2, 'maxMemoryBytes', 1);
   finiteNumber(options.tolerance ?? 0, 'tolerance', 0);
+  if (algorithm === 'kmeans' && options.wasmCenterCache != null && typeof options.wasmCenterCache !== 'boolean') throw new TypeError('wasmCenterCache must be a boolean');
   // Validate execution options before an update abandons a committed revision.
   // These checks must also run when an existing prepared graph is reused.
   if (['kmeans', 'som-olp'].includes(algorithm) && !['javascript', 'wasm'].includes(options.kernelBackend ?? 'javascript')) throw new RangeError("kernelBackend must be 'javascript' or 'wasm'");

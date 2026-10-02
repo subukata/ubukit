@@ -112,7 +112,7 @@ export class ClusteringSession {
     if (typeof project !== 'boolean') throw new TypeError('project must be boolean');
     const result = cloneOwned(this.#committed);
     if (project && result && classicSOM(this.#algorithm) && result.projectionStatus !== 'current-prototypes') {
-      Object.assign(result, somProject(this.#input, result, { maxMemoryBytes: this.#options.maxMemoryBytes }));
+      Object.assign(result, somProject(this.#input, result, { maxMemoryBytes: this.#options.maxMemoryBytes, bmuBackend: this.#options.bmuBackend }));
       result.V = result.embedding;
     }
     return { ...this.status, result };

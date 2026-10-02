@@ -1,7 +1,7 @@
-# UbuKit JavaScript: dev5 private preview
+# UbuKit JavaScript: dev6 private efficiency candidate
 
 This repository snapshot contains the reviewed JavaScript candidate
-`0.1.0-dev.5`, with 26 runtime files, seven package entrypoints and nine
+`0.1.0-dev.6`, with 27 runtime files, seven package entrypoints and nine
 algorithm/metric registry names. It includes
 FCM/SOM extreme-range repairs, snapshot ownership and session validation fixes,
 optional lightweight TPE/random optimization, ARI/AMI external metrics, and
@@ -9,14 +9,14 @@ traditional online SOM plus true BatchSOM. SOURCE_MANIFEST.json binds
 the current runtime files to SHA-256 hashes.
 
 The package remains `private: true` and unpublished. No project-wide license
-has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See the repository
-`preview/REPRODUCE.md` to build and test from source. The earlier research trees
+has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See ../REPRODUCE.md in the repository preview to build and
+test from source. The earlier research trees
 in the repository are historical, not this package's current implementation.
 
 ## Install locally
 
 ```sh
-npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.5.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.6.tgz
 ```
 
 There are no runtime npm dependencies or install scripts. Package metadata keeps
@@ -153,8 +153,8 @@ logic remains unchanged. Requested WASM is not a promise that every operation
 executes in WASM. Read existing result diagnostics, where provided.
 
 SOURCE_MANIFEST.json identifies the immutable input and every packaged runtime
-hash. The surrounding repository contains tests, comparison snapshots, selected logs
-and reports; these are intentionally excluded from the npm tarball.
+hash. The separate integration verification bundle contains tests, comparison
+snapshots, logs and a report; these are intentionally excluded from the npm tarball.
 Testing does not imply new performance measurements, Windows/macOS/ARM coverage,
 or real-browser verification. Consult the integration report for checks actually
 run. Registry publication and deployment still require separate authorization.
@@ -208,3 +208,18 @@ Additive `som` and `som_batch` algorithms support arbitrary feature dimensions,
 16×16 rectangular grids, sample/PCA initialization and stateful sample/epoch updates.
 See [SOM.md](SOM.md) for exact batch equations, schedules, realtime projection,
 complexity and finite-range limits. No runtime dependencies were added.
+
+### Private efficiency candidate: k-means WASM transpose reuse
+
+For `kernelBackend: "wasm"`, `wasmCenterCache: true` (default) prepares the center
+transpose once per iteration and refreshes it after restoring final centers.
+`wasmCenterCache: false` retains the old per-block preparation path. Workspace
+size, numerical operations, events, transferability and all fallback rules are
+unchanged. This is a copy-reduction change; the embedded WASM bytes are identical.
+
+A checkpoint hook can expose mutable centers. If one is present initially or
+installed later, the cache is disabled permanently before it receives centers,
+even if the hook is subsequently removed. Sessions therefore retain per-block
+refreshing. Only calls with unexposed, internally owned centers reuse transposes.
+Small row blocks and wider center matrices benefit most; large row blocks can
+be neutral. See `SOM.md` for the separate classic-SOM BMU route selector.

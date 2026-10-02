@@ -1,0 +1,3 @@
+import wabtFactory from '../../../../acceleration_round3/work/rmcm/wasm/node_modules/wabt/index.js';import fs from'node:fs';const wabt=await wabtFactory(),variants={};
+for(const name of['r1w4','r1w8','r2w4','r2w8','r4w4','r4w8']){const src=fs.readFileSync(new URL('kmeans_'+name+'.wat',import.meta.url),'utf8');const m=wabt.parseWat(name,src,{simd:true});m.resolveNames();m.validate({simd:true});const{buffer}=m.toBinary({write_debug_names:false});variants[name]=[...buffer];console.log(name,buffer.length);}
+fs.writeFileSync(new URL('../javascript/kmeans-wasm-variants.js',import.meta.url),'export const variants='+JSON.stringify(variants)+';\n');

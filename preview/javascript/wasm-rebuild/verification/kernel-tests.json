@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "observed_utc": "2026-10-02T03:21:23.212Z",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "arch": "x64",
+  "test_purpose": "Bounded deterministic correctness, ABI and fallback checks; no timing/performance claims or browser qualification",
+  "runtime": "isolated copy of ../package with exact rebuilt binaries",
+  "runtime_package_version": "0.1.0-dev.6",
+  "seed": 211859,
+  "passed": true,
+  "groups": [
+    {
+      "name": "All 7 captured/rebuilt module ABIs and initial memory",
+      "checks": 21,
+      "status": "passed"
+    },
+    {
+      "name": "K-means current scalar/rebuilt SIMD parity",
+      "checks": 113,
+      "status": "passed"
+    },
+    {
+      "name": "K-means zero, underflow, overflow and fallback outcome parity",
+      "checks": 20,
+      "status": "passed"
+    },
+    {
+      "name": "SOM training, PCA and events against current scalar paths",
+      "checks": 65,
+      "status": "passed"
+    },
+    {
+      "name": "Metric reconstructed row/rank/histogram and end-to-end scalar parity",
+      "checks": 894,
+      "status": "passed"
+    },
+    {
+      "name": "RMCM exact/Float32 candidates, boundaries, batch tails and CSR filtering",
+      "checks": 2841,
+      "status": "passed"
+    },
+    {
+      "name": "Per-call ownership and workspace budget/unavailable-WASM fallbacks",
+      "checks": 13,
+      "status": "passed"
+    }
+  ],
+  "checks": 3967,
+  "historical_test_lineage": [
+    "evidence/work/som_kmeans/tests/test_wasm_paths.mjs",
+    "evidence/work/rmcm/tests/f32-screening.test.js",
+    "evidence/work/rmcm/tests/rmcm-graph-parity.test.js"
+  ],
+  "limitations": [
+    "Finite cases do not prove all-input numerical equivalence.",
+    "Historical elite scalar runtime is not bundled or independently re-executed; scalar parity uses the current sibling package.",
+    "Only the recorded Node runtime was newly exercised.",
+    "Historical RMCM pre-Float32 and experimental nearest module receive ABI/byte checks but not separate numerical qualification."
+  ]
+}

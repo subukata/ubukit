@@ -37,6 +37,11 @@ export function* kmeansSteps(input, options = {}) {
   const { x, n, d, k, maxIterations, blockRows } = parameters(input, options);
   const kernelBackend = options.kernelBackend ?? 'javascript';
   if (!['javascript','wasm'].includes(kernelBackend)) throw new RangeError("kernelBackend must be 'javascript' or 'wasm'");
+  if (options.wasmCenterCache != null && typeof options.wasmCenterCache !== 'boolean') throw new TypeError('wasmCenterCache must be a boolean');
+  // A checkpoint callback can retain and mutate this internal array between
+  // yielded blocks. Preserve that historical behavior rather than caching a
+  // stale transpose. Ordinary one-shot/cooperative calls own their centers.
+  let cacheCenters = (options.wasmCenterCache ?? true) && !options[SESSION_CHECKPOINT];
   const shifted = translatedData(x), data = shifted.data;
   const centers = initializeCenters({ ...x, data }, k, options, shifted.origin);
   const labels = new Int32Array(n).fill(-1), sums = new Float64Array(k * d), counts = new Float64Array(k);
@@ -46,18 +51,22 @@ export function* kmeansSteps(input, options = {}) {
   const wasm = kernelBackend === 'wasm' ? kmeansWasmWorkspace(n,d,k,blockRows,(options.maxMemoryBytes ?? 512 * 1024 ** 2)-estimatedBytes) : null;
   const execution = {requested:kernelBackend,actual:wasm?'wasm':'javascript',allocatedWorkspaceBytes:wasm?.allocatedBytes??0,wasmAssignmentRows:0,wasmFinalizationRows:0,javascriptFallbackAssignmentRows:0,javascriptFallbackFinalizationRows:0};
   for (iterations = 1; iterations <= maxIterations; ++iterations) {
+    if (wasm) wasm.invalidateCenters();
     sums.fill(0); counts.fill(0); let changed = 0;
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
       const end = Math.min(n, start + blockRows);
       changed += wasm
-        ? assignWasmBlock(wasm, data, centers, labels, sums, counts, start, end, d, k, assignmentBlock, execution)
+        ? assignWasmBlock(wasm, data, centers, labels, sums, counts, start, end, d, k, assignmentBlock, execution, cacheCenters)
         : assignmentBlock(data, centers, labels, sums, counts, start, end, d, k);
       yield { phase: 'assignment', iteration: iterations, completedRows: Math.min(n, start + blockRows), totalRows: n };
     }
     for (let c = 0; c < k; ++c) if (counts[c] > 0) for (let f = 0; f < d; ++f) centers[c * d + f] = sums[c * d + f] / counts[c];
     assertFinite(centers, 'centers');
     converged = changed === 0;
+    // Options remain live across yields. A hook added later can expose centers;
+    // once exposed, never cache this array again, even if the hook is removed.
+    if (options[SESSION_CHECKPOINT]) cacheCenters = false;
     checkpoint(options, { algorithm: 'kmeans', centers, labels, coreLabels: labels, iterations, converged, nSamples: n, nFeatures: d, nClusters: k, objective: null, inertia: null, labelContract: 'iteration assignment that produced centers; nearest-final-centers only after finalization' }, shifted.origin);
     const event = { algorithm: 'kmeans', iteration: iterations, maxIterations, changed, converged };
     progress(options, event); yield event;
@@ -65,13 +74,14 @@ export function* kmeansSteps(input, options = {}) {
   }
   iterations = Math.min(iterations, maxIterations);
   const coreLabels = labels.slice(); restoreCenters(centers, shifted.origin);
+  if (wasm) wasm.invalidateCenters();
   let inertia = 0;
   const finalizeBlock = d === 2 ? kmeansFinalize2dBlock : kmeansFinalizeGroupedBlock;
   for (let start = 0; start < n; start += blockRows) {
     checkCancelled(options); yield { phase: 'finalize', completedRows: start, totalRows: n };
     const end = Math.min(n, start + blockRows);
     inertia = wasm
-      ? finalizeWasmBlock(wasm, x.data, centers, labels, start, end, d, k, inertia, finalizeBlock, execution)
+      ? finalizeWasmBlock(wasm, x.data, centers, labels, start, end, d, k, inertia, finalizeBlock, execution, cacheCenters)
       : finalizeBlock(x.data, centers, labels, start, end, d, k, inertia);
   }
   finiteNumber(inertia, 'inertia', 0);

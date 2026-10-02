@@ -1,6 +1,45 @@
 # Verification scope
 
-## Current SOM integration: Python dev4 / JavaScript dev5, 2026-10-02
+## Current efficiency/maintainability integration: Python dev5 / JavaScript dev6
+
+The base is main `0a8bfd8852fe93fb3d6168d6b9dc1282a49e2880`. Current source
+was matched to its Git tree before integration. Runtime source is byte-identical
+to the separately reviewed dev5/dev6 candidates. [EFFICIENCY.md](EFFICIENCY.md)
+explains retained elites, explicit choices, timings and numerical limitations.
+[EFFICIENCY_VERIFICATION.json](EFFICIENCY_VERIFICATION.json) records this replay.
+
+- Fresh non-editable Python wheel and sdist installs: 118 focused tests each,
+  seven compiled-Numba skips each, pip check, ownership, archive origin, API and examples
+- Both installs passed 113 additional exact-rational/high-precision and retained-route cases
+- All 62 source modules match wheel, sdist, installed consumer and package manifest;
+  all 38 facade exports remain present and root import remains lazy
+- The deliberate duplicate-backend contract also passed all 13 tests with Numba
+  using current source in an existing accelerated environment; no full new Numba
+  numerical/performance matrix is claimed
+- Python prior candidate suite: 2,616 passed, 73 skipped, two warnings. That larger
+  suite was not repeated here; its numerical code is byte-identical. This does
+  not convert optional skips or prior platform limits into new coverage
+- Fresh JS tarball install: 1,041 passed, zero failures/skips; 27 runtime hashes,
+  seven entrypoints and nine registry names checked
+- Independent installed JS differential checks: 15,573; real-worker checks: 18
+- JS package/documentation guards, ARI/AMI VM/worker smoke and pure web-like VM
+  checks passed; 25 modules load without Node globals. Actual browser execution
+  is unverified
+- The root README API examples passed in both installed packages
+- Five current WASM kernels rebuilt byte-for-byte (four original WAT, one
+  reconstructed); all seven current/historical binaries round-tripped exactly;
+  3,967 bounded assertions passed. Missing source/licensing provenance is not resolved
+- SOURCE_SNAPSHOT.json covers all 89 runtime modules. VERIFICATION_SNAPSHOT.json
+  binds verification inputs and current documentation; frozen measurements retain
+  their original values and version labels
+
+Final package-documentation corrections preserved all numerical bytes. The
+final wheel/sdist focused gates and all JS package tests were rerun after those
+corrections, with origin/hash/API checks. Repository archive bytes intentionally
+differ from original standalone-delivery archives. No new performance timing,
+CI execution, registry publication or public-license claim follows from this replay.
+
+## Historical SOM integration: Python dev4 / JavaScript dev5, 2026-10-02
 
 The integrated source is based on main `a9539a35585ab6f095941d42a2a7dfd773f3738d`.
 All current/root source blobs were matched to that Git tree before adding the

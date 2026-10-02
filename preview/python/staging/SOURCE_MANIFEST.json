@@ -1,7 +1,7 @@
 {
-  "version": "0.0.0.dev4",
-  "baseline_version": "0.0.0.dev3",
-  "purpose": "private additive traditional SOM candidate",
+  "version": "0.0.0.dev5",
+  "baseline_version": "0.0.0.dev4",
+  "purpose": "isolated opt-in probability-tail localization experiment; unique private version; no default switch",
   "files": [
     {
       "path": "src/_external_metrics_numba.py",
@@ -24,8 +24,8 @@
     {
       "path": "src/portable_accel/__init__.py",
       "sha256": "bf8a506d55d07d836ca4a95288df107ed6e51c0abd8474e7c0a4faa9648c0103",
-      "baseline_sha256": "9104b035a10136e919853ca00f3964e86557041c62eb4ecebaecefbc2a1bb88a",
-      "change": "modified"
+      "baseline_sha256": "bf8a506d55d07d836ca4a95288df107ed6e51c0abd8474e7c0a4faa9648c0103",
+      "change": "unchanged"
     },
     {
       "path": "src/portable_accel/_backends/__init__.py",
@@ -204,8 +204,8 @@
     {
       "path": "src/portable_accel/_som_classic.py",
       "sha256": "920c1fa8f26004f6d5a6850a72c29f1f956ce982b78217131e406ac81a760c2c",
-      "baseline_sha256": null,
-      "change": "added"
+      "baseline_sha256": "920c1fa8f26004f6d5a6850a72c29f1f956ce982b78217131e406ac81a760c2c",
+      "change": "unchanged"
     },
     {
       "path": "src/portable_accel/_som_extreme.py",
@@ -262,6 +262,12 @@
       "change": "unchanged"
     },
     {
+      "path": "src/portable_accel/som_olp_localized.py",
+      "sha256": "115887d87e6523cee1f4663cfd6c46cdb672a0a76028de4bd6b71f1da825785a",
+      "baseline_sha256": null,
+      "change": "added"
+    },
+    {
       "path": "src/portable_accel/som_prepared.py",
       "sha256": "4271f8a3232dca764bddcbb7ee547837f0bdd02004b7b57a6bf58d42b546fea9",
       "baseline_sha256": "4271f8a3232dca764bddcbb7ee547837f0bdd02004b7b57a6bf58d42b546fea9",
@@ -281,9 +287,9 @@
     },
     {
       "path": "src/ubukit/__init__.py",
-      "sha256": "1eb489a669a4cd3a163b4da62019c4c7bcea9c72627bc746ec7b8dbb1c388087",
-      "baseline_sha256": "0ab52ecc03c49c254cee19eb1ea98622e92f964cc9aa172eedae24fc2e125bff",
-      "change": "modified"
+      "sha256": "8a78105ca555f14b79e26bb6479071d606888943ba0b44dd85ecf41e4391a8f0",
+      "baseline_sha256": "1eb489a669a4cd3a163b4da62019c4c7bcea9c72627bc746ec7b8dbb1c388087",
+      "change": "version_only"
     },
     {
       "path": "src/ubukit/_rough_memberships.py",
@@ -369,12 +375,5 @@
       "baseline_sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4",
       "change": "unchanged"
     }
-  ],
-  "counts": {
-    "unchanged": 58,
-    "modified": 2,
-    "added": 1
-  },
-  "facade_exports": 38,
-  "publication_authorized": false
+  ]
 }
