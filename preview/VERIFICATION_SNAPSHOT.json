@@ -191,7 +191,7 @@
     },
     {
       "path": "javascript/package/README.md",
-      "sha256": "170f8638e9c250dcf331802455262d22fc1daa0c4c25a75202f41bdbe7517c66"
+      "sha256": "7536a351ccc539311c1f14c4462ab4b7a2bbe75ac3296d5c21a19623222f10e6"
     },
     {
       "path": "javascript/package/SOM.md",
@@ -1331,7 +1331,7 @@
     },
     {
       "path": "python/staging/README.md",
-      "sha256": "92501c092046dc3cbfe3af2a684371f40965eac63bb4726546799348ef4f4580"
+      "sha256": "a184e99bba82795063264b042f0effe1427e3a085213d9acb51512ec6f03b954"
     },
     {
       "path": "python/staging/SOM.md",

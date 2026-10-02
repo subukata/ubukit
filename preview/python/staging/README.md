@@ -5,6 +5,10 @@ The provisional distribution remains `ubukit-bundled-local-preview`; this is not
 an approved public name. No project-wide license has been selected. Existing
 third-party notices remain unchanged and scoped to their original/derived code.
 
+Start with [installation](#installation-boundary),
+[clustering and metric examples](#core-clustering-and-metric-examples),
+[online/Batch SOM](SOM.md), or [parameter optimization](OPTIMIZATION.md).
+
 This private `0.0.0.dev6` candidate consolidates every implementation under
 `ubukit._impl`. The only installed top-level runtime package is `ubukit`.
 The existing 38 facade exports, signatures, defaults, result contracts, stopping
@@ -22,20 +26,24 @@ is not a new performance claim or a statement of cross-platform qualification.
 
 Use a **new virtual environment** for this private trial. The previous aggregate
 installed overlapping top-level modules; upgrading/uninstalling it in a mixed
-legacy environment can remove files another distribution owns. The supplied
-`tools/check_install_environment.py` checks the target environment read-only.
+legacy environment can remove files another distribution owns. The
+[install-environment guard](../tools/check_install_environment.py) checks the target environment read-only.
 It blocks actual foreign `ubukit` ownership/imports and an old layout of this
 same aggregate. Unrelated standalone legacy module names no longer collide with
 the new package and do not by themselves block installation. No package is
 removed or repaired automatically. `pip check` alone does not detect file-owner
 collisions.
 
-```sh
-python -m venv .venv
-.venv/bin/python -I -B tools/check_install_environment.py
-.venv/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl
-# Optional Numba: install the same local wheel with the [numba] extra.
-```
+For a repository checkout, follow the [repository installation commands](../../../README.md#python)
+from the repository root. They build a wheel and install it in a fresh environment
+with `preview/python/constraints-namespace-verified.txt`, the tested Linux /
+Python 3.12 base stack. Built wheels are not committed. These pins are not a
+tested matrix for every declared Python version. Stop if the environment guard
+reports a conflict.
+
+If you received a private verification bundle instead, use the
+[bundle installation example](#inherited-numerical-qualification-and-installation-example)
+below. Its paths are relative to the extracted bundle, not this README's directory.
 
 The public import is `import ubukit`. Former top-level imports
 `portable_accel`, `ubukit_fcm`, `rough_cmeans`, `ubukit_rmcm`, `external_metrics`,
@@ -66,13 +74,13 @@ needs it. No global module aliases recreate old names.
 
 | Family | Facade entry point | Facade result contract |
 | --- | --- | --- |
-| k-means | `fit_kmeans(X, initial_centers, ...)` | dict; labels `(N,)` |
+| k-means | `fit_kmeans(X, init, ...)` | dict; labels `(N,)` |
 | FCM | `fit_fcm(X, n_clusters, ...)` | dict; membership `(N,K)` |
 | RCM | `fit_rcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
 | ExRCM | `fit_exrcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
 | RMCM | `fit_rmcm(X, n_clusters, delta=..., ...)` | result object; memberships `(N,K)` |
-| SOM-OLP | `fit_som_olp(X, grid, ...)` | dict; `V` `(N,latentD)`, `P` `(N,M)` |
-| Neighborhood quality | `joint_quality(X, embedding, ks=..., ...)` | list of quality records |
+| SOM-OLP | `fit_som_olp(X, R, ...)` | dict; `V` `(N,latentD)`, `P` `(N,M)` |
+| Neighborhood quality | `joint_quality(X, Y, ks=..., ...)` | list of quality records |
 
 `N` means samples and `K` means clusters. In the new facade, every clustering
 membership matrix is sample-major. For RCM/ExRCM, both `.memberships` (float64)
@@ -155,12 +163,13 @@ All integration environments used NumPy 2.3.5, SciPy 1.17.0 and threadpoolctl
 or minimum-supported-version claim follows from these tests. Matching historical
 version numbers does not carry the old benchmark results over to this facade.
 
-From the extracted private verification bundle, run the following in a fresh
-environment. The preflight is read-only and is not a pip install hook. Stop on
+From the extracted private verification bundle directory (containing `tools/`,
+`artifacts/`, `examples/` and `constraints-final-stack.txt`), run the following
+with Python 3.12 in a fresh environment. The preflight is read-only and is not a pip install hook. Stop on
 a blocked result; do not co-install or automatically uninstall another owner.
 
 ```sh
-python3 -m venv .venv-ubukit-preview
+python3.12 -m venv .venv-ubukit-preview
 .venv-ubukit-preview/bin/python -I -B tools/check_install_environment.py
 .venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl
 .venv-ubukit-preview/bin/python -I -B examples/all_methods.py
@@ -174,12 +183,13 @@ trial. They pin the tested stack rather than claiming all resolver outcomes
 were validated. The source archive includes this README; the example script,
 preflight, constraints and full verification harness are in the companion bundle.
 
-## Runnable examples for each facade entrypoint
+## Core clustering and metric examples
 
 The following complete example is also `examples/all_methods.py`. It covers
 the seven original families, three ARI/AMI entrypoints, preparation helpers,
 and the public result/preparation types. `PreparedRMCM` is constructed with
-`prepare_rmcm`, as its API recommends. Set optional Numba only when installed.
+`prepare_rmcm`, as its API recommends. For traditional online/Batch SOM and optimization, see [SOM.md](SOM.md) and
+[OPTIMIZATION.md](OPTIMIZATION.md). Set optional Numba only when installed.
 
 ```python
 """Executable README examples for the private UbuKit preview.
@@ -353,7 +363,7 @@ working-coordinate update; the diagnostic flags this situation. See the reposito
 
 ## Combined private preview
 
-The earlier dev3 integration added the optional standard-library-only optimization API, which remains unchanged. See OPTIMIZATION.md. The existing scientific dependencies are unchanged; importing the optimization facade does not require them. The bundled SOM exceptional-range contract is documented in NUMERICAL_LIMITS.md.
+The earlier dev3 integration added the optional standard-library-only optimization API, which remains unchanged. See [OPTIMIZATION.md](OPTIMIZATION.md). The existing scientific dependencies are unchanged; importing the optimization facade does not require them. The bundled SOM exceptional-range contract is documented in [NUMERICAL_LIMITS.md](NUMERICAL_LIMITS.md).
 
 ## Traditional SOM additions
 

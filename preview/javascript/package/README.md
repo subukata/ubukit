@@ -9,8 +9,8 @@ traditional online SOM plus true BatchSOM. SOURCE_MANIFEST.json binds
 the current runtime files to SHA-256 hashes.
 
 The package remains `private: true` and unpublished. No project-wide license
-has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See ../REPRODUCE.md in the repository preview to build and
-test from source. The earlier research trees
+has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See the
+[build instructions](../REPRODUCE.md) to create a local tarball from source. The earlier research trees
 in the repository are historical, not this package's current implementation.
 
 ## Install locally
@@ -56,8 +56,35 @@ functions: `adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores`;
 see [EXTERNAL_METRICS.md](EXTERNAL_METRICS.md).
 Traditional `som` commits one sample update; `som_batch` commits one frozen-BMU
 epoch. See [SOM.md](SOM.md) for step units and explicit current-model projection.
-Data is flat row-major with explicit dimensions. Algorithm-specific result shapes,
-label contracts, error handling and ownership remain unchanged.
+Data is flat row-major with explicit dimensions. The result layouts below describe the existing API.
+
+## Core inputs and results
+
+Call `run(name, input, options)` with the `{data, nSamples, nFeatures}` input
+shown above. `N` is the sample count, `D` the feature count, `K` the cluster
+count, `M` the map-unit count and `Q` the grid dimension. Shapes below describe
+flat row-major typed arrays: `(N,K)` means `N*K` values, and sample `i`, cluster
+`c` is `membership[i*K+c]`. Labels have length `N` and use zero-based indices.
+
+| Algorithm name | Options to start with | Main final result fields and logical shapes |
+| --- | --- | --- |
+| `kmeans` | `{ nClusters: K }` | `centers` `(K,D)`, `labels` `(N,)` |
+| `fcm` | `{ nClusters: K }`; optional `m` defaults to 2 | `centers` `(K,D)`, `membership` `(N,K)`, `labels` `(N,)` |
+| `rcm`, `exrcm` | `{ nClusters: K }`; `rcm` fixes `p=1` | `centers` `(K,D)`, `membership` and `mask` `(N,K)`, `labels` `(N,)` |
+| `rmcm` | `{ nClusters: K, delta: radius }` | `centers` `(K,D)`, `membership` `(N,K)`, `labels` `(N,)`; membership is `null` with `returnMembership: false` |
+| `som-olp` | `{ grid }`, where `grid` uses the same input-object format for `M` grid points with `Q` coordinates | `centers` / `W` `(M,D)`, `membership` / `P` `(N,M)`, `embedding` / `V` `(N,Q)`, `labels` `(N,)`; embedding is `null` when `maxIterations: 0` |
+| `som`, `som_batch` | Optional `{ gridShape: [width, height], epochs: 10 }`; default grid is 16×16 | `centers` `(M,D)`, `labels` `(N,)`, `embedding` `(N,2)`; see [SOM.md](SOM.md) |
+| `neighborhood` | `{ embedding, ks: [1] }`, with `embedding` in the same input-object format and the same `N`; each `k` must satisfy `1 <= k < N/2` | `qualities`: records containing `k`, `trustworthiness` and `continuity` |
+
+FCM and rough-clustering `membership` values are normalized per sample; the
+rough `mask` is a separate binary admissibility array. K-means returns nearest
+final-center labels. FCM, RCM, ExRCM and SOM-OLP labels select the first maximum
+membership; RMCM preserves the hard labels that produced its returned centers,
+without a final reassignment. These label meanings are not interchangeable.
+
+ARI/AMI take label arrays directly, outside `run`; see
+[external metrics](EXTERNAL_METRICS.md). TPE/random search takes an objective
+and search space; see [optimization](OPTIMIZATION.md).
 
 ## Sessions, updates and Workers
 
