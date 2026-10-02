@@ -7,11 +7,11 @@
     },
     {
       "path": "examples/README.md",
-      "sha256": "c6d832d34ce0843277bdf5ea1e83b223ae76990b27d1b5a0be82669944226c2b"
+      "sha256": "a25050e300678454b9671f84eabd02945d0f9aaf7f5db048fa94f50d3fd41209"
     },
     {
       "path": "examples/browser/app.js",
-      "sha256": "53be22f746d012022cd75a65d8fe8300736be9e1e9643c137c81470a611645a9"
+      "sha256": "e6fe047e8867e2ce57d4289c692b08672384b50999b73cc8bba97655ebd8a066"
     },
     {
       "path": "examples/browser/browser-tests.js",
@@ -19,7 +19,7 @@
     },
     {
       "path": "examples/browser/index.html",
-      "sha256": "2f10842267a576da0ffc552caa64f261bf077234feed2acb95b3b418bf0313f4"
+      "sha256": "ec58e8fb447c2f37a370181854e6d2758a2274f17125b87306978f2c4ad981a7"
     },
     {
       "path": "examples/browser/serve.js",

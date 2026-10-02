@@ -1,12 +1,26 @@
-# API
+# Choosing an API
 
-公開APIと戻り値の詳しい契約は [Python](../python/README.md) / [JavaScript](../javascript/README.md) を参照してください。
+Use the [Python reference](../python/README.md) or [JavaScript reference](../javascript/README.md) for public entry points, parameters, and result contracts.
 
-- クラスタリング: k-means、FCM、RCM / ExRCM、RMCM
-- SOM: online / batch / SOM-OLP。アルゴリズムごとに反復順序・初期化・所属度の意味が異なります
-- 評価: 近傍品質（Trustworthiness / Continuity）と外部指標（ARI / AMI）
-- 探索: TPE / random search。PythonとJavaScriptで共有契約を検証しています
+- **Clustering:** k-means, FCM, RCM / ExRCM, and RMCM
+- **Self-organizing maps:** online SOM, BatchSOM, and SOM-OLP. Each algorithm has its own update order, initialization, and membership semantics
+- **Evaluation:** trustworthiness and continuity for neighborhood quality; ARI and AMI for comparing cluster labels
+- **Parameter search:** lightweight TPE or random search
 
-Pythonの公開入口は `ubukit` です。`ubukit._impl` は内部実装で、安定した公開APIではありません。JavaScriptの公開入口は `ubukit-js` と package.json で指定するサブパスです。
+## Python
 
-[数値の制約](numerics.md) / [実行例](../examples/README.md)
+Import the public API from `ubukit`. Paths under `ubukit._impl` are private implementation details and are not a stable public API.
+
+See the [Python reference](../python/README.md), [SOM guide](../python/SOM.md), and [optimization guide](../python/OPTIMIZATION.md).
+
+## JavaScript
+
+Import from `ubukit-js` or one of the subpaths declared in its `package.json`. Use the [JavaScript reference](../javascript/README.md) to select synchronous calls, incremental sessions, or Worker clients.
+
+See the [SOM guide](../javascript/SOM.md), [external metrics guide](../javascript/EXTERNAL_METRICS.md), and [optimization guide](../javascript/OPTIMIZATION.md).
+
+## Data and numerical contracts
+
+Python and JavaScript expose different container types and option names. Check the language-specific result layouts before exchanging data. Shared reference tests cover specific cross-language contracts; they do not guarantee universal bit-identical results.
+
+Read the [numerical contracts and limits](numerics.md) and try the [examples](../examples/README.md).
