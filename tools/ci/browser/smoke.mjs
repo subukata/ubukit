@@ -84,6 +84,23 @@ try {
   records.push({name:'k-means observed kernel',wasmMode,actual:cached.kernel.actual,
    wasmRows:cached.kernel.wasmAssignmentRows+cached.kernel.wasmFinalizationRows});
  });
+ const efcmFixture=await (await fetch('/fixtures/entropy-fcm-reference.json')).json();
+ for(const c of efcmFixture.cases) await check('entropy FCM '+c.name,async()=>{
+  const x=input(c.X),before=x.data.slice();
+  const options={initMembership:Float64Array.from(c.init.flat()),tau:c.tau,maxIterations:c.iterations,tolerance:0,returnHistory:true};
+  const r=api.entropyFcm(x,options);
+  close(r.centers,c.centers.flat());close(r.membership,c.membership.flat());
+  close(r.objectiveHistory,c.objective_history);close([r.objective],[c.objective]);
+  const asyncResult=await api.runAsync('entropy-fcm',x,{...options,timeBudgetMs:0});
+  close(asyncResult.membership,r.membership);close(asyncResult.centers,r.centers);close(x.data,before,0);
+ });
+ await check('entropy FCM one-shot Worker',async()=>{
+  const c=efcmFixture.cases[0],x=input(c.X),before=x.data.slice();
+  const options={initMembership:Float64Array.from(c.init.flat()),tau:c.tau,maxIterations:c.iterations,tolerance:0};
+  const worker=api.createWorkerClient();
+  try{const r=await worker.run('entropy-fcm',x,options);close(r.centers,c.centers.flat());close(r.membership,c.membership.flat());close([r.objective],[c.objective]);close(x.data,before,0);}
+  finally{worker.dispose();}
+ });
  await check('external metric public exports',()=>{
   const r=api.adjustedScores([0,0,1,1],[0,1,0,1]);
   assert(r.ari===-.5 && Math.abs(r.ami+.5)<1e-15,'ARI/AMI');
