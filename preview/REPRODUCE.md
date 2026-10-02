@@ -1,4 +1,4 @@
-# Reproduce dev3 from repository source
+# Reproduce Python dev3 / JavaScript dev4 from repository source
 
 Run from the repository root. Python examples below use POSIX virtualenv paths;
 Windows requires the corresponding `Scripts/python.exe` path and is unverified.
@@ -62,12 +62,23 @@ npm pack --ignore-scripts --pack-destination ../artifacts
 cd ../consumer
 npm install --offline --ignore-scripts --no-audit --no-fund
 cd ..
-node --test --test-concurrency=1 validation/tests/* consumer/tests/*.mjs tests/*.mjs
+node --test --test-concurrency=1 tests/*.test.mjs consumer/tests/*.test.mjs validation/tests/*.js validation/tests/*.mjs
+UBUKIT_AUDIT_SOURCE=../consumer/node_modules/ubukit-js/src/external-metrics.js node audit/audit-numerics.mjs
+node --experimental-vm-modules tests/runtime-compatibility.mjs
 cd ../..
 ```
 
 Tests use the actual installed tarball in `consumer/node_modules/ubukit-js`,
 including real Node Workers, cancellation/restart, source hashes and entrypoints.
+The consumer dependency points to `ubukit-js-0.1.0-dev.4.tgz`. Use a clean
+consumer without an old node_modules or package-lock.json for a fresh replay.
+The exact glob above runs 890 tests; it does not treat helper scripts as tests.
+The oracle audit and runtime smoke are separate checks. The test/audit commands
+may regenerate report JSON files; preserve committed measurements when comparing
+a replay, and review those differences before committing. See
+[javascript/REPRODUCE.md](javascript/REPRODUCE.md) for the numerical references
+and matched timing commands.
+
 The `validation/references/` and `validation/baseline_package/` trees are frozen
 comparison inputs. They are not the current candidate and are not packed.
 
@@ -77,8 +88,11 @@ comparison inputs. They are not the current candidate and are not packed.
 python3.12 preview/tools/verify_snapshot.py
 ```
 
-This checks all 84 runtime files against SOURCE_SNAPSHOT.json. Package documentation
-was updated for GitHub; archive-byte equality with the older delivered dev3
-archives is not claimed. No registry release or public-license decision follows
+This checks all 85 runtime files (60 unchanged Python dev3 and 25 JavaScript
+dev4) against SOURCE_SNAPSHOT.json, plus the test/reference/evidence bytes in
+VERIFICATION_SNAPSHOT.json. Run it on a clean checkout before replay commands
+regenerate report JSON, or restore the committed evidence afterward. Package
+documentation was updated for GitHub; archive-byte equality with earlier
+standalone deliveries is not claimed. No registry release or public-license decision follows
 from a passing local test. Real browsers and other platform combinations need
 separate validation.

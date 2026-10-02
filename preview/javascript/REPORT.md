@@ -6,7 +6,8 @@ Implemented `adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores`
 at the package root and `ubukit-js/external-metrics`. Python-style name aliases
 are included; options use camelCase. Runtime dependencies added: zero. The joint
 API shares one encoding and contingency. The new package is private
-`ubukit-js@0.1.0-dev.4`; verified JS dev3 and Python dev3 are preserved.
+`ubukit-js@0.1.0-dev.4`; the earlier JS dev3 is retained in repository history
+and Python remains at dev3.
 
 ## Matched current-environment N=10,000 / K=50 panel
 
@@ -111,10 +112,14 @@ Full examples are in `audit/sklearn-conditioning.json`.
 
 ## Delivery and integration
 
-Production artifact: `artifacts/ubukit-js-0.1.0-dev.4.tgz`.
+Production package: `package/`; build the ignored local artifact
+`artifacts/ubukit-js-0.1.0-dev.4.tgz` using `REPRODUCE.md`.
 Source/API contract: `package/src/external-metrics.js` and
-`package/EXTERNAL_METRICS.md`. Retained attribution and BSD license are included.
-The production patch is rooted at `preview/javascript/package` against dev3
-GitHub commit `80caa7a0b90e1299d43cad18107290dc307dbcd4`; verification additions are
-listed separately in `INTEGRATION_MANIFEST.json`. No GitHub, registry or public
-site write is performed by this task. See `REPRODUCE.md` for all commands.
+`package/EXTERNAL_METRICS.md`.
+The committed source, tests and numerical evidence form the repository snapshot;
+no standalone patch or external integration manifest is needed. The aggregate
+`../SOURCE_SNAPSHOT.json` and `../VERIFICATION_SNAPSHOT.json` bind the current
+runtime and verification bytes. The measured values above retain the original
+standalone experiment results. See `../VERIFICATION.md` for the additional clean
+repository-source replay and its limitations. Registry publication and deployment
+are not part of this private source integration. See `REPRODUCE.md` for commands.

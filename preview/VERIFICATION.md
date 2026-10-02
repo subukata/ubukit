@@ -1,9 +1,34 @@
 # Verification scope
 
-## Repository-source replay, 2026-10-02
+## Current JavaScript dev4 integration replay, 2026-10-02
 
-The 60 Python and 24 JavaScript runtime files match the previously validated
-dev3 artifacts exactly. Documentation/provenance paths were corrected for
+The current pair is Python `0.0.0.dev3` and JavaScript `0.1.0-dev.4`.
+Python's 60 runtime files are byte-identical to the merged dev3 snapshot.
+The current JavaScript tree was materialized from PR source with every source
+blob checked against its Git SHA, then packed and installed into a clean
+consumer. No prepared node_modules or prior tarball was reused.
+
+- Installed JavaScript package: 890 tests passed, zero failures or skips
+- Independent 80-digit Decimal oracle: 3,043 ARI and 12,040 AMI comparisons;
+  maximum absolute errors 0 for ARI and 3.33e-16 for AMI
+- ESM isolation, clean VM module and real Node module-worker checks passed
+- Current runtime snapshot: 60 Python + 25 JavaScript files, all hashes verified
+- Tests, numerical references and committed evidence bound by VERIFICATION_SNAPSHOT.json
+- Root README JavaScript example and all seven package entrypoints checked
+- Actual browser execution is unverified; the earlier cloud-browser harness
+  attempt was blocked. Node/VM results are not a browser compatibility claim
+- No GitHub Actions workflow files or commit checks are configured; the checks
+  above are local source replays, not a GitHub CI pass
+
+The original [JavaScript report](javascript/REPORT.md) preserves the standalone
+numerical and timing evidence. Integration edits change documentation and setup,
+not production runtime code or recorded benchmark values. Rebuilt archive bytes
+can differ from the standalone artifact because package documentation changed.
+
+## Historical dev3 repository-source replay, 2026-10-02
+
+At that replay, the 60 Python and 24 JavaScript runtime files matched the
+previously validated dev3 artifacts exactly. Documentation/provenance paths were corrected for
 repository use. Runtime code was not changed during synchronization.
 
 The repository source was rebuilt and installed non-editably in fresh local
@@ -72,7 +97,9 @@ requirements files for exact recorded dependencies.
   do not establish dev3 browser compatibility
 - Benchmarks are exploratory and are not universal speed or quality guarantees
 
-Complete raw machine logs, virtualenvs, dependency wheels and generated archives
-are not committed. REPRODUCE.md runs the included harnesses and writes local
+Virtualenvs, dependency wheels and generated archives are not committed.
+The selected JavaScript regression log, numerical evidence and benchmark reports
+are committed under javascript/reports and javascript/audit; complete historical
+Python machine logs are not included. REPRODUCE.md runs the included harnesses and writes local
 results. SOURCE_SNAPSHOT.json and VERIFICATION_SNAPSHOT.json bind the submitted
 runtime and test/reference bytes respectively.

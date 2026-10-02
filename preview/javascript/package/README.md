@@ -49,7 +49,8 @@ session.dispose();
 The root algorithms registry contains `kmeans`, `fcm`, `rcm`, `exrcm`, `rmcm`,
 `som-olp`, and `neighborhood`. `run`, `steps` and `runAsync` share that registry.
 Neighborhood computes trustworthiness and continuity; it is a one-shot metric,
-not an iterative fitting session. No JavaScript ARI or AMI API is included.
+not an iterative fitting session. ARI/AMI are separate synchronous functions
+from `ubukit-js/external-metrics` or the package root; they are not fitting sessions.
 Data is flat row-major with explicit dimensions. Algorithm-specific result shapes,
 label contracts, error handling and ownership remain unchanged.
 
@@ -147,8 +148,8 @@ logic remains unchanged. Requested WASM is not a promise that every operation
 executes in WASM. Read existing result diagnostics, where provided.
 
 SOURCE_MANIFEST.json identifies the immutable input and every packaged runtime
-hash. The separate integration verification bundle contains tests, comparison
-snapshots, logs and a report; these are intentionally excluded from the npm tarball.
+hash. The surrounding repository contains tests, comparison snapshots, selected logs
+and a report; these are intentionally excluded from the npm tarball.
 Testing does not imply new performance measurements, Windows/macOS/ARM coverage,
 or real-browser verification. Consult the integration report for checks actually
 run. Registry publication and deployment still require separate authorization.

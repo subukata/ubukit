@@ -1,7 +1,7 @@
 {
   "versions": {
     "python": "0.0.0.dev3",
-    "javascript": "0.1.0-dev.3"
+    "javascript": "0.1.0-dev.4"
   },
   "runtime_files": [
     {
@@ -316,13 +316,18 @@
     },
     {
       "language": "javascript",
+      "path": "javascript/package/src/external-metrics.js",
+      "sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
+    },
+    {
+      "language": "javascript",
       "path": "javascript/package/src/fcm-stable.js",
       "sha256": "1680ac7961c75b8c968fb46bc1800f68d4305bdb8567ae3738ad99f674dad674"
     },
     {
       "language": "javascript",
       "path": "javascript/package/src/index.js",
-      "sha256": "80b7d7741d68394f89fbb79f371be994839ff2ecbadd2db21e6ec072248a9363"
+      "sha256": "952b263f056ee90b6b3d1197d8630626d21efc3c3d59ebcc81f79f8fccf00771"
     },
     {
       "language": "javascript",
