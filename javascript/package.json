@@ -53,6 +53,9 @@
     "LICENSE-SCIKIT-LEARN.txt",
     "src/som.js",
     "SOM.md",
-    "src/som-elite.js"
-  ]
+    "src/som-elite.js",
+    "LICENSE",
+    "LICENSE-SCOPE.txt"
+  ],
+  "license": "SEE LICENSE IN LICENSE-SCOPE.txt"
 }

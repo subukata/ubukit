@@ -2,8 +2,8 @@
 
 **PRIVATE PREVIEW. Not published to PyPI, TestPyPI, or any registry.**
 The provisional distribution remains `ubukit-bundled-local-preview`; this is not
-an approved public name. No project-wide license has been selected. Existing
-third-party notices remain unchanged and scoped to their original/derived code.
+an approved public name. Project contributions use the [MIT License](LICENSE);
+see [license scope](LICENSE-SCOPE.txt) for retained third-party terms.
 
 Start with [installation](#installation-boundary),
 [clustering and metric examples](#core-clustering-and-metric-examples),
@@ -108,7 +108,7 @@ error bound. Optional Numba is imported only when its path is needed.
 Exact external-metrics attribution is in `NOTICE-EXTERNAL-METRICS.txt` and
 `THIRD_PARTY_LICENSES.txt`. References to `NOTICE.txt` within the unchanged BSD
 notice refer to the original external-metrics notice now supplied under that
-longer filename. No project-wide license has been selected.
+longer filename. The project MIT selection does not replace these scoped terms.
 
 ## Core clustering and metric examples
 

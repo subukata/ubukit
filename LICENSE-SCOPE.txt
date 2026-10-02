@@ -1,0 +1,37 @@
+UbuKit license scope
+====================
+
+UbuKit's project-owned contributions are licensed under the MIT License in
+LICENSE, copyright (c) 2026 Seiki Ubukata. The MIT grant does not replace
+separately supplied licenses or extend to the pending-origin components below.
+
+Retained third-party terms
+--------------------------
+- SOM-OLP original and corresponding derived code: the MIT notice in
+  python/LICENSE-SOM.txt and javascript/LICENSE-SOM.txt.
+- Adapted scikit-learn compatibility expressions: the BSD-3-Clause notices in
+  python/THIRD_PARTY_LICENSES.txt and javascript/LICENSE-SCIKIT-LEARN.txt;
+  the respective NOTICE-EXTERNAL-METRICS.txt files identify their scope.
+- Dataset-derived label fixtures: javascript/fixtures/DATASET_ATTRIBUTION.md
+  records the UCI CC BY 4.0 sources and transformations.
+- Dependencies and separately supplied assets retain their applicable terms.
+
+Pending-origin components outside the project MIT grant
+-------------------------------------------------------
+- The metric WebAssembly binary, SHA-256
+  b7b68848eecdca210e2bf13288c5313ee38d47bb315046c40ff143654cb61656,
+  its src/metric-wasm.js wrappers, and its reconstructed WAT copies.
+- The older historical RMCM WebAssembly binary, SHA-256
+  63768dc7e7388372fbbc1a6517e4e99b570699cbfb8f9d18b9ccbd897ca9ebd8,
+  its historical reference wrappers, base64 evidence, and reconstructed WAT.
+
+These exclusions apply wherever those exact components are retained. They do
+not exclude the distinct current RMCM kernel whose recovered WAT is available.
+Reconstruction and byte-exact rebuilding do not establish original authorship.
+No new redistribution permission for these pending components is asserted here.
+
+This snapshot includes pending components and is not an entirely MIT-licensed
+distribution. No additional conditions restrict rights granted for MIT-covered
+material or under other applicable licenses. The private release workflow is
+an administrative status, not an extra license condition. Package scope is
+in python/LICENSE-SCOPE.txt and javascript/LICENSE-SCOPE.txt.

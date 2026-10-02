@@ -3,8 +3,9 @@
 Clustering, self-organizing maps, evaluation metrics and parameter search for
 Node.js and browsers, using ES modules and no runtime npm dependencies.
 
-The package is `private: true` and unpublished. No project-wide license
-has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See the
+The package is `private: true` and unpublished. Project contributions use the
+[MIT License](LICENSE); [license scope](LICENSE-SCOPE.txt) identifies third-party
+terms and the pending-origin metric WASM exclusion. See the
 [build instructions](../docs/getting-started.md#javascript) to create a local tarball from source.
 
 ## Install locally
