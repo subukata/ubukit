@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "integration_base_commit": "a9539a35585ab6f095941d42a2a7dfd773f3738d",
+  "versions": {
+    "python": "0.0.0.dev4",
+    "javascript": "0.1.0-dev.5"
+  },
+  "environment": {
+    "os": "Linux x86-64",
+    "python": "3.12.14",
+    "node": "24.19.0",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0",
+    "scikit-learn": "1.8.0",
+    "threadpoolctl": "3.7.0",
+    "pytest": "8.4.2",
+    "numba_installed": false
+  },
+  "python": {
+    "wheel_focused_passed": 85,
+    "sdist_focused_passed": 85,
+    "traditional_som_cases": 77,
+    "inherited_runtime_passed": 2312,
+    "inherited_runtime_skipped": 73,
+    "inherited_runtime_warnings": 2,
+    "skip_details": {
+      "optional_numba": 68,
+      "optional_comparator": 3,
+      "large_sparse_8000_sample": 2
+    },
+    "new_numerical_and_preflight_passed": 203,
+    "external_facade_passed": 27,
+    "external_numeric_panel": {
+      "independent_ari": 2960,
+      "independent_ami": 11708,
+      "sklearn_ari": 3053,
+      "sklearn_ami_regular": 12080,
+      "sklearn_ami_singular": 132,
+      "invariance": 1116,
+      "invalid": 17,
+      "synthetic_overflow": 4
+    },
+    "external_portability": "passed",
+    "all_61_source_archive_installed_hashes": "passed",
+    "pip_check_both": "passed",
+    "api_and_examples_both": "passed",
+    "final_documentation_only_repack": "All 61 runtime files remained identical; final wheel/sdist each reran the focused 85 tests, origin and complete ownership/hash checks. Inherited runtime/new/external suites ran before this package-documentation-only repack."
+  },
+  "javascript": {
+    "installed_tarball_passed": 945,
+    "failed": 0,
+    "skipped": 0,
+    "new_som_cases": 43,
+    "all_26_runtime_hashes": "passed",
+    "package_doc_gate": "passed",
+    "entrypoints": 7,
+    "registry_names": 9,
+    "clean_vm_modules": 24,
+    "real_node_workers": "passed",
+    "ari_ami_vm_and_worker": "passed",
+    "actual_browser_execution": false
+  },
+  "root_readme_examples": {
+    "python": "passed",
+    "javascript": "passed"
+  },
+  "runtime_preservation": {
+    "python_unchanged": 58,
+    "python_modified_facades": 2,
+    "python_added_module": 1,
+    "javascript_unchanged": 21,
+    "javascript_modified_modules": 4,
+    "javascript_added_module": 1,
+    "existing_external_metric_runtime": "unchanged",
+    "prior_metric_reports_oracles_timings": "unchanged"
+  },
+  "artifacts": [
+    {
+      "artifact": "python/artifacts/ubukit_bundled_local_preview-0.0.0.dev4-py3-none-any.whl",
+      "sha256": "5ed1899d3ac6783b8e0b1e71b5c6eb4f8a34eb8da2cb2dc4c23425dac34c25b5",
+      "bytes": 167944,
+      "runtime_files": 61,
+      "all_runtime_bytes_match_source": true
+    },
+    {
+      "artifact": "python/artifacts/ubukit_bundled_local_preview-0.0.0.dev4.tar.gz",
+      "sha256": "348efba3c15990aefc04e424cb58375237ca64aedf0b0d0c38a01e380d1e26f5",
+      "bytes": 151124,
+      "runtime_files": 61,
+      "all_runtime_bytes_match_source": true
+    },
+    {
+      "artifact": "javascript/artifacts/ubukit-js-0.1.0-dev.5.tgz",
+      "sha256": "6ce80d8af7e7bb9b3672909bfa53aa2cecafd7d60f120e91f963b55bb874bd78",
+      "bytes": 104861,
+      "runtime_files": 26,
+      "all_runtime_bytes_match_source": true
+    }
+  ],
+  "limits": [
+    "No final-dev4 Numba matrix or other OS/Python/Node/minimum-dependency matrix rerun",
+    "No actual browser execution",
+    "No new performance measurement or universal accuracy/latency guarantee",
+    "Inherited WASM binaries are embedded; their complete editable build-source/rebuild provenance is not established by this source replay",
+    "No registry publication, visibility change, CI workflow or deployment included"
+  ]
+}

@@ -6,7 +6,7 @@ otherwise standardized. All original runtime imports retain their contracts.
 """
 from importlib import import_module
 
-__version__ = "0.0.0.dev3"
+__version__ = "0.0.0.dev4"
 _EXPORTS = {
     "TPEOptimizer": ("ubukit.optimization", "TPEOptimizer"),
     "optimize": ("ubukit.optimization", "optimize"),
@@ -41,6 +41,7 @@ _EXPORTS = {
     "PreparedRMCM": ("ubukit_rmcm", "PreparedRMCM"),
     "RMCMResult": ("ubukit_rmcm", "RMCMResult"),
 }
+_EXPORTS.update({name: ("portable_accel", name) for name in ("som", "som_batch", "fit_som", "fit_som_batch", "initialize_som", "initialize_som_batch", "SOMState")})
 _ADAPTED_EXPORTS = {
     name: ("ubukit._rough_memberships", name)
     for name in ("fit_rcm", "fit_exrcm", "assign_rcm")

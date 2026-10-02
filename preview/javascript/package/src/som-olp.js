@@ -42,7 +42,7 @@ function* emit(options, event) { progress(options, event); yield event; }
 
 // Cyclic symmetric Jacobi eigensolver. PCA uses Xc'Xc/N (or its dual), sorted
 // descending; each principal loading's largest-magnitude entry is positive.
-function* pcaPrototypes(x, grid, w, options, maxScratchBytes, extraMemoryBytes = Infinity, execution = null) {
+export function* pcaPrototypes(x, grid, w, options, maxScratchBytes, extraMemoryBytes = Infinity, execution = null) {
   const { data, nSamples: n, nFeatures: d } = x;
   const { data: r, nSamples: m, nFeatures: q } = grid;
   const dim = Math.min(n, d), components = Math.min(q, d);

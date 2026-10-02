@@ -6,16 +6,17 @@ approved release name. No project-wide license has been selected. The retained
 SOM third-party MIT notice applies to its original/derived code, not the whole
 project. No published-release or general performance claim is made.
 
-This combined private candidate bundles the Python runtimes and compatibility
-facade in one wheel. It retains the provisional distribution name and all 22
-existing exports, adds 9 optimizer exports (31 total), and uses version
-`0.0.0.dev3` to distinguish it from the preserved dev2 delivery. The original
-dev1 baseline is also retained separately. Correctness fixes are intentionally
-applied; numerical sources are not all byte-identical to those earlier versions.
-`SOURCE_MANIFEST.json` records every current source hash, baseline hash, and
-whether the source is unchanged, modified or added. The verification companion
-includes the reviewed changes and new regression tests. No registry release or
-new performance claim is made.
+This private dev4 candidate is an additive copy of the validated Python dev3
+bundle. It retains the 31 prior exports and adds seven traditional SOM exports
+(38 total): `som`, `som_batch`, their `fit_` aliases, both initializers, and
+`SOMState`. All existing numerical source files remain byte-identical to dev3.
+Only the two lazy export facades, version/package documentation, and new SOM
+module are changed. The prior dev3 remains untouched. See [SOM.md](SOM.md) for
+formulas, schedules, per-sample/per-epoch semantics, and numerical limits.
+
+`SOURCE_MANIFEST.json` compares this candidate to dev3. Validation/measurement
+logs in the companion distinguish this addition's tests from prior historical
+checks. This is version `0.0.0.dev4`, not an approved public release.
 
 ## Installation boundary
 
@@ -35,7 +36,7 @@ The same environment-isolation rule applies to every preserved top-level name.
 
 ```sh
 python -m venv .venv
-.venv/bin/python -m pip install -c /path/to/constraints-final-stack.txt /path/to/ubukit_bundled_local_preview-0.0.0.dev3-py3-none-any.whl
+.venv/bin/python -m pip install -c /path/to/constraints-som-verified.txt /path/to/ubukit_bundled_local_preview-0.0.0.dev4-py3-none-any.whl
 # Optional: install the same local wheel with the [numba] extra.
 ```
 
@@ -50,8 +51,8 @@ import rough_cmeans
 import ubukit_rmcm
 ```
 
-The `ubukit` root import is lazy. It does not import NumPy or Numba. Its 31
-exports comprise 28 aliases and three thin adapters: `fit_rcm`,
+The `ubukit` root import is lazy. It does not import NumPy or Numba. Its 38
+exports comprise 35 aliases and three thin adapters: `fit_rcm`,
 `fit_exrcm`, and `assign_rcm`. Accessing one of these adapters loads the numerical
 runtime; importing `ubukit` alone still does not.
 
@@ -64,6 +65,7 @@ runtime; importing `ubukit` alone still does not.
 | RCM | `fit_rcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
 | ExRCM | `fit_exrcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
 | RMCM | `fit_rmcm(X, n_clusters, delta=..., ...)` | result object; memberships `(N,K)` |
+| Online / Batch SOM | `som(X, ...)`, `som_batch(X, ...)` | dict; centers `(M,D)`, labels `(N,)`, embedding `(N,2)` |
 | SOM-OLP | `fit_som_olp(X, grid, ...)` | dict; `V` `(N,latentD)`, `P` `(N,M)` |
 | Neighborhood quality | `joint_quality(X, embedding, ks=..., ...)` | list of quality records |
 
@@ -104,8 +106,8 @@ Local packaging tests are separate from numerical release approval. This private
 candidate has no public release authorization. Multi-OS/Python and browser
 checks, minimum dependency versions, final name/version policy, project license,
 final public API/dependency policy, and explicit publication approval remain open.
-This is a Python-only package; the matching JavaScript dev3 source and its
-separate validation suite are available alongside it in this repository.
+This is a Python-only package; the matching JavaScript dev5 source and its
+separate validation suite are alongside it in this repository.
 
 Declared minimum versions are resolver metadata, not a tested version matrix.
 See the companion integration report for the exact tested environment and
@@ -144,30 +146,33 @@ chosen. Historical performance results are not new measurements of this wheel.
 ## Tested environment and installation example
 
 This private trial was checked on Linux x86_64 with CPython 3.12.14 only.
-All integration environments used NumPy 2.3.5, SciPy 1.17.0 and threadpoolctl
+The inherited dev3 integration environments used NumPy 2.3.5, SciPy 1.17.0 and threadpoolctl
 3.6.0. Both scikit-learn 1.7.2 with optional Numba 0.63.1, and scikit-learn
 1.8.0 with optional Numba 0.67.0 were checked. No Windows/macOS, ARM, browser,
 or minimum-supported-version claim follows from these tests. Matching historical
 version numbers does not carry the old benchmark results over to this facade.
 
-From the extracted private verification bundle, run the following in a fresh
+From the repository `preview/python/` directory after building local artifacts,
+run the following in a fresh
 environment. The preflight is read-only and is not a pip install hook. Stop on
 a blocked result; do not co-install or automatically uninstall another owner.
 
 ```sh
 python3 -m venv .venv-ubukit-preview
 .venv-ubukit-preview/bin/python -I -B tools/check_install_environment.py
-.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev3-py3-none-any.whl
+.venv-ubukit-preview/bin/python -m pip install -c constraints-som-verified.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev4-py3-none-any.whl
 .venv-ubukit-preview/bin/python -I -B examples/all_methods.py
 # Optional Numba in this same isolated environment:
-.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt 'artifacts/ubukit_bundled_local_preview-0.0.0.dev3-py3-none-any.whl[numba]'
+.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt 'artifacts/ubukit_bundled_local_preview-0.0.0.dev4-py3-none-any.whl[numba]'
 .venv-ubukit-preview/bin/python -I -B examples/all_methods.py --with-numba
 ```
 
 Install the local wheel with the supplied companion constraints for this private
 trial. They pin the tested stack rather than claiming all resolver outcomes
 were validated. The source archive includes this README; the example script,
-preflight, constraints and full verification harness are in the companion bundle.
+preflight, constraints and full verification harness are in the repository
+`preview/python/` directory. Optional Numba checks above describe a runnable
+workflow; the final dev4 integration replay uses the base stack without Numba.
 
 ## Runnable examples for each facade entrypoint
 
@@ -348,4 +353,15 @@ working-coordinate update; the diagnostic flags this situation. See the accompan
 
 ## Combined private preview
 
-This dev3 candidate adds the optional standard-library-only optimization API. See OPTIMIZATION.md. The existing scientific dependencies are unchanged; importing the optimization facade does not require them. The bundled SOM exceptional-range contract is documented in NUMERICAL_LIMITS.md.
+The inherited dev3 implementation adds the optional standard-library-only optimization API. See OPTIMIZATION.md. The existing scientific dependencies are unchanged; importing the optimization facade does not require them. The bundled SOM-OLP exceptional-range contract is documented in NUMERICAL_LIMITS.md.
+
+## Traditional SOM additions
+
+Use `ubukit.som(X, epochs=10)` for online updates and
+`ubukit.som_batch(X, epochs=10)` for true frozen-BMU batch updates.
+Both default to a 16×16 rectangular map with arbitrary input dimension.
+Detailed API, examples, limits and sources: [SOM.md](SOM.md).
+
+This SOM addition was tested with NumPy 2.3.5, SciPy 1.17.0, scikit-learn 1.8.0,
+and threadpoolctl 3.7.0 without Numba. Use `constraints-som-verified.txt` from the repository
+`preview/python/` directory. Earlier environment listings above describe inherited checks.

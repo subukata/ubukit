@@ -1,11 +1,11 @@
 # UbuKit
 
-クラスタリング・SOM-OLP・近傍評価・軽量ハイパーパラメータ探索の Python / JavaScript 研究用実装です。
+クラスタリング・SOM・SOM-OLP・近傍評価・軽量ハイパーパラメータ探索の Python / JavaScript 研究用実装です。
 
-## 最新実装: Python dev3 / JavaScript dev4 private preview
+## 最新実装: Python dev4 / JavaScript dev5 private preview
 
-**最新の統合ソースは [`preview/`](preview/) です。** Python は `0.0.0.dev3`、JavaScript は `0.1.0-dev.4`。
-Python の `import ubukit` に31の公開エクスポートをまとめ、ARI / AMI と TPE / random 探索を追加しました。
+**最新の統合ソースは [`preview/`](preview/) です。** Python は `0.0.0.dev4`、JavaScript は `0.1.0-dev.5`。
+Python の `import ubukit` に38の公開エクスポートをまとめ、従来型のオンライン `som` と真のバッチ更新 `som_batch` を追加しました。ARI / AMI と TPE / random 探索も利用できます。
 FCM / SOM の極端な数値範囲への対処、入力検証・所有権・Worker / Session の修正を含みます。
 PyPI / npm には公開していません。リポジトリからローカルにビルドして使用します。
 
@@ -23,12 +23,13 @@ PyPI / npm には公開していません。リポジトリからローカルに
 | 連続値の所属度 | `fit_fcm` | `run('fcm', ...)` |
 | rough clustering | `fit_rcm`, `fit_exrcm` | `run('rcm', ...)`, `run('exrcm', ...)` |
 | δ近傍に基づく rough clustering | `fit_rmcm`, `PreparedRMCM` | `run('rmcm', ...)`, `PreparedRMCM` |
-| 格子への写像 | `fit_som_olp`, `PreparedSOM` | `run('som-olp', ...)` |
+| オンライン / バッチ SOM | `som`, `som_batch`, `SOMState` | `run('som', ...)`, `run('som_batch', ...)` |
+| SOM-OLP の格子への写像 | `fit_som_olp`, `PreparedSOM` | `run('som-olp', ...)` |
 | Trustworthiness / Continuity | `joint_quality` | `run('neighborhood', ...)` |
 | 外部クラスタ評価 | `adjusted_rand_score`, `adjusted_mutual_info_score`, `adjusted_scores` | `adjustedRandScore`, `adjustedMutualInfoScore`, `adjustedScores` |
 | 軽量 TPE / random 探索 | `optimize`, `TPEOptimizer` | `optimize`, `optimizeAsync`, `TPEOptimizer` |
 
-JavaScript dev4 は ARI / AMI と、分割表を共有する `adjustedScores` を追加しました。AMI は既定で arithmetic 正規化を使います。入力・数値・計算量の契約は [外部指標 API](preview/javascript/package/EXTERNAL_METRICS.md) を参照してください。Python は dev3 のままです。
+JavaScript は dev4 で追加した ARI / AMI と、分割表を共有する `adjustedScores` を保持しています。AMI は既定で arithmetic 正規化を使います。入力・数値・計算量の契約は [外部指標 API](preview/javascript/package/EXTERNAL_METRICS.md) を参照してください。両言語の従来型 SOM は16×16格子が既定で、任意の特徴次元を扱います。オンラインの1更新は1標本、バッチの1更新は固定したBMUに基づく1 epochです。
 
 Python の統一 API ではクラスタ所属度を `(N, K)` に揃えています。ただし返り値の型・フィールド名は手法ごとに異なります。
 従来の `rough_cmeans` 直接 import は `(K, N)` のままです。JavaScript の配列は行優先の一次元 TypedArray です。
@@ -48,7 +49,7 @@ python3.12 -m venv .venv
 # Linux / macOS
 source .venv/bin/activate
 # Windows PowerShell の場合: .venv\Scripts\Activate.ps1
-python -m pip install -c preview/python/constraints-final-stack.txt ./preview/python/staging
+python -m pip install -c preview/python/constraints-som-verified.txt ./preview/python/staging
 ```
 
 任意の Numba バックエンドが必要な場合だけ、最後の行の代わりに次を使います。
@@ -70,6 +71,10 @@ result = ubukit.fit_fcm(X, 2, random_state=1, max_iter=20, backend="numpy")
 print(result["labels"])
 print(result["membership"].shape)  # (4, 2)
 
+online = ubukit.som(X, grid_shape=(4, 3), epochs=2, random_state=1)
+batch = ubukit.som_batch(X, grid_shape=(4, 3), epochs=2, random_state=1)
+print(online["centers"].shape, batch["embedding"].shape)  # (12, 1), (4, 2)
+
 search = ubukit.optimize(
     lambda p: (p["x"] - 0.3) ** 2,
     {"x": ubukit.float_range(-1.0, 1.0)},
@@ -79,7 +84,7 @@ search = ubukit.optimize(
 print(search.best_params, search.best_value)
 ```
 
-全手法の例は [all_methods.py](preview/python/examples/all_methods.py)、探索の契約は [OPTIMIZATION.md](preview/python/staging/OPTIMIZATION.md) にあります。
+従来型SOMの状態更新例は [som_variants.py](preview/python/examples/som_variants.py) と [SOM API](preview/python/staging/SOM.md)、全手法の例は [all_methods.py](preview/python/examples/all_methods.py)、探索の契約は [OPTIMIZATION.md](preview/python/staging/OPTIMIZATION.md) にあります。
 
 ### JavaScript / Node
 
@@ -107,6 +112,9 @@ const input = {
 const result = run('fcm', input, { nClusters: 2, seed: 1, maxIterations: 20 });
 console.log(result.labels, result.membership);
 console.log(adjustedScores([0, 0, 1, 1], result.labels));
+const online = run('som', input, { gridShape: [4, 3], epochs: 2, seed: 1 });
+const batch = run('som_batch', input, { gridShape: [4, 3], epochs: 2, seed: 1 });
+console.log(online.centers, batch.embedding);
 const search = optimize(p => (p.x - 0.3) ** 2,
   { x: floatRange(-1, 1) }, { nTrials: 30, seed: 42 });
 console.log(search.bestParams, search.bestValue);
@@ -121,8 +129,9 @@ console.log(search.bestParams, search.bestValue);
 
 - FCM は有限の `m` に対する log-domain fallback を持ちます。復元した中心が丸められる場合、公開中心から再計算した所属度と返却所属度が一致しないことがあります。objective の overflow / underflow は状態を明示します
 - 高い `m` の近接した軌道では有限精度の影響が大きく、所属度の精度が一様に改善するわけではありません
+- 従来型SOMは学習率なしの真のバッチ更新とオンライン更新を区別します。近い距離のBMUや退化したPCAの結果は言語間で異なり得ます。一律の軌道一致や大域最適化は保証しません
 - SOM の表現可能な範囲は Python / JavaScript で異なります。表現不能な最終結果を無断で clip しません
-- SOM の保守的な安全経路は、通常に標準化したデータでも極小の初期確率により遅くなる場合があります。実データHPO評価では840件の物理SOM評価中53件が2秒/fit以内に未完了でした
+- SOM-OLP の保守的な安全経路は、通常に標準化したデータでも極小の初期確率により遅くなる場合があります。実データHPO評価では840件の物理SOM評価中53件が2秒/fit以内に未完了でした
 - JavaScript の ARI は整数積を正確に計算してから最終比を Number に丸めます。AMI は条件付きエントロピーと全支持範囲の超幾何漸化式を使います。`min` 正規化の未定義ケースは明示的に拒否し、標本数・計算量にも上限があります。ブラウザ実行と任意入力での一律の誤差上限は未検証です
 - TPE は flat / single-objective の軽量実装です。条件付き空間、pruning、分散ストレージ、汎用的な Optuna 優位は主張しません
 
@@ -131,10 +140,10 @@ console.log(search.bestParams, search.bestValue);
 
 ## 検証とデモ
 
-Python dev3 は従来の4つの installed-artifact 環境とリポジトリソースからの再検証を維持しています。
-JavaScript dev4 はリポジトリのソースから新しく pack / install し、890テストを通過しました。独立した80桁参照による3,043件のARI・12,040件のAMI比較では、AMIの最大絶対誤差は3.33e-16でした。Python の実装はこのJS追加で変更していません。
+Python dev4 の最終ソースから wheel / sdist を新規ビルドし、それぞれを新しい環境に非editableでインストールして従来型SOMと公開APIを再検証しています。
+JavaScript dev5 は新しく pack / install した実tarballで945テストを通過しています。前版のARI / AMI実装・独立80桁参照・実測値は変更していません（3,043件のARI・12,040件のAMI比較、AMI最大絶対誤差3.33e-16はdev4時点の記録）。
 正確な件数、skip、対象外、今回のソースからの再実行結果は [VERIFICATION.md](preview/VERIFICATION.md) を参照してください。
-85のランタイムファイル（Python 60、JavaScript 25）は [SOURCE_SNAPSHOT.json](preview/SOURCE_SNAPSHOT.json) で固定しています。
+87のランタイムファイル（Python 61、JavaScript 26）は [SOURCE_SNAPSHOT.json](preview/SOURCE_SNAPSHOT.json) で固定しています。
 
 - [ブラウザ実データデモ](https://ubukit-browser-lab.ubucat.chatgpt.site): 同梱ライブラリは以前の版です。現在の全機能・数値契約を検証するデモではありません
 - [進捗ダッシュボード](https://acceleration-progress.ubucat.chatgpt.site): 作業状況と検証記録の概要

@@ -5,8 +5,9 @@ ROOT=Path(__file__).resolve().parents[1]
 m=json.loads((ROOT/'staging/SOURCE_MANIFEST.json').read_text())
 d=metadata.distribution('ubukit-bundled-local-preview'); purelib=Path(sysconfig.get_paths()['purelib']).resolve()
 owned={str(p) for p in d.files}
-expected={r['bundled'].removeprefix('src/'):r['sha256'] for r in m['runtime_files']+m['external_metric_files']+m['facade_files']}
-assert len(expected)==m["python_source_files_total"]
+assert d.version == m['version'] == '0.0.0.dev4'
+expected={r['path'].removeprefix('src/'):r['sha256'] for r in m['files']}
+assert len(expected) == 61
 for n,h in expected.items():
  assert n in owned,n
  p=Path(d.locate_file(n)).resolve(); assert p.is_relative_to(purelib),p

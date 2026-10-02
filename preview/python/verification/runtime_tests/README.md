@@ -34,10 +34,10 @@ The driver invokes `python -I -B`, clears `PYTHONPATH`, disables third-party pyt
 4. The optional scikit-fuzzy comparator retains the original availability skip; this harness does not install it.
 5. Three active rough BLAS certificate tests retain their upstream provider/build eligibility skips when the installed BLAS build is not certified. The unsupported-provider fallback assertions still run.
 6. JavaScript/WASM suites are excluded because this artifact is a Python wheel. No benchmarks, timing comparisons, performance claims, external datasets, experiments, or training workloads are run.
-7. ARI/AMI is included in the 60-runtime-file package and tested separately under `verification/external_tests`; this original-seven-family harness does not duplicate that full numerical panel.
+7. ARI/AMI is included in the 61-runtime-file package and tested separately under `verification/external_tests`; this original-seven-family harness does not duplicate that full numerical panel.
 8. Obsolete metrics `test_neighbor_query.py` and `test_neighbor_reuse.py` target superseded work candidates. The final validated `test_neighbor_brute.py` is included instead.
 
-This is the final dev3 verification harness. Extreme FCM/SOM expectations
+This is the inherited dev3 verification harness, adapted for dev4 version and export checks. Traditional SOM tests are in `../../tests/`. Extreme FCM/SOM expectations
 were deliberately updated to the reviewed numerical contract; ordinary tests
 remain in place. The final verification manifest at the preview root binds
 the current bytes. Historical copy manifests are not current hash attestations

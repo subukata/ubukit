@@ -33,7 +33,7 @@ precision, globally closer trajectory, global optimality, or cross-platform bit
 identity is promised. Reinitializing from rounded public U cannot restore hidden
 weights from an earlier run.
 
-## SOM
+## SOM-OLP
 
 The exceptional path retains the original gamma and lambda, caller-unit history,
 and relative stopping criterion. Python represents costs using mantissa/exponent
@@ -94,7 +94,7 @@ ARI, AMI and shared-contingency joint scores add no runtime dependency. The
 inputs are equal-length Arrays or numeric TypedArrays, each containing only
 strings or only safe integer Numbers. The full contract and error codes are in
 [javascript/package/EXTERNAL_METRICS.md](javascript/package/EXTERNAL_METRICS.md).
-Python remains dev3 and retains its separately documented external-metric API.
+Python dev4 retains the unchanged, separately documented external-metric API.
 
 ARI uses exact integer combinatorics, with BigInt when necessary, before the
 final binary64 quotient. AMI uses direct conditional entropies, a full-support
@@ -119,6 +119,32 @@ The independent 80-digit oracle panel measured maximum AMI absolute error
 3.33e-16 and exact final-Number ARI agreement. The benchmark results are bounded,
 machine-specific measurements; see [the report](javascript/REPORT.md). Node/VM
 smoke checks do not establish actual browser execution or cross-platform parity.
+
+## Traditional online SOM and BatchSOM (Python dev4 / JavaScript dev5)
+
+These are separate algorithms from SOM-OLP. Online updates one sample at a time
+in input order; batch freezes all BMUs and commits one weighted-mean epoch.
+The batch algorithm has no learning-rate parameter. Both support arbitrary
+feature dimension and default to a planar rectangular 16×16 lattice.
+
+Exact computed distance ties select the lowest unit index; near ties can differ
+between floating-point summation orders and amplify across later steps. PCA
+bases in degenerate cases need not match between Python and JavaScript. The
+shared explicit-prototype fixtures establish a bounded parity scope, not universal
+bit-identical trajectories, convergence or a global optimum.
+
+Python has an exact-binary cold repair for extreme BMU ordering and protected
+weighted means. JavaScript deliberately rejects unrepresentable squared distances
+(overflow or underflow/subnormal) with rescaling guidance. Both retain old units
+for zero effective neighborhood mass, including positive-Gaussian underflow.
+Exact-arithmetic cancellation recovery can be slower and allocate extra memory.
+
+Snapshots expose committed prototypes; JavaScript full-data projection is explicit
+before completion. Soft chunk budgets are not hard realtime deadlines. Primary
+memory estimates exclude runtime/library workspace, caller copies and exceptional
+integer temporaries. Read the complete [Python](python/staging/SOM.md) and
+[JavaScript](javascript/package/SOM.md) contracts and bounded measurements in
+[SOM_ADDITION.md](SOM_ADDITION.md).
 
 ## Coverage boundary
 

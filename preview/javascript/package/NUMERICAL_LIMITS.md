@@ -33,7 +33,7 @@ precision, globally closer trajectory, global optimality, or cross-platform bit
 identity is promised. Reinitializing from rounded public U cannot restore hidden
 weights from an earlier run.
 
-## SOM
+## SOM-OLP
 
 The exceptional path retains the original gamma and lambda, caller-unit history,
 and relative stopping criterion. Python represents costs using mantissa/exponent
@@ -97,7 +97,7 @@ recovery can be slower, including about 5.1x in one Python high-m warm smoke cas
 No public push, package-registry publication, deployment or upload was performed
 while constructing this local bundle.
 
-## JavaScript external metrics (dev4)
+## JavaScript external metrics (introduced in dev4)
 
 ARI uses exact integer combinatorics and one final binary64 quotient. AMI uses
 full-support normalized hypergeometric recurrence with compensated summation
@@ -105,3 +105,13 @@ and direct conditional entropies. See [EXTERNAL_METRICS.md](EXTERNAL_METRICS.md)
 for accepted label types, the 2**26 AMI sample cap, work budget, explicit optional
 min/singleton singular rejection, and finite-precision caveats. High-K scikit-learn
 roundoff is not a correctness oracle; independent 80-digit checks are supplied.
+
+## Traditional online SOM and BatchSOM
+
+The `som` and `som_batch` algorithms are separate from SOM-OLP. Online commits
+one sample update; batch freezes BMUs and commits one weighted-mean epoch,
+without a learning rate. Near-tied BMUs, degenerate PCA bases, Gaussian underflow
+and language-specific floating-point accumulation limit trajectory parity.
+See [SOM.md](SOM.md) for initialization, cancellation, projection, scratch-memory
+and exceptional-range contracts. No global convergence or hard realtime bound
+is claimed.

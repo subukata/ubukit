@@ -1,0 +1,91 @@
+{
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "numpy": "2.3.5",
+  "scipy": "1.17.0",
+  "ubukit": "0.0.0.dev4",
+  "threads": 1,
+  "scope": "Local warm smoke; full API includes initialization and final assignment; scalar oracle is correctness reference, not a tuned competing package.",
+  "results": [
+    {
+      "algorithm": "som",
+      "N": 200,
+      "D": 8,
+      "M": 64,
+      "epochs": 1,
+      "optimized_median_seconds": 0.009068241997738369,
+      "scalar_reference_median_seconds": 0.026238779002596857,
+      "reference_over_optimized": 2.893480236758221,
+      "maximum_absolute_error": 1.1102230246251565e-15,
+      "optimized_samples_seconds": [
+        0.00951249299760093,
+        0.008609420001448598,
+        0.009068241997738369,
+        0.008496078997268341,
+        0.00931286199920578
+      ],
+      "reference_samples_seconds": [
+        0.02543270400201436,
+        0.026799906998348888,
+        0.026238779002596857
+      ],
+      "primary_scratch_budgeted_bytes": 130048
+    },
+    {
+      "algorithm": "som_batch",
+      "N": 200,
+      "D": 8,
+      "M": 64,
+      "epochs": 1,
+      "optimized_median_seconds": 0.00040560199704486877,
+      "scalar_reference_median_seconds": 0.0282053070004622,
+      "reference_over_optimized": 69.53936914995528,
+      "maximum_absolute_error": 2.220446049250313e-16,
+      "optimized_samples_seconds": [
+        0.0004966190026607364,
+        0.0004038799997942988,
+        0.0004222669995215256,
+        0.00040560199704486877,
+        0.00037437499850057065
+      ],
+      "reference_samples_seconds": [
+        0.028917471998283872,
+        0.02661073099807254,
+        0.0282053070004622
+      ],
+      "primary_scratch_budgeted_bytes": 144512
+    },
+    {
+      "algorithm": "som",
+      "N": 2000,
+      "D": 32,
+      "M": 256,
+      "epochs": 2,
+      "median_seconds": 0.4129475879999518,
+      "samples_seconds": [
+        0.4503491750001558,
+        0.4129475879999518,
+        0.37737502100208076
+      ],
+      "iterations": 4000,
+      "unit": "sample",
+      "primary_scratch_budgeted_bytes": 929792
+    },
+    {
+      "algorithm": "som_batch",
+      "N": 2000,
+      "D": 32,
+      "M": 256,
+      "epochs": 20,
+      "median_seconds": 0.13860666199980187,
+      "samples_seconds": [
+        0.14367254599710577,
+        0.13860666199980187,
+        0.13740005700310576
+      ],
+      "iterations": 20,
+      "unit": "epoch",
+      "primary_scratch_budgeted_bytes": 1105152
+    }
+  ]
+}
