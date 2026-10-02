@@ -1,4 +1,4 @@
-# UbuKit: private namespace-consolidated candidate
+# UbuKit for Python
 
 **PRIVATE PREVIEW. Not published to PyPI, TestPyPI, or any registry.**
 The provisional distribution remains `ubukit-bundled-local-preview`; this is not
@@ -8,19 +8,6 @@ third-party notices remain unchanged and scoped to their original/derived code.
 Start with [installation](#installation-boundary),
 [clustering and metric examples](#core-clustering-and-metric-examples),
 [online/Batch SOM](SOM.md), or [parameter optimization](OPTIMIZATION.md).
-
-This private `0.0.0.dev6` candidate consolidates every implementation under
-`ubukit._impl`. The only installed top-level runtime package is `ubukit`.
-The existing 38 facade exports, signatures, defaults, result contracts, stopping
-rules and numerical implementations are retained. No new algorithm aliases or
-backend defaults are introduced. The opt-in localized SOM-OLP implementation
-from dev5 remains private and opt-in.
-
-`SOURCE_MANIFEST.json` records every current runtime file and its mapped dev5
-source/hash. Four inherited files have import/facade/documentation changes;
-all other inherited runtime files retain their bytes. The only new runtime file
-is the private package marker `ubukit/_impl/__init__.py`. Namespace migration
-is not a new performance claim or a statement of cross-platform qualification.
 
 ## Installation boundary
 
@@ -41,26 +28,19 @@ Python 3.12 base stack. Built wheels are not committed. These pins are not a
 tested matrix for every declared Python version. Stop if the environment guard
 reports a conflict.
 
-If you received a private verification bundle instead, use the
-[bundle installation example](#inherited-numerical-qualification-and-installation-example)
-below. Its paths are relative to the extracted bundle, not this README's directory.
-
 The public import is `import ubukit`. Former top-level imports
 `portable_accel`, `ubukit_fcm`, `rough_cmeans`, `ubukit_rmcm`, `external_metrics`,
 `_numba_kernel`, and `_external_metrics_numba` are not installed or aliased.
 Use existing `ubukit` exports instead. Paths under `ubukit._impl` are unsupported
-implementation details, not replacement public imports. Verification code may
-inspect them to protect numerical and backend contracts.
+implementation details, not replacement public imports.
 
-The `ubukit` root import is lazy and imports neither NumPy nor Numba. Its 38
-exports still comprise 35 aliases and three thin sample-major adapters:
-`fit_rcm`, `fit_exrcm`, and `assign_rcm`.
+The `ubukit` root import is lazy and imports neither NumPy nor Numba.
 
 ## Saved objects and optional compiler caches
 
 The namespace move changes implementation classes/functions' module paths.
 Cross-version pickle compatibility is not promised. Do not patch pickle bytes
-or load untrusted pickle files; retain the original isolated dev5 environment
+or load untrusted pickle files; retain the original isolated environment
 when an existing serialized object requires its old module paths. Recreate a
 model from supported data/parameters where possible. This migration adds no
 model persistence format or pickle migration tool.
@@ -70,9 +50,9 @@ artifacts. Use a fresh candidate-specific cache for validation; first use may
 compile again. Numba remains optional and is loaded only when a selected path
 needs it. No global module aliases recreate old names.
 
-## Facade membership axes: samples first
+## Results: samples first
 
-| Family | Facade entry point | Facade result contract |
+| Family | Entry point | Result contract |
 | --- | --- | --- |
 | k-means | `fit_kmeans(X, init, ...)` | dict; labels `(N,)` |
 | FCM | `fit_fcm(X, n_clusters, ...)` | dict; membership `(N,K)` |
@@ -82,17 +62,17 @@ needs it. No global module aliases recreate old names.
 | SOM-OLP | `fit_som_olp(X, R, ...)` | dict; `V` `(N,latentD)`, `P` `(N,M)` |
 | Neighborhood quality | `joint_quality(X, Y, ks=..., ...)` | list of quality records |
 
-`N` means samples and `K` means clusters. In the new facade, every clustering
+`N` means samples and `K` means clusters. Every clustering
 membership matrix is sample-major. For RCM/ExRCM, both `.memberships` (float64)
 and `.upper_memberships` (bool) have shape `(N,K)`. `assign_rcm` still returns a
-2-tuple, now with both arrays `(N,K)`. Rows of normalized memberships sum to 1.
+2-tuple with both arrays `(N,K)`. Rows of normalized memberships sum to 1.
 
 FCM remains a dict with the singular key `["membership"]`. RMCM keeps its result
 object and plural `.memberships` field. Their container types and membership axes retain the sample-major convention.
-The corrections do not unify container types or field names. `PreparedSOM` and
-`PreparedRMCM` keep their public types; see the correction report for validation fixes.
+Container types and field names differ across algorithms. Use `PreparedSOM`
+and `PreparedRMCM` for repeated fits; construct `PreparedRMCM` with `prepare_rmcm`.
 
-The new RCM/ExRCM result is a thin attribute-forwarding adapter, not a
+The RCM/ExRCM result is a thin attribute-forwarding adapter, not a
 `rough_cmeans.RoughCMeansResult` or dataclass. All non-membership metadata
 (including centers, convergence/cycle information, initialization indices and
 backend) is forwarded without changing values. Other arrays retain their
@@ -103,35 +83,18 @@ still returns `None` for both membership fields. The private legacy result is
 retained so metadata is available; the copies add O(NK) time and storage
 (approximately 9NK bytes for float64 memberships plus bool upper memberships).
 
-The private RCM implementation retains `(K,N)` arrays and its original result
-type. Only the public facade adapts memberships; private paths are not a public
-legacy-compatibility promise. Retained dev5 artifacts are unchanged separately.
+## Supported environments
 
-The established public entrypoints and sample-major membership axes remain.
-See the companion correction report for the specific numerical and input-validation
-changes. The runtime archive does not include JavaScript, datasets, benchmarks,
-tests or logs.
+The installation constraints describe checked Linux x86-64 / CPython 3.12
+stacks. Other operating systems, architectures and Python versions, including
+the declared minimum, are not a tested support matrix. Existing acceleration
+measurements exclude the RCM/ExRCM membership-copy cost; they do not establish
+end-to-end API speedups.
 
-## Scope and release gates
-
-Local packaging tests are separate from numerical release approval. This private
-candidate has no public release authorization. Multi-OS/Python and browser
-checks, minimum dependency versions, final name/version policy, project license,
-final public API/dependency policy, and explicit publication approval remain open.
-The prior main-JavaScript FCM blocker is not a claim about this package or the
-final selected JavaScript candidate. This is a Python-only artifact.
-
-Declared minimum versions are resolver metadata, not a tested version matrix.
-See the companion integration report for the exact tested environment and
-passed, skipped, excluded, and unrun checks. Existing acceleration measurements
-did not include the facade transpose-copy cost; no end-to-end API speedup is
-claimed here.
-
-## ARI and AMI additions
+## ARI and AMI
 
 `ubukit.adjusted_rand_score`, `ubukit.adjusted_mutual_info_score`, and
-`ubukit.adjusted_scores` are lazy aliases of the unchanged functions in the
-private module `ubukit._impl.external_metrics`. The joint helper returns
+`ubukit.adjusted_scores` compare cluster labels. The joint helper returns
 `{"ari": ..., "ami": ...}`. AMI accepts `average_method="arithmetic"` (default),
 `"geometric"`, `"min"`, or `"max"`, and `backend="numpy"` (default) or `"numba"`.
 
@@ -142,63 +105,17 @@ cases call the installed scikit-learn implementation to preserve its numerical
 convention. These calls can be slower. Test-panel tolerance is not a universal
 error bound. Optional Numba is imported only when its path is needed.
 
-The formerly generic external-metrics modules now live under `ubukit._impl`.
-Their optional Numba import is relative. No unrelated top-level module can
-shadow those internal imports. The public facade still aliases the same scoring
-functions without numerical wrappers.
-
 Exact external-metrics attribution is in `NOTICE-EXTERNAL-METRICS.txt` and
 `THIRD_PARTY_LICENSES.txt`. References to `NOTICE.txt` within the unchanged BSD
 notice refer to the original external-metrics notice now supplied under that
-longer filename. Its `source_audit.json` is included in the verification
-companion, under `verification/external_provenance/`. No project license is
-chosen. Historical performance results are not new measurements of this wheel.
-
-## Inherited numerical qualification and installation example
-
-The inherited pre-migration private trial was checked on Linux x86_64 with CPython 3.12.14 only. Namespace-candidate checks are recorded in the separate migration report.
-All integration environments used NumPy 2.3.5, SciPy 1.17.0 and threadpoolctl
-3.6.0. Both scikit-learn 1.7.2 with optional Numba 0.63.1, and scikit-learn
-1.8.0 with optional Numba 0.67.0 were checked. No Windows/macOS, ARM, browser,
-or minimum-supported-version claim follows from these tests. Matching historical
-version numbers does not carry the old benchmark results over to this facade.
-
-From the extracted private verification bundle directory (containing `tools/`,
-`artifacts/`, `examples/` and `constraints-final-stack.txt`), run the following
-with Python 3.12 in a fresh environment. The preflight is read-only and is not a pip install hook. Stop on
-a blocked result; do not co-install or automatically uninstall another owner.
-
-```sh
-python3.12 -m venv .venv-ubukit-preview
-.venv-ubukit-preview/bin/python -I -B tools/check_install_environment.py
-.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl
-.venv-ubukit-preview/bin/python -I -B examples/all_methods.py
-# Optional Numba in this same isolated environment:
-.venv-ubukit-preview/bin/python -m pip install -c constraints-final-stack.txt 'artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl[numba]'
-.venv-ubukit-preview/bin/python -I -B examples/all_methods.py --with-numba
-```
-
-Install the local wheel with the supplied companion constraints for this private
-trial. They pin the tested stack rather than claiming all resolver outcomes
-were validated. The source archive includes this README; the example script,
-preflight, constraints and full verification harness are in the companion bundle.
+longer filename. No project-wide license has been selected.
 
 ## Core clustering and metric examples
 
-The following complete example is also `examples/all_methods.py`. It covers
-the seven original families, three ARI/AMI entrypoints, preparation helpers,
-and the public result/preparation types. `PreparedRMCM` is constructed with
-`prepare_rmcm`, as its API recommends. For traditional online/Batch SOM and optimization, see [SOM.md](SOM.md) and
-[OPTIMIZATION.md](OPTIMIZATION.md). Set optional Numba only when installed.
+Use these examples with the [installed package](#installation-boundary). The
+examples share the following data and imports:
 
 ```python
-"""Executable README examples for the private UbuKit preview.
-
-Run with the installed virtualenv: python -I -B examples/all_methods.py
-Add --with-numba only after installing this local wheel's [numba] extra.
-"""
-import json
-import sys
 import numpy as np
 import ubukit as uk
 
@@ -206,92 +123,88 @@ X = np.array([[0., 0.], [0., 1.], [1., 0.],
               [8., 8.], [8., 9.], [9., 8.]])
 centers = X[[0, 3]].copy()
 policy = uk.ExecutionPolicy(threads=1)
+```
 
-# Owned reusable data, via either constructor or convenience function.
-snapshot = uk.PreparedData(X)
-data = uk.prepare(X)
-assert isinstance(data, uk.PreparedData)
-np.testing.assert_array_equal(snapshot.X, data.X)
+### k-means and fuzzy c-means
 
-# k-means: labels (N,), centers (K,D).
-km = uk.fit_kmeans(data, centers, backend="numpy", max_iter=10, policy=policy)
-assert km["labels"].shape == (6,)
+```python
+km = uk.fit_kmeans(X, centers, backend="numpy", max_iter=10, policy=policy)
+print(km["labels"])                    # One cluster index per sample
 
-# Fuzzy c-means: the dict uses the singular key "membership", shape (N,K).
 fcm = uk.fit_fcm(X, 2, random_state=4, backend="scipy", max_iter=10, threads=1)
-fcm_reference = uk.fit_fcm_numpy(X, 2, random_state=4, max_iter=10, threads=1)
-assert fcm["membership"].shape == fcm_reference["membership"].shape == (6, 2)
+print(fcm["membership"])               # Shape (samples, clusters)
+```
 
-# Rough c-means and extended rough c-means: facade arrays are (N,K).
+`fit_fcm_numpy` exposes the NumPy reference entry point with the same membership
+shape. Use `uk.prepare(X)` or `uk.PreparedData(X)` for an owned, reusable data
+snapshot. Set optional Numba backends only when Numba is installed.
+
+### Rough clustering
+
+```python
 rcm = uk.fit_rcm(X, 2, init=centers, backend="numpy", max_iter=10)
 exrcm = uk.fit_exrcm(X, 2, init=centers, alpha=1.1, beta=0., p=1.,
                    backend="numpy", max_iter=10)
 membership, upper = uk.assign_rcm(X, rcm.centers, backend="numpy")
-assert membership.shape == upper.shape == exrcm.memberships.shape == (6, 2)
+print(rcm.memberships, exrcm.memberships)
+print(membership, upper)
 
-# Rough membership c-means: one-shot, NumPy reference, and prepared graph.
 rmcm = uk.fit_rmcm(X, 2, delta=1.5, init=centers, threads=1)
-rmcm_reference = uk.fit_rmcm_numpy(X, 2, delta=1.5, init=centers, threads=1)
-graph = uk.prepare_rmcm(X, delta=1.5)
-assert isinstance(graph, uk.PreparedRMCM)  # Use the factory, not private graph internals.
-rmcm_repeated = graph.fit(2, init=centers, threads=1)
-assert isinstance(rmcm, uk.RMCMResult)
-assert rmcm.memberships.shape == rmcm_reference.memberships.shape == rmcm_repeated.memberships.shape == (6, 2)
-
-# SOM-OLP: one-shot, explicit initialization/run, and reusable preparation.
-grid = np.array([[0., 0.], [0., 1.], [1., 0.], [1., 1.]])
-som = uk.fit_som_olp(X, grid, gamma=.1, lam=1., max_iters=3, policy=policy)
-W0, P0 = uk.initialize_som_olp(X, grid, lam=1., policy=policy)
-som_from_init = uk.run_som_olp(X, grid, W0, P0, gamma=.1, lam=1.,
-                              max_iters=3, policy=policy)
-prepared_som = uk.PreparedSOM(X, threads=1)
-som_repeated = prepared_som.fit(grid, gamma=.1, lam=1., max_iters=3)
-assert som["V"].shape == som_from_init["V"].shape == som_repeated["V"].shape == (6, 2)
-
-# Neighborhood quality: records contain trustworthiness and continuity.
-Q = np.random.default_rng(73).normal(size=(12, 3))
-quality = uk.joint_quality(Q, Q, ks=[1, 2], backend="numpy", policy=policy)
-assert all(q.trustworthiness == 1 and q.continuity == 1 for q in quality)
-
-# ARI, AMI, and a joint helper, all accepting raw label arrays.
-truth = np.array([0, 0, 0, 1, 1, 1])
-predicted = np.array([0, 0, 1, 1, 2, 2])
-ari = uk.adjusted_rand_score(truth, predicted)
-ami = uk.adjusted_mutual_info_score(truth, predicted, average_method="arithmetic")
-scores = uk.adjusted_scores(truth, predicted)
-assert scores == {"ari": ari, "ami": ami}
-for method in ["arithmetic", "geometric", "min", "max"]:
-    assert np.isfinite(uk.adjusted_mutual_info_score(truth, predicted, average_method=method))
-if "--with-numba" in sys.argv:
-    compiled = uk.adjusted_scores(truth, predicted, backend="numba")
-    np.testing.assert_allclose(list(compiled.values()), list(scores.values()), atol=1e-8, rtol=0)
-
-print(json.dumps({"status": "passed", "version": uk.__version__,
-                  "facade_exports": len(uk.__all__), "optional_numba_example": "--with-numba" in sys.argv,
-                  "ari": ari, "ami": ami}))
+print(rmcm.memberships)
 ```
 
-## Dependency safety boundary for this private correction
+`fit_rmcm_numpy` provides the NumPy reference entry point. To reuse an RMCM
+neighborhood graph, call `graph = uk.prepare_rmcm(X, delta=1.5)`, then
+`graph.fit(2, init=centers, threads=1)`. This factory returns `PreparedRMCM`;
+fits return `RMCMResult`.
+
+### Self-organizing maps
+
+```python
+online = uk.som(X, grid_shape=(4, 3), epochs=2, random_state=1)
+batch = uk.som_batch(X, grid_shape=(4, 3), epochs=2, random_state=1)
+print(online["embedding"], batch["embedding"])
+
+grid = np.array([[0., 0.], [0., 1.], [1., 0.], [1., 1.]])
+som_olp = uk.fit_som_olp(X, grid, gamma=.1, lam=1., max_iters=3, policy=policy)
+print(som_olp["V"])                    # Sample positions on the supplied grid
+```
+
+For explicit SOM-OLP initialization, use
+`W0, P0 = uk.initialize_som_olp(X, grid, lam=1., policy=policy)` and
+`uk.run_som_olp(X, grid, W0, P0, gamma=.1, lam=1., max_iters=3, policy=policy)`.
+For repeated fits, use `prepared = uk.PreparedSOM(X, threads=1)` and
+`prepared.fit(grid, gamma=.1, lam=1., max_iters=3)`.
+See [SOM.md](SOM.md) for online and batch schedules, state and result contracts.
+
+### Evaluation metrics
+
+```python
+quality = uk.joint_quality(X, som_olp["V"], ks=[1, 2], backend="numpy", policy=policy)
+for score in quality:
+    print(score.k, score.trustworthiness, score.continuity)
+
+truth = np.array([0, 0, 0, 1, 1, 1])
+predicted = np.array([0, 0, 1, 1, 2, 2])
+print(uk.adjusted_rand_score(truth, predicted))
+print(uk.adjusted_mutual_info_score(truth, predicted, average_method="arithmetic"))
+print(uk.adjusted_scores(truth, predicted))  # {"ari": ..., "ami": ...}
+```
+
+For parameter search, see [OPTIMIZATION.md](OPTIMIZATION.md). The complete
+[public-API check](../examples/python/all_methods.py) also covers the reference
+entry points, preparation helpers, result types and optional Numba.
+
+## Dependency compatibility
 
 Install with one of the supplied tested constraint files. They preserve the two
 verified stacks; the unconstrained declared minimum versions are not a support
 matrix. In particular, old scikit-learn releases without a NumPy upper bound can
-be combined by a resolver with incompatible NumPy 2.x. This correction does not
-silently change the historical support floor or cap NumPy below 2, which would
-discard the tested stacks. Choosing and testing a general dependency-support
-floor remains a release gate. Do not infer that a successful unconstrained
+be combined by a resolver with incompatible NumPy 2.x. A general dependency-support
+floor has not been validated. Do not infer that a successful unconstrained
 resolution establishes runtime compatibility.
 
-## Extreme-input acceptance
-
-The earlier dev2 centroid correction exposed a squared-distance-underflow
-rejection for an m=1000, D=128 fixture. The guarded finite-m implementation
-below now supports the original and row-zero-shift versions of that fixture on
-all five FCM backend selections. This supersedes the rejection-only policy; it
-is not a promise of universal float64 accuracy or an unchanged extreme-input
-trajectory. See the companion numerical report for verification and limits.
-
-### Guarded extreme-range FCM arithmetic
+## Extreme-range FCM
 
 The finite-m FCM equations and default membership-only stopping rule are
 unchanged. Ordinary `1.0001 <= m <= 32` runs retain the existing vectorized/compiled
@@ -350,27 +263,22 @@ information from an earlier call. The fallback uses more computation and O(NK)
 working memory; no extreme-path speedup is claimed. It does not supply arbitrary
 precision or promise identical results across all floating-point environments.
 
-Extreme-path trajectories are intentionally not bit-compatible with the prior
-rounded-membership implementation. Near-coincident centers can turn tiny center
-changes into large membership changes. The stabilization is not a guarantee
-that every final membership is closer to a fully arbitrary-precision trajectory;
-a 400-digit reference panel found improved centers but not uniformly improved
-membership accuracy. Returned-pair consistency in that reference fixture and full-trajectory
-accuracy are distinct checks. Membership/center consistency is not universal:
-restoring a large origin can round the published centers while U retains the
-working-coordinate update; the diagnostic flags this situation. See the repository preview numerical report and reference evidence.
+Near-coincident centers can turn tiny center changes into large membership
+changes. Stabilization does not guarantee that every membership is closer to an
+arbitrary-precision trajectory. Returned-pair consistency and full-trajectory
+accuracy are distinct: restoring a large origin can round the published centers
+while memberships retain the working-coordinate update. Inspect the diagnostics.
 
+The [SOM-OLP numerical limits](NUMERICAL_LIMITS.md) describe its exceptional-range
+contract. [Parameter optimization](OPTIMIZATION.md) uses only the standard
+library; importing that API does not load the scientific dependencies.
 
-## Combined private preview
-
-The earlier dev3 integration added the optional standard-library-only optimization API, which remains unchanged. See [OPTIMIZATION.md](OPTIMIZATION.md). The existing scientific dependencies are unchanged; importing the optimization facade does not require them. The bundled SOM exceptional-range contract is documented in [NUMERICAL_LIMITS.md](NUMERICAL_LIMITS.md).
-
-## Traditional SOM additions
+## Online SOM and BatchSOM
 
 Use `ubukit.som(X, epochs=10)` for online updates and
 `ubukit.som_batch(X, epochs=10)` for true frozen-BMU batch updates.
 Both default to a 16×16 rectangular map with arbitrary input dimension.
 Detailed API, examples, limits and sources: [SOM.md](SOM.md).
 
-This SOM addition was tested with NumPy 2.3.5, SciPy 1.17.0, scikit-learn 1.8.0,
-and threadpoolctl 3.7.0 without Numba. Use `constraints/constraints-som-verified.txt` from this `python/` directory. Earlier environment listings above describe inherited checks.
+The separately checked SOM stack uses NumPy 2.3.5, SciPy 1.17.0, scikit-learn 1.8.0,
+and threadpoolctl 3.7.0 without Numba. Use `constraints/constraints-som-verified.txt` from this `python/` directory. These constraints apply to that stack; they do not qualify every resolver outcome.

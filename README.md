@@ -48,7 +48,10 @@ Use ES modules in Node.js or the browser, with no runtime npm dependencies. See 
 - [Numerical contracts and limits](docs/numerics.md)
 - [Understanding performance](docs/performance.md)
 - [Examples](examples/README.md)
-- [Development and verification](docs/contributing.md)
+
+## Development
+
+See [development and verification](docs/contributing.md) for contributor instructions.
 
 ## License
 

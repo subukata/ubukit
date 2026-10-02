@@ -16,3 +16,7 @@ The GitHub workflow remains manual, one OS per approved dispatch, with an explic
 Historical test oracles that active suites import remain read-only references. Archive-only tests are older version-specific checks, independent research experiments, or duplicate legacy-root suites; their original bytes remain restorable. See the companion complete migration and test-inventory manifests before removing any active contract.
 
 No project-wide license is selected. Preserve all current third-party notices; source reorganizing does not grant publication rights.
+
+Migration notes, recorded debugging cases and earlier comparison results are
+retained in [preview development history](development-history.md). They describe
+their recorded snapshots and are not validation of a newly built artifact.
