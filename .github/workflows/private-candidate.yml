@@ -1,5 +1,5 @@
 # One explicitly selected OS per dispatch. Check results and quota between stages.
-name: Private candidate cross-platform validation
+name: Exact alpha cross-platform validation
 on:
   workflow_dispatch:
     inputs:
@@ -15,7 +15,7 @@ on:
         default: ''
         type: string
       candidate_sha:
-        description: Reviewed product-layout source SHA; blocked until candidate-policy.json selects it
+        description: Reviewed exact-alpha source SHA; blocked until candidate-policy.json selects it
         required: true
         default: ''
         type: string
@@ -67,7 +67,7 @@ jobs:
       - name: Verify exact source and build frozen artifacts once
         shell: bash
         run: |
-          python harness/tools/ci/scripts/verify_checkout.py candidate
+          python harness/tools/ci/scripts/exact_alpha.py verify candidate
           python -m pip install --no-cache-dir -r harness/tools/ci/constraints/build-tools.txt
           python -m pip freeze --all
           node --version
@@ -111,7 +111,7 @@ jobs:
       - name: Verify final source and current verification harness
         id: source
         shell: bash
-        run: python harness/tools/ci/scripts/verify_checkout.py candidate candidate-dist harness
+        run: python harness/tools/ci/scripts/exact_alpha.py verify candidate candidate-dist harness
       - name: Python clean wheel and sdist installations
         shell: bash
         run: |
