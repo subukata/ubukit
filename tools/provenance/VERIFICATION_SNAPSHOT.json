@@ -983,7 +983,7 @@
     },
     {
       "path": "javascript/validation/tests/legacy-clustering.test.js",
-      "sha256": "29e69ec7ae6400fb55bb76d30723197fd72c9007fac1184eb8d3e1ae5fa9a104"
+      "sha256": "be770cf02168dfb7f75ab73359948ab5f11b363b79c217768fb7575a9418359b"
     },
     {
       "path": "javascript/validation/tests/legacy-fcm-cache-round3.test.js",
@@ -1051,7 +1051,7 @@
     },
     {
       "path": "javascript/validation/tests/rmcm-clustering.test.js",
-      "sha256": "e8f585c075f6699138a4432411c480704bdc056d1eddc58d313607d4da026834"
+      "sha256": "722d1a9aebd0fa7c18646afe0a9a4722e44494c883534641c2b5fdb065d128d7"
     },
     {
       "path": "javascript/validation/tests/rmcm-complete-graph.test.js",
@@ -2019,7 +2019,7 @@
     },
     {
       "path": "python/verification/runtime_tests/facade/test_membership_axis.py",
-      "sha256": "dd00cf8620172ccc0c009e24a4bce3bdfbd3ebdb983e1c074c90f931d798edab"
+      "sha256": "1c02dd9476a0d7eceb81741b9a19470588d8734028a9968badf997cd7fb32670"
     },
     {
       "path": "python/verification/runtime_tests/fuzzy_extension/__init__.py",
@@ -2179,7 +2179,7 @@
     },
     {
       "path": "python/verification/test_membership_axis.py",
-      "sha256": "dd00cf8620172ccc0c009e24a4bce3bdfbd3ebdb983e1c074c90f931d798edab"
+      "sha256": "1c02dd9476a0d7eceb81741b9a19470588d8734028a9968badf997cd7fb32670"
     },
     {
       "path": "python/verification/test_preflight.py",
@@ -2235,7 +2235,7 @@
     },
     {
       "path": "tools/ci/candidate-policy.json",
-      "sha256": "564bb21dcbbbc5e8f69e022fbbd37fef96b0659574f80d0efd25dbea1c443d93"
+      "sha256": "61b6ecc5fe5464db487f7d67ba4cf6a2e2237f5eca7af11a275c935c1b2a7cb7"
     },
     {
       "path": "tools/ci/constraints/base-py312.txt",

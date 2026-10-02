@@ -35,7 +35,47 @@ class MembershipAxisTests(unittest.TestCase):
             self.assertIn(field.name, dir(actual))
 
     def test_export_identity_and_signatures(self):
-        self.assertEqual(len(ubukit.__all__), 38)
+        self.assertCountEqual(ubukit.__all__, [
+            'ExecutionPolicy',
+            'OptimizationResult',
+            'PreparedData',
+            'PreparedRMCM',
+            'PreparedSOM',
+            'ProposalError',
+            'RMCMResult',
+            'SOMState',
+            'SearchSpaceExhausted',
+            'TPEOptimizer',
+            'Trial',
+            'adjusted_mutual_info_score',
+            'adjusted_rand_score',
+            'adjusted_scores',
+            'assign_rcm',
+            'categorical',
+            'fit_entropy_fcm',
+            'fit_exrcm',
+            'fit_fcm',
+            'fit_fcm_numpy',
+            'fit_kmeans',
+            'fit_rcm',
+            'fit_rmcm',
+            'fit_rmcm_numpy',
+            'fit_som',
+            'fit_som_batch',
+            'fit_som_olp',
+            'float_range',
+            'initialize_som',
+            'initialize_som_batch',
+            'initialize_som_olp',
+            'int_range',
+            'joint_quality',
+            'optimize',
+            'prepare',
+            'prepare_rmcm',
+            'run_som_olp',
+            'som',
+            'som_batch',
+        ])
         self.assertEqual(set(ubukit._ADAPTED_EXPORTS), {"fit_rcm", "fit_exrcm", "assign_rcm"})
         for name, (module_name, attribute) in ubukit._EXPORTS.items():
             legacy = getattr(__import__('importlib').import_module(module_name, 'ubukit'), attribute)
