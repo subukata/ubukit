@@ -1,5 +1,6 @@
 import { validateSOM } from './som.js';
 import { needsStableFCM } from './fcm-stable.js';
+import { SESSION_FCM_STATE } from './session-hooks.js';
 import { normalizeInput, positiveInteger, finiteNumber, seededRandom, assertFinite } from './core.js';
 
 export const sessionAlgorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'rmcm', 'som-olp', 'som', 'som_batch']);
@@ -32,7 +33,7 @@ function nonnegativeInteger(value, name) {
   return value;
 }
 // Argument validation only. Numerical over/underflow may still fail while stepping.
-export function validateSession(algorithm, input, options) {
+export function validateSession(algorithm, input, options, warmFCM = null) {
   if (!sessionAlgorithms.includes(algorithm)) throw new RangeError(`Stateful fitting requires ${sessionAlgorithms.join(', ')}; neighborhood is a one-shot metric`);
   if (algorithm === 'som' || algorithm === 'som_batch') {
     const cfg = validateSOM(input, options, algorithm === 'som_batch');
@@ -124,7 +125,12 @@ export function validateSession(algorithm, input, options) {
     if (ArrayBuffer.isView(value)) optionBytes += value.byteLength;
     else if (value?.data && ArrayBuffer.isView(value.data)) optionBytes += value.data.byteLength;
   }
-  const stableFCM = algorithm === 'fcm' && needsStableFCM(x, options, options.m ?? 2);
+  // Match the actual warm kernel's initialization when selecting its memory
+  // estimate. Keep the configured options above for owned-storage accounting.
+  const executionOptions = algorithm === 'fcm' && warmFCM?.membership
+    ? { ...options, initCenters: undefined, initMembership: warmFCM.membership, [SESSION_FCM_STATE]: warmFCM[SESSION_FCM_STATE] }
+    : options;
+  const stableFCM = algorithm === 'fcm' && needsStableFCM(x, executionOptions, options.m ?? 2);
   const checkpointBytes = (algorithm === 'fcm' ? 8*n*k+8*n : 0) + 8 * k * d + 8 * n * k + 8 * n * q + 12 * n + 8 * maxIterations;
   const reserveBytes = 8 * n * d + optionBytes + checkpointBytes * 2;
   const kernelMemoryBytes = maxMemoryBytes - reserveBytes;

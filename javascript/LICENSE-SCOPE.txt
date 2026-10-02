@@ -2,29 +2,23 @@ UbuKit JavaScript license scope
 ==============================
 
 UbuKit's project-owned contributions are licensed under the MIT License in
-LICENSE, copyright (c) 2026 Seiki Ubukata.
+LICENSE, copyright (c) 2026 Seiki Ubukata. The project-developed WebAssembly
+kernels, including src/metric-wasm.js and its embedded binary, are included.
+Their source-preservation and reproducible-build records are maintained in the
+repository's wasm/ directory; reconstructed source remains labeled as such.
 
 The original SOM-OLP and corresponding derived code retain LICENSE-SOM.txt.
 Adapted scikit-learn compatibility expressions retain LICENSE-SCIKIT-LEARN.txt
 (BSD-3-Clause); NOTICE-EXTERNAL-METRICS.txt identifies their scope. These original
 notices are unchanged and are not replaced by the project MIT selection.
+The package's MIT AND BSD-3-Clause expression records these combined declared
+source terms; it does not relicense the BSD portions under MIT alone.
 
-Pending-origin component outside the project MIT grant
-------------------------------------------------------
-src/metric-wasm.js and its embedded WebAssembly binary, SHA-256
-b7b68848eecdca210e2bf13288c5313ee38d47bb315046c40ff143654cb61656,
-are excluded from this MIT grant while their original-source provenance is
-unresolved. The reconstructed WAT is not evidence of original authorship. No
-new redistribution permission for this component is asserted by this notice.
+Repository-only historical kernels, rebuild tools and dataset fixtures are
+outside the npm runtime file list. Historical project kernels use the project
+MIT terms. Tool dependencies and dataset sources retain their separate terms
+and notices if separately distributed.
 
-The npm license field therefore points to this scope file instead of declaring
-all shipped bytes MIT. This package remains private and unpublished. Its
-JavaScript distance path remains the default; that default does not physically
-remove the optional metric binary from the package.
-
-Repository-only historical RMCM evidence and dataset fixtures are outside the
-npm runtime file list. Their notices and any pending provenance exclusions
-remain applicable if separately distributed. No additional conditions restrict
-rights granted for MIT-covered material or under other applicable licenses.
-The private release workflow is an administrative status, not an extra license
-condition. This notice asserts no license grant for the pending component.
+No additional conditions restrict rights granted under the applicable licenses.
+The package remains private and unpublished; this is an administrative release
+status, not an extra license condition.

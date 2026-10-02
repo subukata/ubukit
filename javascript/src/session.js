@@ -159,12 +159,15 @@ export class ClusteringSession {
     const shapeChange = Object.hasOwn(patch, 'nClusters') && patch.nClusters !== this.#cfg.k || Object.hasOwn(patch, 'grid') || Object.hasOwn(patch, 'gridShape');
     if (shapeChange && !initialKeys.some(key => Object.hasOwn(patch, key))) clearInitial(options);
     if (Object.hasOwn(patch, 'lam') && !Object.hasOwn(patch, 'lambda')) delete options.lambda;
-    const cfg = validateSession(this.#algorithm, this.#input, options);
+    let cfg = validateSession(this.#algorithm, this.#input, options);
     const compatible = !shapeChange && cfg.k === this.#cfg.k && cfg.d === this.#cfg.d && cfg.q === this.#cfg.q;
     const source = this.#committed ?? this.#anchor;
     const warm = warmStart && compatible && !explicitInitial && source?.centers ? { centers: source.centers.slice(),
       ...(['fcm', 'som-olp'].includes(this.#algorithm) && source.membership ? { membership: source.membership.slice() } : {}) } : null;
     if (warm?.membership && source?.[SESSION_FCM_STATE]) warm[SESSION_FCM_STATE] = source[SESSION_FCM_STATE];
+    // Retained membership or log state can select the stable kernel even when
+    // the configured initialization would use the ordinary path.
+    if (this.#algorithm === 'fcm' && warm?.membership) cfg = validateSession(this.#algorithm, this.#input, options, warm);
     const graph = this.#prepared != null && graphKeys.every(key => options[key] === this.#options[key]);
     return this.#replace(this.#input, options, cfg, { warm, graph, kind: warm ? (warm.membership ? 'membership-and-centers' : 'centers') : 'cold', reason: shapeChange ? 'model-shape' : 'parameters' });
   }
@@ -175,7 +178,7 @@ export class ClusteringSession {
     if (!parameters || typeof parameters !== 'object' || Array.isArray(parameters)) throw new TypeError('parameters must be an object');
     if (typeof warmStart !== 'boolean') throw new TypeError('warmStart must be boolean');
     const next = ownedInput(input), options = cloneOwned(parameters);
-    const cfg = validateSession(this.#algorithm, next, options);
+    let cfg = validateSession(this.#algorithm, next, options);
     const sameData = next.nSamples === this.#input.nSamples && next.nFeatures === this.#input.nFeatures && sameArray(next.data, this.#input.data);
     const sameValue = (a, b) => a === b || ArrayBuffer.isView(a) && ArrayBuffer.isView(b) && sameArray(a, b);
     const initialChanged = [...initialKeys, 'seed', 'initializer', 'pcaScale'].some(key => !sameValue(options[key], this.#options[key]));
@@ -185,6 +188,7 @@ export class ClusteringSession {
     const warm = warmStart && compatible && !initialChanged && source?.centers ? { centers: source.centers.slice(),
       ...(sameData && ['fcm', 'som-olp'].includes(this.#algorithm) && source.membership ? { membership: source.membership.slice() } : {}) } : null;
     if (warm?.membership && source?.[SESSION_FCM_STATE]) warm[SESSION_FCM_STATE] = source[SESSION_FCM_STATE];
+    if (this.#algorithm === 'fcm' && warm?.membership) cfg = validateSession(this.#algorithm, next, options, warm);
     const graph = this.#prepared != null && sameData && graphKeys.every(key => options[key] === this.#options[key]);
     return this.#replace(next, options, cfg, { warm, graph, kind: warm ? (warm.membership ? 'membership-and-centers' : 'centers') : 'cold', reason: 'configure' });
   }

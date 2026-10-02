@@ -85,8 +85,9 @@ contracts. Prior validation passed 13 tests with Numba and six without it.
 The [WASM rebuild supplement](../../javascript/wasm/README.md) lives outside
 installed runtime files. Four current kernels rebuild from recovered original
 WAT; the metric kernel rebuilds from clearly labeled reconstructed WAT. Byte
-identity does not resolve original authorship or missing license provenance.
-Older RMCM source provenance is also unresolved. Pinned WABT metadata is retained;
+identity verifies reproducibility. The maintainer confirmed project development;
+[the source record](../../javascript/wasm/DEVELOPMENT.md) distinguishes preserved
+original WAT from the metric and historical RMCM reconstructions. Pinned WABT metadata is retained;
 no node_modules, compiler archive or compiled development payload is vendored.
 
 ## Reproduce checks and measurements

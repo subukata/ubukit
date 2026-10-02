@@ -5,7 +5,7 @@ Node.js and browsers, using ES modules and no runtime npm dependencies.
 
 The package is `private: true` and unpublished. Project contributions use the
 [MIT License](LICENSE); [license scope](LICENSE-SCOPE.txt) identifies third-party
-terms and the pending-origin metric WebAssembly (WASM) exclusion. See the
+terms. Project-developed WebAssembly (WASM) kernels are included. See the
 [build instructions](../docs/getting-started.md#javascript) to create a local tarball from source.
 
 ## Install locally

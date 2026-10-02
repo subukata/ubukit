@@ -148,17 +148,18 @@ The historical pre-Float32 RMCM and nearest-center modules receive ABI/byte chec
 not independent numerical qualification. The new check was run only in the
 recorded Node environment, not in browsers. No performance benchmark was run.
 
-## Provenance and licensing limits
+## Project development, source recovery and licensing
 
-Original-source provenance remains unresolved for the **metric kernel** and the
-**older pre-Float32 RMCM kernel**. Reconstructed WAT makes their machine code
-readable and reproducible; it does not turn it into recovered original source or
-resolve authorship and license questions.
+The maintainer confirmed on 2026-10-02 that these computational programs were
+developed within UbuKit with AI assistance. The project MIT selection includes
+the metric kernel and historical RMCM kernel. The missing original metric WAT
+and older standalone RMCM WAT remain source-preservation gaps, with explicitly
+labeled byte-exact reconstructions. See [DEVELOPMENT.md](DEVELOPMENT.md) for the
+development trail, source derivation and bounded local rebuild check.
 
-This supplement does not select a new project-wide license or grant new
-redistribution rights. Existing runtime notices and scoped licenses remain in
-[JavaScript package](..), including `NOTICE.txt`, `LICENSE-SOM.txt`,
-`NOTICE-EXTERNAL-METRICS.txt`, and `LICENSE-SCIKIT-LEARN.txt`. Maintainers must review
-those scopes and the unresolved provenance before making licensing or release
-claims. WABT's package license is recorded in the tool lockfile; it does not
-license the kernels themselves.
+Existing runtime notices and scoped licenses remain in the
+[JavaScript package](..), including `LICENSE`, `LICENSE-SCOPE.txt`,
+`LICENSE-SOM.txt`, `NOTICE-EXTERNAL-METRICS.txt`, and `LICENSE-SCIKIT-LEARN.txt`.
+They are not replaced by source reconstruction or the maintainer's clarification.
+WABT's package license is recorded in the tool lockfile; it licenses the build
+tool rather than the kernels. Public distribution still needs separate approval.
