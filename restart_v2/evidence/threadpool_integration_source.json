@@ -1,7 +1,0 @@
-{
-  "source": "som_candidate/threaded.py",
-  "source_sha256": "c2453c54dbcd680f196b13c9001770662bee87cf426a68c6d7883134bb9cee5b",
-  "target": "portable_accel/_backends/som_portable/threaded.py",
-  "adaptation": null,
-  "wrapper": "new policy adapter; primary scratch includes private and merged statistics plus per-worker row buffers"
-}
