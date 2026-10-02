@@ -46,6 +46,7 @@ for top in expected_tops:
     assert spec and spec.origin and Path(spec.origin).resolve().is_relative_to(site), top
 
 import numpy as np
+from threadpoolctl import threadpool_info
 x = np.array([[0., 0.], [1., 0.], [8., 8.], [9., 8.]])
 original = x.copy()
 w0 = x[[0, 3]].copy()
@@ -65,6 +66,7 @@ versions = {p: metadata.version(p) for p in
             ('numpy', 'scipy', 'scikit-learn', 'threadpoolctl') + (('numba', 'llvmlite') if with_numba else ())}
 print(json.dumps({'status': 'passed', 'distribution': name, 'version': dist.version,
                   'python': sys.version, 'platform': platform.platform(),
-                  'machine': platform.machine(), 'dependencies': versions,
+                  'machine': platform.machine(), 'processor': platform.processor(),
+                  'blas_libraries': threadpool_info(), 'dependencies': versions,
                   'runtime_files_verified': len(verified), 'owners': {x: providers[x] for x in sorted(expected_tops)},
                   'numba_installed': with_numba, 'numba_execution_checked_here': False}, indent=2))

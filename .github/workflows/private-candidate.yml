@@ -106,32 +106,38 @@ jobs:
           path: candidate-dist
           run-id: ${{ inputs.artifact_run_id || github.run_id }}
           github-token: ${{ github.token }}
-      - name: Verify final source
+      - name: Verify final source and current verification harness
+        id: source
         shell: bash
-        run: python harness/ci/release/scripts/verify_checkout.py candidate candidate-dist
+        run: python harness/ci/release/scripts/verify_checkout.py candidate candidate-dist harness
       - name: Python clean wheel and sdist installations
         shell: bash
         run: |
           extra=()
           if [ "$RUNNER_OS" = Linux ]; then extra+=(--full --include-large-sparse); fi
-          python harness/ci/release/scripts/python_clean_install.py --python-root candidate/preview/python --artifacts candidate-dist/python --constraints harness/ci/release/constraints/base-py312.txt --build-constraints harness/ci/release/constraints/build-tools.txt --output "$RUNNER_TEMP/python-result" "${extra[@]}"
+          python harness/ci/release/scripts/python_clean_install.py --python-root harness/preview/python --artifacts candidate-dist/python --constraints harness/ci/release/constraints/base-py312.txt --build-constraints harness/ci/release/constraints/build-tools.txt --output "$RUNNER_TEMP/python-result" "${extra[@]}"
       - name: JavaScript frozen tarball full suite
+        id: javascript
+        if: ${{ !cancelled() && steps.source.outcome == 'success' }}
         shell: bash
         run: python harness/ci/release/scripts/javascript_clean_install.py --javascript-root candidate/preview/javascript --frozen-artifacts candidate-dist/javascript --output "$RUNNER_TEMP/javascript-result"
       - name: Install locked browser test tools and engines
+        id: browser_tools
+        if: ${{ !cancelled() && steps.javascript.outcome == 'success' }}
         working-directory: harness/ci/release/browser
         shell: bash
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           node node_modules/playwright/cli.js install --with-deps chromium firefox webkit
       - name: Chromium Firefox WebKit normal and fallback cases
+        if: ${{ !cancelled() && steps.browser_tools.outcome == 'success' }}
         shell: bash
         run: node harness/ci/release/browser/run.mjs "$RUNNER_TEMP/javascript-result/candidate" "$RUNNER_TEMP/browser-results"
       - name: Collect bounded evidence
         id: evidence
         if: ${{ always() }}
         shell: bash
-        run: python harness/ci/release/scripts/collect_evidence.py --temp "$RUNNER_TEMP" --source candidate --output evidence
+        run: python harness/ci/release/scripts/collect_evidence.py --temp "$RUNNER_TEMP" --source harness --output evidence
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: ${{ always() && steps.evidence.outcome == 'success' }}
         with:

@@ -5,10 +5,10 @@
 - Repository: `subukata/ubukit` (private)
 - Source commit: `934b506cd6250e1e9b9ea5ce2a419330f29de487` (PR8 facade version correction included)
 - Python `0.0.0.dev5`; JavaScript `0.1.0-dev.6`
-- Only `.github/workflows/private-candidate.yml` and `ci/release/**` are proposed additions. No runtime files, publishing configuration, licenses, visibility, secrets, or billing settings change
+- The initial CI introduction added `.github/workflows/private-candidate.yml` and `ci/release/**`. The follow-up portability correction also updates `preview/python/verification/runtime_tests/som_kmeans_extension/test_scipy_blas.py` and its entry in `preview/VERIFICATION_SNAPSHOT.json`. No runtime files, frozen oracles, publishing configuration, licenses, visibility, secrets, or billing settings change
 - The owner approved private integration and staged execution on 2026-10-02. This workflow is manual-only; it never automatically starts the next OS stage
 
-The workflow checks out its own harness commit into `harness/` and this reviewed source commit into `candidate/`. This avoids requiring new CI files to exist in the historical source commit. The verifier fails closed on any other candidate SHA. Git's process-local `core.autocrlf=false` preserves byte hashes on Windows
+The workflow checks out its own harness/verification commit into `harness/` and the reviewed artifact source into `candidate/`. Python tests execute from the workflow-bound verification checkout, whose complete snapshots are verified and whose runtime SOURCE_SNAPSHOT must be byte-identical to the frozen candidate. This permits reviewed test-only portability corrections while reusing exactly the same wheel/sdist/tgz. Both checkout SHAs and the artifact source binding are verified. The artifact source verifier fails closed on any other candidate SHA. Git's process-local `core.autocrlf=false` preserves byte hashes on Windows
 
 ## Staged execution
 
@@ -57,3 +57,9 @@ Official references: [Actions billing](https://docs.github.com/en/billing/concep
 No native Safari, installed Chrome/Edge channels, Intel macOS, additional architectures, Python 3.10/3.11/3.13/3.14, Node 20/22/26, or optional Numba claims. WebKit is not Safari. No demo UI/visual/accessibility acceptance or every-algorithm browser suite is promised. Python's lower declared dependency bounds remain separate compatibility work. Full dependency reproducibility across OSes is not claimed: runtime pins and key build tools are constrained, while transitive/platform dependencies are resolved and captured in per-install freeze logs
 
 A CI pass is not publication or release approval. Licensing/provenance/public support claims remain their own release gates
+
+## Overflow portability correction and independent evidence
+
+The extreme overflow fixtures can reach either the public preflight rejection or the ordered-distance kernel rejection depending on OpenBLAS CPU dispatch. The public regression requires one of the two exact known safety messages and exact frozen-oracle/candidate parity for each fixture. A separate direct-kernel regression retains the exact ordered overflow message and explicitly checks an overflowing nonwinning center under default certification and forced unaudited fallback. Runtime code and frozen oracles are unchanged. Installed-package reports include processor/BLAS library information.
+
+After source verification succeeds, JavaScript and browser gates are independent of a Python test failure. A failed Python gate still fails the overall workflow; it no longer hides unrelated JavaScript/browser evidence. Source verification failure or cancellation prevents those gates.

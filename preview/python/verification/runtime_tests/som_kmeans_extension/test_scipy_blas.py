@@ -5,6 +5,12 @@ from .._support import portable_oracle as checkpoint, kmeans_reference as refere
 import numpy as np
 from unittest.mock import patch
 
+_REVIEWED_OVERFLOW_CASES = [
+ (1,3,4,'0x1.279a74590331cp+510'),
+ (32,129,256,'0x1.68a1f80d71812p+507'),
+ (32,784,64,'0x1.2492492492486p+506'),
+]
+
 class ScipyBlas(unittest.TestCase):
  def compare(self,X,C,iters=4,cap=32*2**20):
   funcs=[lambda:checkpoint.fit_kmeans(X,C,max_iter=iters,backend='numpy',finalize=False,policy=checkpoint.ExecutionPolicy(threads=1,max_scratch_bytes=max(cap,16*len(C)),block_rows=13)),lambda:candidate.fit_kmeans(X,C,max_iter=iters,backend='scipy_blas',finalize=False,policy=candidate.ExecutionPolicy(threads=1,max_scratch_bytes=cap,block_rows=13))]
@@ -52,11 +58,57 @@ class ScipyBlas(unittest.TestCase):
   self.assertEqual(after['centers'].dtype,np.dtype('float64'))
   for key in ['centers','labels','core_labels','n_iter']:np.testing.assert_array_equal(before[key],after[key])
  def test_reviewed_overflow_regressions(self):
-  for n,d,k,hexvalue in [(1,3,4,'0x1.279a74590331cp+510'),(32,129,256,'0x1.68a1f80d71812p+507'),(32,784,64,'0x1.2492492492486p+506')]:
+  known_errors = {
+   'squared distance range may overflow; rescale input',
+   'squared distances overflowed; rescale input',
+  }
+  for n,d,k,hexvalue in _REVIEWED_OVERFLOW_CASES:
    b=float.fromhex(hexvalue);X=np.full((n,d),b);C=np.zeros((k,d));C[1]=X[0]*.1;C[2]=X[0]*.2;C[-1]=-X[0]
-   for module,backend in [(checkpoint,'numpy'),(checkpoint,'scipy'),(candidate,'scipy_blas')]:
-    with self.assertRaisesRegex(ValueError,'squared distances overflowed'):
-     module.fit_kmeans(X,C,max_iter=1,finalize=False,backend=backend,policy=module.ExecutionPolicy(threads=1,block_rows=32))
+   expected_message = None
+   for name,module,backend in [('oracle',checkpoint,'numpy'),('oracle',checkpoint,'scipy'),('candidate',candidate,'scipy_blas')]:
+    with self.subTest(shape=(n,d,k), value=hexvalue, backend=f'{name}.{backend}'):
+     with np.errstate(over='ignore',invalid='ignore'), self.assertRaises(ValueError) as rejected:
+      module.fit_kmeans(X,C,max_iter=1,finalize=False,backend=backend,policy=module.ExecutionPolicy(threads=1,block_rows=32))
+     message = str(rejected.exception)
+     self.assertIn(message, known_errors)
+     if expected_message is None:
+      expected_message = message
+     else:
+      self.assertEqual(message, expected_message)
+
+ def test_reviewed_nonwinning_overflow_kernel_guards(self):
+  from importlib import import_module
+  from portable_accel._backends import blas_certificate, kmeans_scipy_blas
+  oracle_core = import_module(checkpoint.__name__ + '._kmeans_lagged')
+  for n,d,k,hexvalue in _REVIEWED_OVERFLOW_CASES:
+   b=float.fromhex(hexvalue);X=np.full((n,d),b);C=np.zeros((k,d));C[1]=X[0]*.1;C[2]=X[0]*.2;C[-1]=-X[0]
+   with self.subTest(shape=(n,d,k), value=hexvalue, backend='ordered-distance-fixture'):
+    distances = np.zeros((n,k))
+    with np.errstate(over='ignore',invalid='ignore'):
+     for feature in range(d):
+      distances += np.square(X[:,feature,None] - C[None,:,feature])
+    self.assertTrue(np.isfinite(distances[:,:-1]).all())
+    self.assertTrue(np.isposinf(distances[:,-1]).all())
+   for backend,kernel in [('oracle.numpy',oracle_core._numpy_lloyd),('oracle.scipy',oracle_core._scipy_lloyd)]:
+    with self.subTest(shape=(n,d,k), value=hexvalue, backend=backend):
+     policy = checkpoint.ExecutionPolicy(threads=1,block_rows=32)
+     with policy.activate(), np.errstate(over='ignore',invalid='ignore'), self.assertRaises(ValueError) as rejected:
+      kernel(X,C,1,policy)
+     self.assertEqual(str(rejected.exception), 'squared distances overflowed; rescale input')
+   policy = candidate.ExecutionPolicy(threads=1,block_rows=32)
+   with self.subTest(shape=(n,d,k), value=hexvalue, backend='candidate.scipy_blas.default'):
+    certificate_expected = blas_certificate._blas_certificate_supported(X,C)
+    with patch.object(kmeans_scipy_blas,'_distance_bounds',wraps=kmeans_scipy_blas._distance_bounds) as bounds:
+     with policy.activate(), np.errstate(over='ignore',invalid='ignore'), self.assertRaises(ValueError) as rejected:
+      kmeans_scipy_blas.run(X,C,1,policy)
+     self.assertEqual(str(rejected.exception), 'squared distances overflowed; rescale input')
+     self.assertEqual(bool(bounds.call_count), certificate_expected)
+   with self.subTest(shape=(n,d,k), value=hexvalue, backend='candidate.scipy_blas.unknown_build'):
+    with patch.object(blas_certificate,'_BLAS_CERTIFICATE_BUILD',False), patch.object(kmeans_scipy_blas,'_distance_bounds',wraps=kmeans_scipy_blas._distance_bounds) as bounds:
+     with policy.activate(), np.errstate(over='ignore',invalid='ignore'), self.assertRaises(ValueError) as rejected:
+      kmeans_scipy_blas.run(X,C,1,policy)
+     self.assertEqual(str(rejected.exception), 'squared distances overflowed; rescale input')
+     bounds.assert_not_called()
  def test_eligible_route_is_exercised_and_unknown_build_falls_back(self):
   from portable_accel._backends import blas_certificate
   rng=np.random.default_rng(981);X=np.ascontiguousarray(rng.normal(size=(256,784)));C=X[:16].copy()
