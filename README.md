@@ -4,14 +4,14 @@
 
 # UbuKit
 
-Python / JavaScriptで使える、クラスタリング・SOM・評価指標・軽量パラメータ探索のライブラリです。
+A Python and JavaScript library for clustering, self-organizing maps, evaluation metrics, and lightweight parameter search.
 
-- クラスタリング: k-means、FCM、RCM / ExRCM、RMCM
-- SOM: オンラインSOM、BatchSOM、SOM-OLP
-- 評価: Trustworthiness / Continuity、ARI / AMI
-- パラメータ探索: TPE / random search
+- **Clustering:** k-means, fuzzy c-means (FCM), RCM / ExRCM, and RMCM
+- **Self-organizing maps:** online SOM, BatchSOM, and SOM-OLP
+- **Evaluation:** trustworthiness, continuity, adjusted Rand index (ARI), and adjusted mutual information (AMI)
+- **Parameter search:** TPE and random search
 
-現在はprivate previewです。PyPI / npmには未公開です。[導入手順](docs/getting-started.md)に従い、ローカル配布物から利用してください。
+UbuKit is a pre-release preview and is not yet published to PyPI or npm. Follow [getting started](docs/getting-started.md) to build and install the packages locally.
 
 ## Python
 
@@ -27,7 +27,7 @@ som = ubukit.som_batch(X, grid_shape=(4, 3), epochs=2, random_state=1)
 print(som["embedding"])
 ```
 
-公開APIは `import ubukit` にまとまっています。[Python API](python/README.md)
+Use `import ubukit` for the public Python API. See the [Python reference](python/README.md) for inputs, result shapes, and optional backends.
 
 ## JavaScript
 
@@ -39,18 +39,17 @@ const result = run('kmeans', X, { nClusters: 2, seed: 1, maxIterations: 20 });
 console.log(result.labels);
 ```
 
-Node.jsとブラウザのES Modulesに対応。ランタイム依存はありません。[JavaScript API](javascript/README.md)
+Use ES modules in Node.js or the browser, with no runtime npm dependencies. See the [JavaScript reference](javascript/README.md) for data layouts, sessions, and Workers.
 
-## ガイド
+## Guides
 
-- [導入・ビルド](docs/getting-started.md)
-- [API一覧と選び方](docs/api.md)
-- [数値計算の制約](docs/numerics.md)
-- [性能の読み方](docs/performance.md)
-- [開発・検証](docs/contributing.md)
-- [サンプル](examples/README.md)
+- [Getting started](docs/getting-started.md)
+- [Choosing an API](docs/api.md)
+- [Numerical contracts and limits](docs/numerics.md)
+- [Understanding performance](docs/performance.md)
+- [Examples](examples/README.md)
+- [Development and verification](docs/contributing.md)
 
-Pythonの実装は `python/src/ubukit/`、JavaScriptの実装は `javascript/src/` にあります。
-旧研究コード・過去の計測結果は、コミットに紐づく完全保存版から復元できます。[構成変更と保存方針](docs/repository-layout.md)
+## License
 
-プロジェクト全体のライセンスは未選定です。各パッケージの第三者ライセンス・NOTICEは保持しています。
+A project-wide license has not yet been selected. The packages retain their applicable third-party licenses and notices.

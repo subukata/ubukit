@@ -1,10 +1,15 @@
-# 性能
+# Understanding performance
 
-性能はデータ形状、バックエンド、初期化、スレッド数、ウォームアップ、JIT、WASMの利用可否で変わります。小さなsmoke結果を一般的な速度保証や品質比較として扱わないでください。
+Runtime depends on data shape, backend, initialization, thread count, warmup, JIT compilation, and WASM availability. A small smoke test does not establish a general speed or quality guarantee.
 
-- [既存の効率化調査](performance/EFFICIENCY.md)
-- [探索性能の調査](performance/OPTIMIZATION_PERFORMANCE_JA.md)
-- [失敗例と制限](performance/HPO_FINDINGS_JA.md)
-- [再実行用スクリプト](../benchmarks/README.md)
+When comparing implementations:
 
-調査文書は記載された旧バージョン・環境の観測です。今回の外側のディレクトリ変更は新しい性能計測ではありません。過去の成果を新しいビルドに転記して検証済みとは扱いません。
+- Use the same data, parameters, initialization, and stopping criteria
+- Record the runtime, hardware, thread count, and selected backend
+- Separate cold startup and compilation from warmed execution
+- Compare output quality as well as elapsed time
+- Account for data preparation, result copies, and Worker communication when measuring an application
+
+Numerical recovery paths can be slower on extreme inputs. Read the [numerical contracts and limits](numerics.md) before interpreting timing differences.
+
+The [benchmark guide](../benchmarks/README.md) describes the available manual drivers. Historical investigations are kept in a separate [research archive](performance/README.md); their measurements apply to the recorded versions and environments, not automatically to a new build.

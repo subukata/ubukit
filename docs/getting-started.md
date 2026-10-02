@@ -1,6 +1,8 @@
-# 導入
+# Getting started
 
-private previewのため、PyPI / npmからの一般公開パッケージ導入はまだできません。以下はリポジトリのルートで実行します。Pythonは3.10以上を宣言し、ローカル検証はLinux / Python 3.12です。Node.jsは20以上です。
+UbuKit is a pre-release preview. Packages are not yet available from PyPI or npm; build them from a repository checkout or use a supplied local artifact.
+
+Run the commands below from the repository root. The Python package declares Python 3.10 or later; the installation steps use the locally checked Linux / Python 3.12 stack. JavaScript requires Node.js 20 or later. Declared requirements do not imply that every version or platform has been tested.
 
 ## Python
 
@@ -13,8 +15,9 @@ python3.12 -m venv .venv
 .venv/bin/python -m pip install -c python/constraints/constraints-namespace-verified.txt python/artifacts/*.whl
 ```
 
-Windowsでは仮想環境の `bin/python` を `Scripts/python.exe` に読み替えてください。配布済みwheelがあればビルドは不要です。古いpreviewが入った環境へ上書きせず、新しい仮想環境を使ってください。
-Numbaは任意です。同じwheelの `[numba]` extraと [検証済み制約](../python/constraints/constraints-final-stack.txt)を指定してください。
+On Windows, replace a virtual environment's `bin/python` with `Scripts/python.exe`. If you already have a built wheel, skip the build steps. Use a fresh virtual environment rather than overwriting an older preview, and stop if the environment check reports a conflict.
+
+Numba is optional. To enable it, install the same wheel with its `[numba]` extra and the [tested dependency constraints](../python/constraints/constraints-final-stack.txt).
 
 ## JavaScript
 
@@ -26,6 +29,11 @@ cd ..
 npm install --offline --ignore-scripts ./javascript/artifacts/ubukit-js-0.1.0-dev.6.tgz
 ```
 
-ブラウザでは `javascript/src/index.js` をHTTP経由でimportできます。[実在するブラウザ例](../examples/README.md)は同梱ソースを直接参照します。WorkerはHTTP(S)で提供してください。
+For browser use, serve `javascript/src/index.js` over HTTP and import it as an ES module. The [browser example](../examples/README.md) imports the bundled source directly. Serve Worker modules over HTTP(S).
 
-[Python API](../python/README.md) / [JavaScript API](../javascript/README.md) / [README](../README.md)
+## Next steps
+
+- [Python API and examples](../python/README.md)
+- [JavaScript API and examples](../javascript/README.md)
+- [Choosing an API](api.md)
+- [Repository overview](../README.md)
