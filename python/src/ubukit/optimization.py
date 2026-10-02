@@ -615,10 +615,16 @@ class TPEOptimizer:
             raise ValueError("params must contain exactly the search-space parameter names")
         canonical = {}
         for d in self._domains:
-            encoded = d.encode(params[d.name])
-            # Do not re-round continuous imported values through log/exp.
-            canonical[d.name] = (d.choices[encoded] if d.kind == "categorical" else
-                                 int(params[d.name]) if d.kind == "int" else float(params[d.name]))
+            raw = params[d.name]
+            if d.kind == "categorical":
+                canonical[d.name] = d.choices[d.encode(raw)]
+            else:
+                # Capture/canonicalize once, then validate the exact stored scalar.
+                value_for_domain = (_integer(raw, d.name, -_MAX_SAFE) if d.kind == "int"
+                                    else _number(raw, d.name))
+                d.encode(value_for_domain)
+                # Do not re-round continuous imported values through log/exp.
+                canonical[d.name] = value_for_domain
         if state not in ("complete", "fail", "cancelled"):
             raise ValueError("state must be complete, fail, or cancelled")
         if error is not None and not isinstance(error, str):
@@ -629,9 +635,10 @@ class TPEOptimizer:
                 raise ValueError("a complete trial cannot contain an error")
         elif value is not None:
             raise ValueError("failed/cancelled trials cannot have an objective value")
+        key = self._key(canonical)
         trial = Trial(len(self._trials), canonical, state, value, error)
         self._trials.append(trial)
-        self._seen.add(self._key(canonical))
+        self._seen.add(key)
         if state == "complete":
             self._completed.append(trial)
             self._models = None

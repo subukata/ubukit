@@ -1,6 +1,6 @@
 {
   "schema_version": 5,
-  "purpose": "Private JS dev6 safety candidate including classic-SOM updates, metric-scheduler storage accounting and retained FCM warm-state preflight; no public release",
+  "purpose": "Private JS dev6 safety candidate including classic-SOM updates, metric-scheduler storage accounting and retained FCM warm-state preflight, plus guarded dense-label encoding; no public release",
   "version": "0.1.0-dev.6",
   "runtime_files": {
     "src/clustering.js": {
@@ -154,9 +154,10 @@
     },
     "src/external-metrics.js": {
       "baseline_sha256": null,
-      "sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
+      "sha256": "97e57a54e7f09e814959fd7b8dafc1f188a3eae43a7b2cbf83628c84d40c6e93",
       "pre_som_dev4_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
-      "pre_efficiency_dev5_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
+      "pre_efficiency_dev5_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37",
+      "pre_dense_label_encoding_sha256": "8a0235400c287216af0e133be8dda72bb2a5eb653ef9a8f657ff9047834d1a37"
     },
     "src/som.js": {
       "baseline_sha256": null,

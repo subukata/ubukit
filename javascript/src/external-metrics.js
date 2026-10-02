@@ -26,8 +26,46 @@ function validateArray(labels, name) {
   if (!Number.isSafeInteger(labels.length) || labels.length > 0xffffffff) throw new RangeError(`${name} exceeds the supported length`);
 }
 
+function encodeDenseInt32(labels, name, n) {
+  const codes = new Uint32Array(n), counts = [], limit = Math.min(n, 65_536);
+  let dense = null, ids = null, kind;
+  for (let i = 0; i < n; ++i) {
+    const label = labels[i], type = typeof label;
+    if (type !== 'string' && (type !== 'number' || !Number.isSafeInteger(label))) throw new TypeError(`${name}[${i}] must be a string or safe integer`);
+    if (kind === undefined) kind = type;
+    else if (kind !== type) throw new TypeError(`${name} must not mix string and integer labels`);
+    if (i === 0) {
+      if (type === 'number' && label >= 0 && label < limit) dense = new Uint32Array(limit);
+      else ids = new Map();
+    }
+    if (dense !== null) {
+      if (label >= 0 && label < limit) {
+        let id = dense[label];
+        if (id === 0) { id = counts.length + 1; dense[label] = id; counts.push(0); }
+        codes[i] = id - 1; ++counts[id - 1];
+        continue;
+      }
+      // Preserve assigned IDs and counts without rereading any input labels.
+      ids = new Map();
+      for (let value = 0; value < limit; ++value) {
+        const id = dense[value];
+        if (id !== 0) ids.set(value, id - 1);
+      }
+      dense = null;
+    }
+    let id = ids.get(label);
+    if (id === undefined) { id = counts.length; ids.set(label, id); counts.push(0); }
+    codes[i] = id; ++counts[id];
+  }
+  return { codes, counts };
+}
+
 function encode(labels, name) {
-  const n = labels.length, codes = new Uint32Array(n), counts = [], ids = new Map();
+  const n = labels.length;
+  // Common clustering outputs are bounded nonnegative Int32 labels. Other
+  // inputs retain the generic path; large/negative labels use Map fallback.
+  if (Number.isSafeInteger(n) && n >= 256 && ArrayBuffer.isView(labels) && Object.getPrototypeOf(labels) === Int32Array.prototype) return encodeDenseInt32(labels, name, n);
+  const codes = new Uint32Array(n), counts = [], ids = new Map();
   let kind;
   for (let i = 0; i < n; ++i) {
     const label = labels[i], type = typeof label;

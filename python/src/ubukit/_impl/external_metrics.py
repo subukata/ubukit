@@ -128,6 +128,14 @@ def _mi(n, a, b, rows, cols, counts):
 def _margin_pairs(a, b):
     av, ac = np.unique(a, return_counts=True)
     bv, bc = np.unique(b, return_counts=True)
+    # With one distinct size, the unordered pairs are already unique and
+    # lexicographically ordered. Preserve the general path for empty inputs.
+    # Mixed/private dtypes retain general promotion and grouping behavior.
+    if av.dtype == bv.dtype and av.dtype.kind in "iu":
+        if av.size == 1 and bv.size:
+            return np.column_stack((np.minimum(av[0], bv), np.maximum(av[0], bv), ac[0] * bc))
+        if bv.size == 1 and av.size:
+            return np.column_stack((np.minimum(av, bv[0]), np.maximum(av, bv[0]), ac * bc[0]))
     # E_ij depends only on the unordered pair of marginal sizes. Aggregate
     # multiplicities in integers; this is within-call compression, not a cache.
     left = np.repeat(av, len(bv))
