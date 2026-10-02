@@ -92,7 +92,7 @@ for kind, artifact in [('wheel', wheel[0]), ('sdist', sdist[0])]:
     # The backend contract's default is repository source. Select the installed
     # copy explicitly; its deliberate drift tests still use disposable fixtures.
     focused = [root/'tests',root/'verification/test_membership_axis.py',root/'verification/test_preflight.py']
-    run(kind+'-focused', [python,'-I','-B','-m','pytest','--import-mode=importlib','-p','no:cacheprovider',
+    run(kind+'-focused', [python,'-I','-B','-m','pytest','--rootdir='+str(root),'--import-mode=importlib','-p','no:cacheprovider',
                          '-q','-ra',*focused,'--junitxml='+str(out/(kind+'-focused.xml'))],
         {'UBUKIT_SOURCE_ROOT': site_packages})
     run(kind+'-high-precision', [python,'-I','-B',root/'tools/check_high_precision.py'])
@@ -109,7 +109,7 @@ for kind, artifact in [('wheel', wheel[0]), ('sdist', sdist[0])]:
             if a.with_numba: argv.append('--with-numba')
             if a.include_large_sparse and suite == 'runtime_tests': argv.append('--include-large-sparse')
             run(kind+'-'+suite, argv)
-        run('new-tests', [python,'-I','-B','-m','pytest','--import-mode=importlib','-p','no:cacheprovider',
+        run('new-tests', [python,'-I','-B','-m','pytest','--rootdir='+str(root),'--import-mode=importlib','-p','no:cacheprovider',
                          '-q','-ra',root/'verification/new_tests','--junitxml='+str(out/'new-tests.xml')])
 summary={'status':'passed','full_wheel_regression':a.full,'numba':a.with_numba,
                   'sdist_scope':'fresh install, ownership/hash, current focused suite, 113 oracle cases, facade API, examples',
