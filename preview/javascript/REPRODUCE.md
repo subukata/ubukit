@@ -1,7 +1,7 @@
-# Reproduce the JavaScript dev4 external-metrics candidate
+# Reproduce JavaScript dev5 SOM and external metrics
 
-This repository snapshot pairs JavaScript `0.1.0-dev.4` with unchanged Python
-`0.0.0.dev3`. Runtime dependencies added: zero. The source is a private preview;
+This repository snapshot pairs JavaScript `0.1.0-dev.5` with Python
+`0.0.0.dev4`. Both add traditional SOM; the external-metric runtime is unchanged. Runtime dependencies added: zero. The source is a private preview;
 no npm/PyPI publication or deployment is implied. For both languages, start with
 [the aggregate replay instructions](../REPRODUCE.md).
 
@@ -14,16 +14,18 @@ mkdir -p artifacts
 cd package
 npm pack --ignore-scripts --pack-destination ../artifacts
 cd ../consumer
-npm install --ignore-scripts --no-audit --no-fund ../artifacts/ubukit-js-0.1.0-dev.4.tgz
+npm install --ignore-scripts --no-audit --no-fund ../artifacts/ubukit-js-0.1.0-dev.5.tgz
 cd ..
 node --test --test-concurrency=1 tests/*.test.mjs consumer/tests/*.test.mjs validation/tests/*.js validation/tests/*.mjs
 UBUKIT_AUDIT_SOURCE=../consumer/node_modules/ubukit-js/src/external-metrics.js node audit/audit-numerics.mjs
+node tools/check-package-docs.mjs
 node --experimental-vm-modules tests/runtime-compatibility.mjs
+node --experimental-vm-modules tests/som-browser-compatibility.mjs
 ```
 
 Use a clean consumer without an old node_modules or package-lock.json for a
 fresh replay. All candidate test imports resolve to a real installed tarball copy. The package
-manifest verifies all 25 runtime hashes. The complete regression suite has 890
+manifest verifies all 26 runtime hashes. The complete regression suite has 945
 tests; the independent numerical audit is separate and contains thousands of
 scalar, joint, invariance, domain and synthetic-count checks.
 
@@ -61,7 +63,7 @@ The generator also runs its sklearn-conditioning panel.
 regenerates the additional sklearn/real-dataset panel. These are development-only
 requirements; they are not JavaScript package dependencies.
 
-## Timing
+## Historical external-metric timing (dev4 / Python dev3)
 
 Set `PYTHON_18` to the absolute path of a Python interpreter with scikit-learn
 1.8.0. Set `PYTHON_DEV3` to the absolute path of a separate environment with the
@@ -76,7 +78,7 @@ node bench/run-node.mjs
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 "$PYTHON_18" -I -B bench/run-sklearn.py
 ```
 
-For the current matched N=10,000/K=50 panel, use the installed Python dev3
+For the recorded matched N=10,000/K=50 panel, use the installed Python dev3
 environment containing scikit-learn 1.8.0, NumPy and Numba. Its Python distribution
 and RECORD ownership/hash are checked by the harness:
 
@@ -101,6 +103,18 @@ hypergeometric expectation for every cluster pair. It avoids deliberately slow
 quadratic pair-label enumeration. It does not compress repeated marginal sizes
 or use BigInt ARI products. Its code and exact timing inputs are included.
 
+## Traditional SOM references and timing
+
+The new tests cover online sample updates, true frozen-BMU batch epochs, sessions,
+projection, ownership, schedule endpoints and exceptional arithmetic. A clean VM
+and real Node workers are separate runtime checks, not actual browser evidence.
+
+`tools/generate-som-reference.py` rebuilds the ten-case shared scalar fixture
+using the Python standard library. `bench/som-bounded.mjs` reruns the traditional
+SOM bounded panel and overwrites `reports/som-bounded-benchmark.json`. Run either
+only in a throwaway checkout and compare without rewriting frozen evidence.
+The measurement scope is documented in [../SOM_ADDITION.md](../SOM_ADDITION.md).
+
 ## Repository integrity and layout
 
 The current production package is `package/`, with tests and numerical evidence
@@ -109,10 +123,11 @@ generated archives are ignored and are not tracked. No standalone patch file or
 external integration manifest is required to reconstruct this repository tree.
 
 From the repository root, run `python3.12 preview/tools/verify_snapshot.py` on a
-clean checkout to verify 60 Python and 25 JavaScript runtime hashes plus the
+clean checkout to verify 61 Python and 26 JavaScript runtime hashes plus the
 committed verification snapshot. Replaying tests can rewrite result JSON, so
 preserve or restore committed evidence before repeating that integrity check.
 
-Do not transplant only `index.js`: the new runtime file, export map, package file
-list and BSD notice must travel together. Python's version remains dev3.
+Do not transplant only `index.js`: the SOM runtime, session validation, session
+implementation, shared PCA export, package metadata and manifest must travel
+together. Preserve the external-metric file, export map and BSD notice as well.
 The current aggregate scope is documented in [../VERIFICATION.md](../VERIFICATION.md).

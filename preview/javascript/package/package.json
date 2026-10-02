@@ -1,6 +1,6 @@
 {
   "name": "ubukit-js",
-  "version": "0.1.0-dev.4",
+  "version": "0.1.0-dev.5",
   "private": true,
   "description": "Zero-dependency Float64Array CPU clustering, stateful sessions and neighborhood evaluation for browsers and Node",
   "type": "module",
@@ -50,6 +50,8 @@
     "src/external-metrics.js",
     "EXTERNAL_METRICS.md",
     "NOTICE-EXTERNAL-METRICS.txt",
-    "LICENSE-SCIKIT-LEARN.txt"
+    "LICENSE-SCIKIT-LEARN.txt",
+    "src/som.js",
+    "SOM.md"
   ]
 }

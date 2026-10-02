@@ -1,4 +1,4 @@
-# Final dev3 installed-only verification
+# Current dev4 installed-only verification
 
 Candidate imports resolve to installed site-packages, with RECORD ownership and
 hash checks. Frozen baseline/oracle modules remain local test-only references.

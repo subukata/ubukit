@@ -1,7 +1,8 @@
+import { validateSOM } from './som.js';
 import { needsStableFCM } from './fcm-stable.js';
 import { normalizeInput, positiveInteger, finiteNumber, seededRandom, assertFinite } from './core.js';
 
-export const sessionAlgorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'rmcm', 'som-olp']);
+export const sessionAlgorithms = Object.freeze(['kmeans', 'fcm', 'rcm', 'exrcm', 'rmcm', 'som-olp', 'som', 'som_batch']);
 export function cloneOwned(value, seen = new Map()) {
   if (value == null || typeof value !== 'object') return value;
   if (seen.has(value)) return seen.get(value);
@@ -33,6 +34,15 @@ function nonnegativeInteger(value, name) {
 // Argument validation only. Numerical over/underflow may still fail while stepping.
 export function validateSession(algorithm, input, options) {
   if (!sessionAlgorithms.includes(algorithm)) throw new RangeError(`Stateful fitting requires ${sessionAlgorithms.join(', ')}; neighborhood is a one-shot metric`);
+  if (algorithm === 'som' || algorithm === 'som_batch') {
+    const cfg = validateSOM(input, options, algorithm === 'som_batch');
+    let optionBytes = 0;
+    for (const value of Object.values(options)) if (ArrayBuffer.isView(value)) optionBytes += value.byteLength;
+    const reserveBytes = 8 * cfg.n * cfg.d + optionBytes + 2 * (8 * cfg.k * cfg.d + 20 * cfg.n);
+    const kernelMemoryBytes = cfg.maxMemoryBytes - reserveBytes;
+    if (!Number.isSafeInteger(reserveBytes) || cfg.estimatedPrimaryBytes > kernelMemoryBytes) throw new RangeError('Session owned input and checkpoint state exceed maxMemoryBytes');
+    return { ...cfg, reserveBytes, kernelMemoryBytes };
+  }
   const x = normalizeInput(input), n = x.nSamples, d = x.nFeatures;
   seededRandom(options.seed ?? 0);
   positiveInteger(options.blockRows ?? (algorithm === 'som-olp' || algorithm === 'rmcm' ? 128 : 512), 'blockRows');

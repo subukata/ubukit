@@ -1,20 +1,22 @@
-# UbuKit JavaScript: dev4 private preview
+# UbuKit JavaScript: dev5 private preview
 
 This repository snapshot contains the reviewed JavaScript candidate
-`0.1.0-dev.4`, with 25 runtime files and seven package entrypoints. It includes
+`0.1.0-dev.5`, with 26 runtime files, seven package entrypoints and nine
+algorithm/metric registry names. It includes
 FCM/SOM extreme-range repairs, snapshot ownership and session validation fixes,
-optional lightweight TPE/random optimization, and ARI/AMI external metrics. SOURCE_MANIFEST.json binds
+optional lightweight TPE/random optimization, ARI/AMI external metrics, and
+traditional online SOM plus true BatchSOM. SOURCE_MANIFEST.json binds
 the current runtime files to SHA-256 hashes.
 
 The package remains `private: true` and unpublished. No project-wide license
-has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See the repository's
-preview/REPRODUCE.md to build and test from source. The earlier research trees
+has been selected; retain NOTICE.txt and LICENSE-SOM.txt. See the repository
+`preview/REPRODUCE.md` to build and test from source. The earlier research trees
 in the repository are historical, not this package's current implementation.
 
 ## Install locally
 
 ```sh
-npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.4.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.5.tgz
 ```
 
 There are no runtime npm dependencies or install scripts. Package metadata keeps
@@ -47,10 +49,13 @@ session.dispose();
 - `ubukit-js/external-metrics`: ARI, AMI and shared-contingency joint scores; see EXTERNAL_METRICS.md
 
 The root algorithms registry contains `kmeans`, `fcm`, `rcm`, `exrcm`, `rmcm`,
-`som-olp`, and `neighborhood`. `run`, `steps` and `runAsync` share that registry.
+`som-olp`, `som`, `som_batch`, and `neighborhood`. `run`, `steps` and `runAsync` share that registry.
 Neighborhood computes trustworthiness and continuity; it is a one-shot metric,
-not an iterative fitting session. ARI/AMI are separate synchronous functions
-from `ubukit-js/external-metrics` or the package root; they are not fitting sessions.
+not an iterative fitting session. ARI and AMI are separate exported scoring
+functions: `adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores`;
+see [EXTERNAL_METRICS.md](EXTERNAL_METRICS.md).
+Traditional `som` commits one sample update; `som_batch` commits one frozen-BMU
+epoch. See [SOM.md](SOM.md) for step units and explicit current-model projection.
 Data is flat row-major with explicit dimensions. Algorithm-specific result shapes,
 label contracts, error handling and ownership remain unchanged.
 
@@ -149,15 +154,15 @@ executes in WASM. Read existing result diagnostics, where provided.
 
 SOURCE_MANIFEST.json identifies the immutable input and every packaged runtime
 hash. The surrounding repository contains tests, comparison snapshots, selected logs
-and a report; these are intentionally excluded from the npm tarball.
+and reports; these are intentionally excluded from the npm tarball.
 Testing does not imply new performance measurements, Windows/macOS/ARM coverage,
 or real-browser verification. Consult the integration report for checks actually
 run. Registry publication and deployment still require separate authorization.
 
 
-## SOM exceptional numerical ranges (source-level review copy)
+## SOM-OLP exceptional numerical ranges
 
-SOM selects an internal JavaScript recovery path for extreme coordinate or gamma
+SOM-OLP selects an internal JavaScript recovery path for extreme coordinate or gamma
 ranges, including when `kernelBackend: 'wasm'` is requested. Its diagnostics report
 the actual fallback. The ordinary JavaScript and embedded WASM kernels retain
 their previous arithmetic. Exceptional recovery uses original-unit costs,
@@ -183,7 +188,7 @@ evaluated by dividing before subtraction.
 
 The dependency-free optional TPE optimizer and random baseline are exported from the root and `ubukit-js/optimization`. See OPTIMIZATION.md for examples, numerical contracts, and limitations.
 
-## External clustering agreement (dev4)
+## External clustering agreement (introduced in dev4)
 
 `adjustedRandScore`, `adjustedMutualInfoScore`, and `adjustedScores` are exported
 from the package root and `ubukit-js/external-metrics`. The joint API shares one
@@ -196,3 +201,10 @@ intentionally do not reproduce its floating-point artifacts.
 Node execution is tested from an installed tarball. The module has no Node-only
 imports and is designed for modern browsers; an actual browser smoke run could
 not be completed because the cloud browser blocked the local test URL.
+
+## Traditional SOM and BatchSOM (dev5)
+
+Additive `som` and `som_batch` algorithms support arbitrary feature dimensions,
+16×16 rectangular grids, sample/PCA initialization and stateful sample/epoch updates.
+See [SOM.md](SOM.md) for exact batch equations, schedules, realtime projection,
+complexity and finite-range limits. No runtime dependencies were added.

@@ -33,7 +33,7 @@ precision, globally closer trajectory, global optimality, or cross-platform bit
 identity is promised. Reinitializing from rounded public U cannot restore hidden
 weights from an earlier run.
 
-## SOM
+## SOM-OLP
 
 The exceptional path retains the original gamma and lambda, caller-unit history,
 and relative stopping criterion. Python represents costs using mantissa/exponent
@@ -96,3 +96,13 @@ benchmarks do not establish universal performance bounds. Extreme correctness
 recovery can be slower, including about 5.1x in one Python high-m warm smoke case.
 No public push, package-registry publication, deployment or upload was performed
 while constructing this local bundle.
+
+## Traditional online SOM and BatchSOM
+
+The `som` and `som_batch` algorithms are separate from SOM-OLP. Online commits
+one sample update; batch freezes BMUs and commits one weighted-mean epoch,
+without a learning rate. Near-tied BMUs, degenerate PCA bases, Gaussian underflow
+and language-specific floating-point accumulation limit trajectory parity.
+See [SOM.md](SOM.md) for initialization, cancellation, projection, scratch-memory
+and exceptional-range contracts. No global convergence or hard realtime bound
+is claimed.

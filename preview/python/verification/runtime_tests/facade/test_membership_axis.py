@@ -35,7 +35,7 @@ class MembershipAxisTests(unittest.TestCase):
             self.assertIn(field.name, dir(actual))
 
     def test_export_identity_and_signatures(self):
-        self.assertEqual(len(ubukit.__all__), 31)
+        self.assertEqual(len(ubukit.__all__), 38)
         self.assertEqual(set(ubukit._ADAPTED_EXPORTS), {"fit_rcm", "fit_exrcm", "assign_rcm"})
         for name, (module_name, attribute) in ubukit._EXPORTS.items():
             legacy = getattr(__import__('importlib').import_module(module_name), attribute)

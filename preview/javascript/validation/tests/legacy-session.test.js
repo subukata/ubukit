@@ -4,6 +4,7 @@ import { createSession, run, sessionAlgorithms } from '../../consumer/node_modul
 const X = { data: Float64Array.of(0, 0, .1, -.1, .2, .1, 4, 4, 4.3, 4.1, 3.8, 4.2), nSamples: 6, nFeatures: 2 };
 const centers = Float64Array.of(0, 0, 4, 4);
 function opts(a) { return { nClusters: 2, initCenters: centers, maxIterations: 7, blockRows: 2, tolerance: 0,
+  ...(['som','som_batch'].includes(a) ? { gridShape: [2,1] } : {}),
   ...(a === 'rmcm' ? { delta: .7, graphBatchPairs: 2 } : {}),
   ...(a === 'som-olp' ? { grid: { data: Float64Array.of(-1, 1), nSamples: 2, nFeatures: 1 }, lambda: .4 } : {}) }; }
 function finish(s, count = 1, chunks = 1) {
