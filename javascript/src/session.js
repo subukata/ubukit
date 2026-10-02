@@ -135,13 +135,13 @@ export class ClusteringSession {
     const resized = nextInput.nSamples !== this.#input.nSamples || nextInput.nFeatures !== this.#input.nFeatures;
     if (!same) {
       delete options.initMembership; delete options.initialMemberships;
-      if (this.#algorithm !== 'som-olp') options.nClusters = this.#cfg.k;
+      if (this.#algorithm !== 'som-olp' && !classicSOM(this.#algorithm)) options.nClusters = this.#cfg.k;
     }
     // Row identity is intentionally not inferred. Movement/reordering/birth/death
     // initializes memberships from retained centers, never from a stale row U.
     if (resized) {
       clearInitial(options);
-      if (this.#algorithm !== 'som-olp') options.nClusters = this.#cfg.k;
+      if (this.#algorithm !== 'som-olp' && !classicSOM(this.#algorithm)) options.nClusters = this.#cfg.k;
     }
     const compatible = nextInput.nFeatures === this.#cfg.d;
     const source = this.#committed ?? this.#anchor;

@@ -7,7 +7,7 @@ see [license scope](LICENSE-SCOPE.txt) for retained third-party terms.
 
 Start with [installation](#installation-boundary),
 [clustering and metric examples](#core-clustering-and-metric-examples),
-[online/Batch SOM](SOM.md), or [parameter optimization](OPTIMIZATION.md).
+[online and batch self-organizing maps (SOM)](SOM.md), or [parameter optimization](OPTIMIZATION.md).
 
 ## Installation boundary
 
@@ -54,12 +54,12 @@ needs it. No global module aliases recreate old names.
 
 | Family | Entry point | Result contract |
 | --- | --- | --- |
-| k-means | `fit_kmeans(X, init, ...)` | dict; labels `(N,)` |
-| FCM | `fit_fcm(X, n_clusters, ...)` | dict; membership `(N,K)` |
-| RCM | `fit_rcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
-| ExRCM | `fit_exrcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
-| RMCM | `fit_rmcm(X, n_clusters, delta=..., ...)` | result object; memberships `(N,K)` |
-| SOM-OLP | `fit_som_olp(X, R, ...)` | dict; `V` `(N,latentD)`, `P` `(N,M)` |
+| k-means: one cluster per sample | `fit_kmeans(X, init, ...)` | dict; labels `(N,)` |
+| Fuzzy c-means (FCM): degrees of cluster membership | `fit_fcm(X, n_clusters, ...)` | dict; membership `(N,K)` |
+| Rough c-means (RCM): overlapping cluster assignments | `fit_rcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
+| Extended rough c-means (ExRCM): rough clustering with adjustable exponent `p` | `fit_exrcm(X, n_clusters, ...)` | result adapter; memberships `(N,K)` |
+| Rough membership c-means (RMCM): membership from fixed-radius neighborhoods | `fit_rmcm(X, n_clusters, delta=..., ...)` | result object; memberships `(N,K)` |
+| Self-organizing maps with optimized latent positions (SOM-OLP): continuous sample positions on a supplied map | `fit_som_olp(X, R, ...)` | dict; `V` `(N,latentD)`, `P` `(N,M)` |
 | Neighborhood quality | `joint_quality(X, Y, ks=..., ...)` | list of quality records |
 
 `N` means samples and `K` means clusters. Every clustering
@@ -93,8 +93,10 @@ end-to-end API speedups.
 
 ## ARI and AMI
 
-`ubukit.adjusted_rand_score`, `ubukit.adjusted_mutual_info_score`, and
-`ubukit.adjusted_scores` compare cluster labels. The joint helper returns
+Adjusted Rand index (ARI) and adjusted mutual information (AMI) measure
+chance-adjusted agreement between two sets of cluster labels. Use
+`ubukit.adjusted_rand_score`, `ubukit.adjusted_mutual_info_score`, or
+`ubukit.adjusted_scores`. The joint helper returns
 `{"ari": ..., "ami": ...}`. AMI accepts `average_method="arithmetic"` (default),
 `"geometric"`, `"min"`, or `"max"`, and `backend="numpy"` (default) or `"numba"`.
 
@@ -276,7 +278,8 @@ library; importing that API does not load the scientific dependencies.
 ## Online SOM and BatchSOM
 
 Use `ubukit.som(X, epochs=10)` for online updates and
-`ubukit.som_batch(X, epochs=10)` for true frozen-BMU batch updates.
+`ubukit.som_batch(X, epochs=10)` for batch updates (BatchSOM), holding each
+sample's best-matching unit (BMU) fixed throughout an epoch.
 Both default to a 16×16 rectangular map with arbitrary input dimension.
 Detailed API, examples, limits and sources: [SOM.md](SOM.md).
 
