@@ -15,9 +15,9 @@ on:
         default: ''
         type: string
       candidate_sha:
-        description: Reviewed source commit (must match the locked PR8 candidate)
+        description: Reviewed dev6 source commit (locked separately from the workflow commit)
         required: true
-        default: '934b506cd6250e1e9b9ea5ce2a419330f29de487'
+        default: '86321a9f1bc405ddb3251facfe1d876064c9c9dd'
         type: string
       free_budget_rechecked:
         description: I rechecked remaining allowance and the account-wide Actions $0 Stop usage budget

@@ -2,7 +2,8 @@
 import hashlib,json,os,re,subprocess,sys
 from pathlib import Path
 from verify_source import verify
-APPROVED='934b506cd6250e1e9b9ea5ce2a419330f29de487'
+# The reviewed source commit precedes this CI-only change; GITHUB_SHA binds the harness.
+APPROVED='86321a9f1bc405ddb3251facfe1d876064c9c9dd'
 sha=os.environ['CANDIDATE_SHA'];assert re.fullmatch(r'[0-9a-f]{40}',sha) and sha==APPROVED,'Unreviewed candidate SHA'
 root=Path(sys.argv[1]).resolve()
 actual=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
