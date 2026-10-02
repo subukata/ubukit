@@ -1,0 +1,11 @@
+UbuKit private research preview. No project-wide publication license has been selected.
+
+The original SOM-OLP reference and corresponding derived implementations use
+source from https://github.com/subukata/som-olp at commit
+4361175b776987d65c348d0132b31d43505e1069. Its existing MIT notice is retained
+unchanged in LICENSE-SOM.txt. This does not select a license for the whole project.
+
+The runtime in src/ derives from the selected final acceleration candidate.
+Two runtime files contain scoped review fixes. Original and revised per-file
+provenance is recorded in SOURCE_MANIFEST.json.
+The npm package remains private. No registry upload or deployment is authorized.

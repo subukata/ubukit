@@ -1,0 +1,12 @@
+Restart-v2 research prototype. No project-wide publication license has been selected.
+
+The original SOM-OLP reference and corresponding derived implementations use
+source from https://github.com/subukata/som-olp at commit
+4361175b776987d65c348d0132b31d43505e1069. Its MIT notice is retained in
+LICENSE-SOM.txt. That retained third-party notice does not select a license for
+all newly written project code.
+
+Other copied experimental kernels and newly written wrappers are identified by
+source hashes in SOURCE_MANIFEST.json (included in the source distribution). Declared third-party Python dependencies are loaded
+from the user's environment and are not redistributed inside this source ZIP.
+Optional native control sources are separate; no native binary wheel is claimed.
