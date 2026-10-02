@@ -6,12 +6,15 @@ import {resolve,sep,extname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=resolve(process.argv[2]),output=resolve(process.argv[3]);
 const here=fileURLToPath(new URL('.',import.meta.url));
+const browserFixtures=fileURLToPath(new URL('../../../tests/integration/browser/',import.meta.url));
 const mime={'.html':'text/html','.mjs':'text/javascript','.js':'text/javascript','.json':'application/json','.wasm':'application/wasm'};
 await mkdir(output,{recursive:true});
 const server=createServer(async(req,res)=>{
  try{
   const url=new URL(req.url,'http://localhost'),name=decodeURIComponent(url.pathname);
-  const special={'/':resolve(here,'smoke.html'),'/smoke.mjs':resolve(here,'smoke.mjs')};
+  const special={'/':resolve(here,'smoke.html'),'/smoke.mjs':resolve(here,'smoke.mjs'),
+   '/browser-smoke.html':resolve(browserFixtures,'browser-smoke.html'),
+   '/browser-worker.mjs':resolve(browserFixtures,'browser-worker.mjs')};
   const path=special[name]??resolve(root,'.'+name);
   if(!special[name]&&!path.startsWith(root+sep)){res.writeHead(403).end();return;}
   const bytes=await readFile(path);

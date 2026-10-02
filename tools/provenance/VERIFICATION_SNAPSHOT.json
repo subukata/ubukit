@@ -2098,6 +2098,14 @@
       "sha256": "d24c0281170244d4f4fe09bd4b1aacfea67e99120cd1a30605511dfd2a5d0653"
     },
     {
+      "path": "tests/integration/browser/browser-smoke.html",
+      "sha256": "8bc00a15b0904ead393b5748702918fb5bdb7aed243d121329e8dbb1922a0d8d"
+    },
+    {
+      "path": "tests/integration/browser/browser-worker.mjs",
+      "sha256": "ed4178351e786225e198ad956b9761e7def38e1dcbc110048e661b399a342495"
+    },
+    {
       "path": "tests/integration/test_shared_contracts.py",
       "sha256": "1c1b738824a49fc0af1f470137bd24165999b44b06ce3d604af4746294373b16"
     },
@@ -2119,7 +2127,7 @@
     },
     {
       "path": "tools/ci/browser/run.mjs",
-      "sha256": "b7820c4285e8e64902ef3d93cc2590827a59505dac0736f9ee4b4c8c530dfbba"
+      "sha256": "961f9ac3158aa2ad29754d418356b23072cd732697d425cb5b3daf5d11748216"
     },
     {
       "path": "tools/ci/browser/smoke.html",
@@ -2131,7 +2139,7 @@
     },
     {
       "path": "tools/ci/candidate-policy.json",
-      "sha256": "57876ccdaea9051a4e6577271649ca9c7ae3868661a86463284c5b3eeabc0350"
+      "sha256": "bd2ea61f50e3e370fc6e4c9be88e5b6341fbe16690c30684e4e17728dce9bfe6"
     },
     {
       "path": "tools/ci/constraints/base-py312.txt",
@@ -2184,6 +2192,10 @@
     {
       "path": "tools/provenance/refresh.py",
       "sha256": "4d7f9e5f9785e33829a454f70c9bd6883be4810836a57f011800a379e0c47cd3"
+    },
+    {
+      "path": "tools/tests/check_browser_assets.mjs",
+      "sha256": "07a52321d023fccf694150b179bb3207c3eda41fe1c2216a12e748be5c2b3fa8"
     },
     {
       "path": "tools/tests/test_release_contract.py",
