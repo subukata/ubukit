@@ -54,6 +54,10 @@
       "sha256": "72639504fb0775565aa93447da7e837bd4d59466202913daecb98c5549cea663"
     },
     {
+      "path": "javascript/ENTROPY_FCM.md",
+      "sha256": "c7cf6173cf8226721592b85c1eee97a85ed93c6b3b4296a078d73afb144cd04f"
+    },
+    {
       "path": "javascript/EXTERNAL_METRICS.md",
       "sha256": "92d51b73fb42832160ad588d481aac97340d3f823c6714d2ff70f4673afed7fa"
     },
@@ -91,7 +95,7 @@
     },
     {
       "path": "javascript/README.md",
-      "sha256": "f73cb8d9155be5847e306a7e8eb8af26fa76d2f3a81b9faeccf14a3c163b286d"
+      "sha256": "8a8cb632d47299363f3bab6fea2a47a35721a264646f3513f3335d795fbe4f8b"
     },
     {
       "path": "javascript/SOM.md",
@@ -99,7 +103,7 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "95989b3946afdf4b42a8812d28066f1f68b71fbb82cdbddd49382e1536a150b2"
+      "sha256": "4e44008f383a73191ed943c21271816cb6a8dbe42e1a5572c5d1d82af0d08d7b"
     },
     {
       "path": "javascript/audit/audit-numerics.mjs",
@@ -135,7 +139,7 @@
     },
     {
       "path": "javascript/consumer/tests/package.test.mjs",
-      "sha256": "853547470b4407687ab343d64b91c948d4732a2ad611eed76b1ecaef1388256c"
+      "sha256": "b0e8d9756ba7724cbff1f9dbcf8364b9ba310451769a5911dbd31fc091ee3449"
     },
     {
       "path": "javascript/consumer/tests/review-regressions.test.mjs",
@@ -148,6 +152,10 @@
     {
       "path": "javascript/fixtures/benchmark-inputs.json",
       "sha256": "adcf7ac43b3a9e0498a5825f647ed382266a14fc9de77d499e7c33e44add22bb"
+    },
+    {
+      "path": "javascript/fixtures/entropy-fcm-reference.json",
+      "sha256": "1588220c7c05e543a6013b720dd309953ba9c828b43ea8c4ef33d5a921a87f28"
     },
     {
       "path": "javascript/fixtures/matched-10000-k50.json",
@@ -179,7 +187,7 @@
     },
     {
       "path": "javascript/package.json",
-      "sha256": "b9c47b689f20ce48771e6ffa9dbadcba84c9721b79ae5677047da17d189c2528"
+      "sha256": "5827d956522fa9b8767d9e6217a99d1619d8e83e1dae3e895e52f2e03914d911"
     },
     {
       "path": "javascript/src/clustering.js",
@@ -188,6 +196,10 @@
     {
       "path": "javascript/src/core.js",
       "sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4"
+    },
+    {
+      "path": "javascript/src/entropy-fcm.js",
+      "sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a"
     },
     {
       "path": "javascript/src/external-metrics.js",
@@ -199,7 +211,7 @@
     },
     {
       "path": "javascript/src/index.js",
-      "sha256": "cda5b3de63d09e8b39bafb418932d1bea6ae7869290772a8ae820e480b727d8b"
+      "sha256": "cc870519e55e9b6fa73360b6dd960d56805ba67986caf2eeb68ab85cc00b7a04"
     },
     {
       "path": "javascript/src/iteration-kernels.js",
@@ -300,6 +312,10 @@
     {
       "path": "javascript/tests/efficiency-candidates.test.mjs",
       "sha256": "b632410c1f0c5d1ec5615b504cf5902c8b689adfb6c2787eaea2a84148df1d01"
+    },
+    {
+      "path": "javascript/tests/entropy-fcm.test.mjs",
+      "sha256": "b892bbf895c0be4183ab0898c916d3b8a4701f4788e375aac921d976a5459093"
     },
     {
       "path": "javascript/tests/external-metrics.test.mjs",
@@ -1343,7 +1359,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "9efc88014f42147d867f1d151ef9a7788cd2b99a5ef11470cf5d3eba67cd4d3f"
+      "sha256": "8bab6600fddbab8eb6678155a5a401f3ba3f50765621ec23a25054e62acccd71"
     },
     {
       "path": "python/SOM.md",
@@ -1351,7 +1367,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "f599cfa698a97713993260df8c12469f18775d4d343a2202c6d15efc77468427"
+      "sha256": "8bcdde99081237bc1af573e92b6455520f5eb7922d6f3263d0c98309ed66f42c"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -1387,7 +1403,7 @@
     },
     {
       "path": "python/src/ubukit/__init__.py",
-      "sha256": "84b05a87cf414e08db4649c05ba7f923b5f16e39fe6abd425905db2b6dc82e09"
+      "sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483"
     },
     {
       "path": "python/src/ubukit/_impl/__init__.py",
@@ -1400,6 +1416,10 @@
     {
       "path": "python/src/ubukit/_impl/_numba_kernel.py",
       "sha256": "b7a6383bf0b20afa7f2b853a9475f54d6d58688aa3969a1144b5b6248840a9cc"
+    },
+    {
+      "path": "python/src/ubukit/_impl/entropy_fcm.py",
+      "sha256": "9cf392946a7d33406703851ae92dcbe22fb73ddd147347132bfb173559b0d56b"
     },
     {
       "path": "python/src/ubukit/_impl/external_metrics.py",
@@ -1650,6 +1670,10 @@
       "sha256": "0341170e1fe81f68d79c7a8c2bec12bb14f78997d2e9e4885831563e94426bbb"
     },
     {
+      "path": "python/tests/test_entropy_fcm.py",
+      "sha256": "095218382f26ff4a32ac117a9895b1db4bf80118843e2e1894f6f48d620a88a7"
+    },
+    {
       "path": "python/tests/test_external_metrics_presorted.py",
       "sha256": "700a5d07636bb721d781a74a630a4d2d428f7de6b255367dfd7b8cc8d5857ca0"
     },
@@ -1783,7 +1807,7 @@
     },
     {
       "path": "python/verification/python_api.py",
-      "sha256": "c4fca204029166d25a5ed07984d39ff0fbf7d69d6975f2716ee01429d00674de"
+      "sha256": "f20eaabc894c2e1331ab4415707257a2408e41511636869e094e663b9ca08a7e"
     },
     {
       "path": "python/verification/runtime_tests/README.md",
@@ -2087,7 +2111,7 @@
     },
     {
       "path": "python/verification/runtime_tests/python_api.py",
-      "sha256": "c4fca204029166d25a5ed07984d39ff0fbf7d69d6975f2716ee01429d00674de"
+      "sha256": "f20eaabc894c2e1331ab4415707257a2408e41511636869e094e663b9ca08a7e"
     },
     {
       "path": "python/verification/runtime_tests/review/__init__.py",
@@ -2255,11 +2279,11 @@
     },
     {
       "path": "tools/provenance/PRODUCT_CONTRACT.json",
-      "sha256": "2cc454bf773b120b62934e9cb194db15c82f1eee9d91b32e74e48bda3e090040"
+      "sha256": "a3641511c60cf6562633d55161d54756ec7fb67afe73c9b7a87298cc049ae53c"
     },
     {
       "path": "tools/provenance/SOURCE_SNAPSHOT.json",
-      "sha256": "347bcea799540fabcdc9b768d2b9daa2d4e8527a54e99c765ab7b2ab43287e43"
+      "sha256": "bc58d7647efc44791abae551198cbf8f3968c23d0b42ede331de72671394bdb5"
     },
     {
       "path": "tools/provenance/refresh.py",

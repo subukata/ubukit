@@ -12,7 +12,7 @@ A Python and JavaScript library for clustering, self-organizing maps, evaluation
 
 [Overview SVG](docs/assets/ubukit-overview-en.svg) · [Mascot character sheet](docs/assets/ubukit-mascot.png)
 
-- **Clustering:** k-means assigns each sample to one cluster; fuzzy c-means (FCM) assigns degrees of membership
+- **Clustering:** k-means assigns each sample to one cluster; fuzzy c-means (FCM) assigns degrees of membership; [entropy-regularized FCM](docs/entropy-fcm.md) controls membership softness with a temperature
 - **Rough clustering:** rough c-means (RCM) and extended rough c-means (ExRCM) allow overlapping cluster assignments; rough membership c-means (RMCM) derives membership from fixed-radius neighborhoods
 - **Self-organizing maps (SOM):** online and batch training (BatchSOM) map samples to a grid for visualization
 - **Self-organizing maps with optimized latent positions (SOM-OLP):** learn continuous sample positions using a supplied grid
