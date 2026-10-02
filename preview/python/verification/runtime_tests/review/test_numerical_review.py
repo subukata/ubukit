@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from scipy.special import softmax
 import ubukit as uk
-from portable_accel._som_numerics import normalize_costs_inplace
+from ubukit._impl.portable_accel._som_numerics import normalize_costs_inplace
 
 HAS_NUMBA = importlib.util.find_spec('numba') is not None
 SOM_BACKENDS = ['cdist', 'cdist_optimized', 'gemm_guarded', 'gemm_centered', 'threadpool']

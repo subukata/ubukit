@@ -12,10 +12,9 @@ import re
 import sys
 
 OWN = 'ubukit-bundled-local-preview'
-LEGACY = {'portable-accel-restart', 'ubukit-fcm', 'ubukit-exrcm-research',
-          'ubukit-rmcm', 'ubukit-local-preview'}
-TOP = {'ubukit', 'portable_accel', 'ubukit_fcm', 'ubukit_rmcm',
-       'rough_cmeans', '_numba_kernel', 'external_metrics', '_external_metrics_numba'}
+LEGACY_ROOTS = {'portable_accel', 'ubukit_fcm', 'ubukit_rmcm', 'rough_cmeans',
+                '_numba_kernel', 'external_metrics', '_external_metrics_numba'}
+TOP = {'ubukit'}
 
 def canonical(name):
     return re.sub(r'[-_.]+', '-', name).lower()
@@ -25,12 +24,14 @@ def inspect_environment():
     blocked_distributions = []
     for dist in metadata.distributions():
         name = canonical(dist.metadata.get('Name', ''))
-        if name in LEGACY:
-            blocked_distributions.append({'name': name, 'version': dist.version})
         for f in dist.files or ():
             p = Path(f)
             top = p.parts[0] if p.parts else ''
             key = top[:-3] if top.endswith('.py') else top
+            if name == OWN and key in LEGACY_ROOTS:
+                item = {'name': name, 'version': dist.version}
+                if item not in blocked_distributions:
+                    blocked_distributions.append(item)
             if key in TOP:
                 resolved = str(Path(dist.locate_file(f)).resolve())
                 ownership.setdefault(resolved, set()).add(name)
@@ -61,7 +62,7 @@ def inspect_environment():
     return {'status': 'clear' if ok else 'blocked', 'python': sys.executable,
             'read_only': True, 'legacy_distributions': blocked_distributions,
             'conflicts': conflicts, 'modules': modules,
-            'advice': ('Use a new environment or review removal of all legacy owners before installation; '
+            'advice': ('Use a new environment; an old bundled layout or ubukit owner needs manual review. '
                        'never uninstall one overlapping distribution after installing the bundle.') if not ok else
                       'No current ownership/import collision found. Recheck if environment contents change.'}
 

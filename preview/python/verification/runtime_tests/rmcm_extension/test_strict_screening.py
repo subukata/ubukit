@@ -1,6 +1,6 @@
 from .test_graph_parity import base,compare
-from ubukit_rmcm._graph import graph_blocked_strict
-from ubukit_rmcm import prepare_rmcm
+from ubukit._impl.rmcm._graph import graph_blocked_strict
+from ubukit._impl.rmcm import prepare_rmcm
 import numpy as np
 import pytest
 

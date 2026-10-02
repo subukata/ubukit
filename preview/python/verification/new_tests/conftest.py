@@ -4,11 +4,11 @@ import sysconfig
 import pytest
 
 def _guard():
-    import ubukit, ubukit.optimization, ubukit_fcm.core, ubukit_fcm._robust, portable_accel.som_olp
+    import ubukit, ubukit.optimization, ubukit._impl.fcm.core, ubukit._impl.fcm._robust, ubukit._impl.portable_accel.som_olp
     root = Path(sysconfig.get_paths()['purelib']).resolve()
     dist = metadata.distribution('ubukit-bundled-local-preview')
-    assert dist.version == ubukit.__version__ == '0.0.0.dev5'
-    for mod in [ubukit,ubukit.optimization,ubukit_fcm.core,ubukit_fcm._robust,portable_accel.som_olp]:
+    assert dist.version == ubukit.__version__ == '0.0.0.dev6'
+    for mod in [ubukit,ubukit.optimization,ubukit._impl.fcm.core,ubukit._impl.fcm._robust,ubukit._impl.portable_accel.som_olp]:
         assert Path(mod.__file__).resolve().is_relative_to(root), mod.__file__
 
 @pytest.fixture(autouse=True,scope='session')

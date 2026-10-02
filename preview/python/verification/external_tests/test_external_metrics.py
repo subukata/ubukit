@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 from sklearn.metrics import adjusted_rand_score as sklearn_ari
 from sklearn.metrics import adjusted_mutual_info_score as sklearn_ami
-import external_metrics as em
+import ubukit._impl.external_metrics as em
 
 warnings.simplefilter("ignore", UserWarning)
 HERE = Path(os.environ["UBUKIT_EXTERNAL_RESULTS"]).resolve()

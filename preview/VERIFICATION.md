@@ -1,6 +1,30 @@
 # Verification scope
 
-## Current efficiency/maintainability integration: Python dev5 / JavaScript dev6
+## Current Python dev6 namespace integration
+
+Python installs only `ubukit`, with 38 existing exports and 63 runtime files.
+JavaScript remains dev6 with 27 unchanged runtime files. All package-source bytes
+match the final namespace candidate; 58 inherited Python files are byte-identical
+and all 62 normalized numerical ASTs match their preserved dev5 mappings.
+
+The full candidate matrix, migration/pickle/cache cautions and retained error
+message caveat are in [NAMESPACE_MIGRATION.md](NAMESPACE_MIGRATION.md).
+[NAMESPACE_VERIFICATION.json](NAMESPACE_VERIFICATION.json) separates that completed
+candidate evidence from this focused repository integration replay.
+
+The main-branch PR11 overflow-portability test is retained and import-migrated,
+then checked under native and Haswell BLAS dispatch. The namespace/PR11 focused
+gate passes 12 tests in each base and Numba environment; the Haswell module passes
+eight. Both 38-export API checks and 63-file source/archive/installed bindings
+pass. CI ownership gates and offline driver plans are namespace-aware; manual
+dispatch, the historical SHA lock and spending safeguards remain unchanged.
+No Actions run is started. A new source-pin approval remains necessary.
+
+90 runtime hashes and current verification inputs are snapshot-bound. Historical
+benchmarks and cross-platform results below retain their original versions and
+scope; they are not relabeled as new Python dev6 platform qualification.
+
+## Historical efficiency/maintainability integration: Python dev5 / JavaScript dev6
 
 The base is main `0a8bfd8852fe93fb3d6168d6b9dc1282a49e2880`. Current source
 was matched to its Git tree before integration. Runtime source is byte-identical

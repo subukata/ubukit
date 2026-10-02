@@ -25,8 +25,8 @@ SOURCE = Path(os.environ.get('UBUKIT_SOURCE_ROOT', HERE / 'staging/src')).resolv
 sys.path.insert(0, str(HERE / 'tools'))
 from check_duplicate_backend import PAIRED_PATHS, check_pair
 
-LEGACY = 'portable_accel._backends.metrics_numba'
-CORE = 'portable_accel._backends.metrics_portable._numba_core'
+LEGACY = 'ubukit._impl.portable_accel._backends.metrics_numba'
+CORE = 'ubukit._impl.portable_accel._backends.metrics_portable._numba_core'
 
 
 def child(code):
@@ -72,7 +72,7 @@ class SourceAndOptionalContracts(unittest.TestCase):
 
     def test_root_imports_remain_lazy_without_numba(self):
         child(BLOCK_NUMBA + '''
-import ubukit, portable_accel
+import ubukit, ubukit._impl.portable_accel
 assert not any(name.split('.')[0] in ('numpy', 'scipy', 'sklearn', 'numba', 'llvmlite')
                for name in sys.modules)
 ''')
@@ -230,7 +230,7 @@ class NumbaDirectContracts(unittest.TestCase):
             self.assertEqual([scalar], many)
             self.assertEqual(module.sklearn_reference(self.x, self.y, [1,2,3]),
                              module.joint_sklearn(self.x, self.y, [1,2,3], rank_method='full'))
-        sqrt = importlib.import_module('portable_accel._backends.metrics_sqrt')
+        sqrt = importlib.import_module('ubukit._impl.portable_accel._backends.metrics_sqrt')
         a = sqrt.joint_sklearn_sqrt(self.x, self.y, [1,2,3], rank_method='scan')
         b = legacy.joint_sklearn(self.x, self.y, [1,2,3], rank_method='full')
         self.assertEqual(a, b)

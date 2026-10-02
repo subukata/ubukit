@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "inherited_runtime_files": 62,
+  "runtime_files": 63,
+  "byte_identical_inherited_files": 58,
+  "normalized_numerical_ast_equal_files": 62,
+  "changed_inherited_files": [
+    "src/external_metrics.py",
+    "src/rough_cmeans.py",
+    "src/ubukit/__init__.py",
+    "src/ubukit/_rough_memberships.py"
+  ],
+  "new_file": "src/ubukit/_impl/__init__.py",
+  "normalization_scope": [
+    "Import/ImportFrom syntax",
+    "docstrings",
+    "exact facade module-target strings",
+    "facade version dev6 to dev5",
+    "relative import_module package argument in facade"
+  ],
+  "no_numerical_parameter_expression_or_data_edits": true
+}

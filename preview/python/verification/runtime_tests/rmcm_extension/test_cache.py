@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from .._support import rmcm_oracle as base
-from ubukit_rmcm import RMCMGraphCache
+from ubukit._impl.rmcm import RMCMGraphCache
 
 def assert_graph(a,b):
     pa,pb=a.neighborhood_matrix(),b.neighborhood_matrix()

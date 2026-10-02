@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import numpy as np
-import rough_cmeans
+import ubukit._impl.rough_cmeans
 import ubukit
 
 
@@ -38,7 +38,7 @@ class MembershipAxisTests(unittest.TestCase):
         self.assertEqual(len(ubukit.__all__), 38)
         self.assertEqual(set(ubukit._ADAPTED_EXPORTS), {"fit_rcm", "fit_exrcm", "assign_rcm"})
         for name, (module_name, attribute) in ubukit._EXPORTS.items():
-            legacy = getattr(__import__('importlib').import_module(module_name), attribute)
+            legacy = getattr(__import__('importlib').import_module(module_name, 'ubukit'), attribute)
             actual = getattr(ubukit, name)
             with self.subTest(name=name):
                 if name in ubukit._ADAPTED_EXPORTS:
@@ -71,9 +71,9 @@ class MembershipAxisTests(unittest.TestCase):
                                           return_memberships=memberships, block_size=2)
                             if name == "fit_exrcm":
                                 kwargs["p"] = 2.5
-                            legacy = getattr(rough_cmeans, name)(X, len(init), **kwargs)
+                            legacy = getattr(ubukit._impl.rough_cmeans, name)(X, len(init), **kwargs)
                             actual = getattr(ubukit, name)(X, len(init), **kwargs)
-                            self.assertIs(type(legacy), rough_cmeans.RoughCMeansResult)
+                            self.assertIs(type(legacy), ubukit._impl.rough_cmeans.RoughCMeansResult)
                             self.assert_metadata_equal(actual, legacy)
                             np.testing.assert_array_equal(X, original_X)
                             np.testing.assert_array_equal(init, original_init)
@@ -94,7 +94,7 @@ class MembershipAxisTests(unittest.TestCase):
                                 beta=actual.beta, p=actual.p, backend=backend, block_size=2)
                             np.testing.assert_array_equal(assigned[0], actual.memberships)
                             np.testing.assert_array_equal(assigned[1], actual.upper_memberships)
-                            legacy_assigned = rough_cmeans.assign(X, actual.centers,
+                            legacy_assigned = ubukit._impl.rough_cmeans.assign(X, actual.centers,
                                 alpha=actual.alpha, beta=actual.beta, p=actual.p,
                                 backend=backend, block_size=2)
                             for current, prior in zip(assigned, legacy_assigned):
@@ -103,7 +103,7 @@ class MembershipAxisTests(unittest.TestCase):
 
     def test_copy_ownership_and_no_legacy_result_mutation(self):
         X = np.array([[0.], [1.], [10.]])
-        template = rough_cmeans.fit_rcm(X, 3, backend="numpy", max_iter=1)
+        template = ubukit._impl.rough_cmeans.fit_rcm(X, 3, backend="numpy", max_iter=1)
         # Covers N == K and both contiguous orders, transposed views and negative strides.
         raw = np.arange(9, dtype=np.float32).reshape(3, 3) / 10
         for values in (raw, np.asfortranarray(raw), raw.T, raw[::-1, ::-1]):
@@ -112,7 +112,7 @@ class MembershipAxisTests(unittest.TestCase):
                 with self.subTest(name=name, strides=values.strides):
                     legacy = replace(template, memberships=values, upper_memberships=upper)
                     saved_values, saved_upper = values.copy(), upper.copy()
-                    with patch.object(rough_cmeans, name, return_value=legacy) as call:
+                    with patch.object(ubukit._impl.rough_cmeans, name, return_value=legacy) as call:
                         actual = getattr(ubukit, name)(X, 3)
                         call.assert_called_once()
                     self.assert_metadata_equal(actual, legacy, identity=True)
@@ -134,7 +134,7 @@ class MembershipAxisTests(unittest.TestCase):
         values = np.array([[1., .5, 0.], [0., .5, 1.]], dtype=np.float64)
         upper = values > 0
         saved_values, saved_upper = values.copy(), upper.copy()
-        with patch.object(rough_cmeans, "assign", return_value=(values, upper)):
+        with patch.object(ubukit._impl.rough_cmeans, "assign", return_value=(values, upper)):
             actual = ubukit.assign_rcm([[1.], [2.], [3.]], [[1.], [3.]])
         self.assertIs(type(actual), tuple)
         for current, prior in zip(actual, (values, upper)):
@@ -164,7 +164,7 @@ class MembershipAxisTests(unittest.TestCase):
         X = np.array([[0.], [1.], [4.], [8.]])
         kwargs = dict(seed=31, backend="numpy", max_iter=1, alpha=1.7, beta=.3,
                       p=1.3, cycle_window=0, block_size=1)
-        prior = rough_cmeans.fit_exrcm(X, 3, **kwargs)
+        prior = ubukit._impl.rough_cmeans.fit_exrcm(X, 3, **kwargs)
         result = ubukit.fit_exrcm(X, 3, **kwargs)
         self.assert_metadata_equal(result, prior)
         self.assertIsNotNone(result.init_indices)
@@ -178,7 +178,7 @@ class MembershipAxisTests(unittest.TestCase):
                 args = dict(n_clusters=2)
                 args.update(kwargs)
                 failures = []
-                for module in (rough_cmeans, ubukit):
+                for module in (ubukit._impl.rough_cmeans, ubukit):
                     with self.assertRaises(ValueError) as caught:
                         getattr(module, name)([[0.], [1.]], **args)
                     failures.append((type(caught.exception), str(caught.exception)))

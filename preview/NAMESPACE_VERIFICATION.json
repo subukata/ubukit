@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "base_commit": "2dcb8cfed9fa52a9c7ac981b038978e559895834",
+  "versions": {
+    "python": "0.0.0.dev6",
+    "javascript": "0.1.0-dev.6"
+  },
+  "runtime_files": {
+    "python": 63,
+    "javascript": 27
+  },
+  "package_source_identity_to_final_candidate": "Every staging file is byte-identical",
+  "numerical_migration": {
+    "inherited": 62,
+    "byte_identical": 58,
+    "namespace_import_facade_doc_only": 4,
+    "normalized_numerical_ast_equal": 62,
+    "new_private_package_markers": 1,
+    "public_exports": 38
+  },
+  "artifact_identity": {
+    "ubukit_bundled_local_preview-0.0.0.dev6.tar.gz": "a60f2e9c8fcce48796eb713c42ba1c6d07d0e0cc5c7cbd232a8f0b2320b524c5",
+    "ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl": "0b994666fd59d4aff24570173b3e54a6d2f57907c5545f1bdd50ae5d01ceffdb"
+  },
+  "fresh_integration_checks": {
+    "base_namespace_and_pr11_tests": 12,
+    "numba_namespace_and_pr11_tests": 12,
+    "haswell_pr11_tests": 8,
+    "base_numba_facade_exports": 38,
+    "source_wheel_sdist_installed_bindings_each": 63,
+    "bound_existing_environments": [
+      "base wheel",
+      "Numba wheel",
+      "base sdist"
+    ],
+    "ci_installed_gate": "base wheel, Numba wheel and base sdist passed",
+    "ci_driver_plan": "focused/full/Numba-full plans tested offline without executing commands",
+    "new_remote_ci_runs": 0
+  },
+  "preservation": {
+    "javascript_runtime_and_validation": "unchanged; reproduction documentation updates paired Python version only",
+    "prior_metrics_and_benchmark_measurements": "unchanged",
+    "frozen_python_oracles": "unchanged",
+    "pr11_overflow_portability_tests": "main test body retained; only namespace imports changed",
+    "retired_runtime_paths": 59,
+    "history_and_saved_elite_artifacts": "retained"
+  },
+  "candidate_full_suite": "Completed before integration; see python/verification/namespace/candidate-validation.json. Not repeated in full here.",
+  "limits": [
+    "Linux x86_64 CPython3.12.14 only for current Python dev6 checks",
+    "Prior Python dev5 cross-platform CI does not qualify the new namespace",
+    "No speed or memory benchmark",
+    "Old pickle module paths unsupported; compiled caches must be rebuilt",
+    "Existing FCM/RMCM missing-Numba error strings retain obsolete component-extra hints; use the aggregate wheel[numba]",
+    "CI manual dispatch, historical approved SHA lock and budget safeguards unchanged; a newly approved source pin and cost preflight are required before any remote run",
+    "No registry publication, project-license decision, GPU prototype or external compute included"
+  ]
+}

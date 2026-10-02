@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.datasets import load_iris,load_wine
 from sklearn.preprocessing import StandardScaler
 import ubukit as uk
-from portable_accel.som_olp_localized import fit_som_olp_localized
+from ubukit._impl.portable_accel.som_olp_localized import fit_som_olp_localized
 p=argparse.ArgumentParser();p.add_argument('--source',required=True);p.add_argument('--out',required=True);a=p.parse_args()
 source=Path(a.source);output=Path(a.out)
 rows=[json.loads(line) for line in source.read_text().splitlines()];failed=[r for r in rows if r['task'].startswith('som_') and r['state']=='fail']

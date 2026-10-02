@@ -1,4 +1,4 @@
-# Efficiency and maintainability: Python dev5 / JavaScript dev6
+# Efficiency and maintainability: original Python dev5 / JavaScript dev6 evidence
 
 This private preview integrates the reviewed candidates without changing their
 numerical source. Python remains opt-in. Original algorithms, explicit fallback
@@ -7,8 +7,8 @@ registry release, CI enablement or project-wide license decision is implied.
 
 ## Python: explicit localized probability-tail experiment
 
-Use the functions in `portable_accel.som_olp_localized` directly; the 38 `ubukit`
-facade exports and existing defaults are unchanged. The source adds one module.
+In current Python dev6, use the private functions in `ubukit._impl.portable_accel.som_olp_localized` directly; the 38 `ubukit`
+facade exports and existing defaults are unchanged. The original dev5 experiment added one module. Current namespace migration and verification are described in [NAMESPACE_MIGRATION.md](NAMESPACE_MIGRATION.md).
 Of the 61 inherited runtime modules, 60 are byte-identical and the facade changes
 only its private version string. See the [usage and numerical contract](python/staging/EXPERIMENTAL_LOCALIZED_SOM.md).
 

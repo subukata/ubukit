@@ -6,10 +6,10 @@ from fractions import Fraction
 from decimal import Decimal, localcontext
 import numpy as np
 import inspect
-from portable_accel.som_olp_localized import run_som_olp_localized as localized
-from portable_accel.som_olp import run_som_olp as original
-from portable_accel.som_olp import run_som_olp as frozen
-from portable_accel.policy import ExecutionPolicy as Policy
+from ubukit._impl.portable_accel.som_olp_localized import run_som_olp_localized as localized
+from ubukit._impl.portable_accel.som_olp import run_som_olp as original
+from ubukit._impl.portable_accel.som_olp import run_som_olp as frozen
+from ubukit._impl.portable_accel.policy import ExecutionPolicy as Policy
 FrozenPolicy = Policy
 SOURCE = pathlib.Path(inspect.getsourcefile(localized))
 SOURCE_HASH = hashlib.sha256(SOURCE.read_bytes()).hexdigest()

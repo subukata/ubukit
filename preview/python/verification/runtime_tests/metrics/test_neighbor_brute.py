@@ -1,6 +1,6 @@
 import numpy as np,json
 from sklearn.neighbors import NearestNeighbors
-from portable_accel._backends.metrics_portable._neighbor_queries import neighbor_queries
+from ubukit._impl.portable_accel._backends.metrics_portable._neighbor_queries import neighbor_queries
 
 def test_neighbor_brute():
     rng=np.random.default_rng(812);count=0

@@ -6,18 +6,18 @@ from pathlib import Path
 
 import ubukit
 from importlib.metadata import version
-assert ubukit.__version__ == version("ubukit-bundled-local-preview") == "0.0.0.dev5"
+assert ubukit.__version__ == version("ubukit-bundled-local-preview") == "0.0.0.dev6"
 assert "numpy" not in sys.modules, "Facade import must not eagerly load numerical runtimes"
 assert "numba" not in sys.modules
 
 import numpy as np
-import portable_accel
-import ubukit_fcm
-import rough_cmeans
-import ubukit_rmcm
+import ubukit._impl.portable_accel
+import ubukit._impl.fcm
+import ubukit._impl.rough_cmeans
+import ubukit._impl.rmcm
 
 for name, (module_name, attribute) in ubukit._EXPORTS.items():
-    module = __import__(module_name)
+    module = importlib.import_module(module_name, 'ubukit')
     if name in ubukit._ADAPTED_EXPORTS:
         assert getattr(ubukit, name) is not getattr(module, attribute), name
     else:
@@ -72,4 +72,4 @@ if "--with-numba" in sys.argv:
 print(json.dumps({"status": "passed", "facade_exports": len(ubukit.__all__),
                   "algorithm_entrypoints": 7, "existing_unchanged_aliases": 16, "added_metric_aliases": 3, "adapted_entrypoints": 3, "numba_executed": numba_ran,
                   "import_paths": {m.__name__: str(Path(m.__file__).resolve()) for m in
-                                   (ubukit, portable_accel, ubukit_fcm, rough_cmeans, ubukit_rmcm)}}))
+                                   (ubukit, ubukit._impl.portable_accel, ubukit._impl.fcm, ubukit._impl.rough_cmeans, ubukit._impl.rmcm)}}))

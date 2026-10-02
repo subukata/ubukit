@@ -13,8 +13,8 @@ import json
 from pathlib import Path
 
 PAIRED_PATHS = (
-    Path('portable_accel/_backends/metrics_numba.py'),
-    Path('portable_accel/_backends/metrics_portable/_numba_core.py'),
+    Path('ubukit/_impl/portable_accel/_backends/metrics_numba.py'),
+    Path('ubukit/_impl/portable_accel/_backends/metrics_portable/_numba_core.py'),
 )
 
 

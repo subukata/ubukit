@@ -1,6 +1,6 @@
 import sys,unittest,os
 from pathlib import Path
-import portable_accel as candidate
+import ubukit._impl.portable_accel as candidate
 from .._support import portable_oracle as checkpoint, kmeans_reference as reference
 import numpy as np
 from unittest.mock import patch
@@ -78,7 +78,7 @@ class ScipyBlas(unittest.TestCase):
 
  def test_reviewed_nonwinning_overflow_kernel_guards(self):
   from importlib import import_module
-  from portable_accel._backends import blas_certificate, kmeans_scipy_blas
+  from ubukit._impl.portable_accel._backends import blas_certificate, kmeans_scipy_blas
   oracle_core = import_module(checkpoint.__name__ + '._kmeans_lagged')
   for n,d,k,hexvalue in _REVIEWED_OVERFLOW_CASES:
    b=float.fromhex(hexvalue);X=np.full((n,d),b);C=np.zeros((k,d));C[1]=X[0]*.1;C[2]=X[0]*.2;C[-1]=-X[0]
@@ -110,7 +110,7 @@ class ScipyBlas(unittest.TestCase):
      self.assertEqual(str(rejected.exception), 'squared distances overflowed; rescale input')
      bounds.assert_not_called()
  def test_eligible_route_is_exercised_and_unknown_build_falls_back(self):
-  from portable_accel._backends import blas_certificate
+  from ubukit._impl.portable_accel._backends import blas_certificate
   rng=np.random.default_rng(981);X=np.ascontiguousarray(rng.normal(size=(256,784)));C=X[:16].copy()
   actual=candidate.fit_kmeans(X,C,max_iter=1,finalize=False,backend='scipy_blas',policy=candidate.ExecutionPolicy(threads=1,block_rows=128))
   if blas_certificate._blas_certificate_supported(X[:128],C):

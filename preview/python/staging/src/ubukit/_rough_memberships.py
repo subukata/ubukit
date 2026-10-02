@@ -5,7 +5,7 @@ No shape-based guessing is used: rough_cmeans always returns cluster-major
 memberships, including square N == K cases.
 """
 import numpy as np
-import rough_cmeans as _legacy
+from ._impl import rough_cmeans as _legacy
 
 
 def _sample_major(values):
@@ -22,8 +22,8 @@ class _RoughMembershipResult:
     The legacy result is retained privately; neither it nor its arrays are
     mutated. The two public membership arrays own their storage and do not
     alias the legacy buffers or one another. This is a facade result adapter,
-    not a rough_cmeans.RoughCMeansResult/dataclass. Use rough_cmeans directly
-    if the legacy result type or cluster-major output is required.
+    not an internal RoughCMeansResult/dataclass. The private implementation
+    is not a supported public import or serialization contract.
     """
     __slots__ = ("_legacy_result", "memberships", "upper_memberships")
 

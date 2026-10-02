@@ -7,7 +7,7 @@ import numpy as np
 import ubukit as uk
 p=argparse.ArgumentParser();p.add_argument('version',choices=['dev4','candidate']);p.add_argument('--tail',action='store_true');args=p.parse_args()
 if args.version=='candidate':
-    from portable_accel.som_olp_localized import run_som_olp_localized as run
+    from ubukit._impl.portable_accel.som_olp_localized import run_som_olp_localized as run
 else:run=uk.run_som_olp
 imports=time.perf_counter()-start
 rng=np.random.default_rng(20261002);X=rng.normal(size=(128,8));R=rng.normal(size=(16,2));W=rng.normal(size=(16,8));P=rng.random((128,16))

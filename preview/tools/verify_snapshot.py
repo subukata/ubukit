@@ -5,7 +5,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 data = json.loads((root / 'SOURCE_SNAPSHOT.json').read_text())
-assert data['versions'] == {'python': '0.0.0.dev5', 'javascript': '0.1.0-dev.6'}
+assert data['versions'] == {'python': '0.0.0.dev6', 'javascript': '0.1.0-dev.6'}
 counts = {'python': 0, 'javascript': 0}
 seen = set()
 for entry in data['runtime_files']:
@@ -16,7 +16,7 @@ for entry in data['runtime_files']:
     if digest != entry['sha256']:
         raise SystemExit('Source hash mismatch: ' + entry['path'])
     counts[entry['language']] += 1
-assert counts == {'python': 62, 'javascript': 27}, counts
+assert counts == {'python': 63, 'javascript': 27}, counts
 javascript_paths = {str(path.relative_to(root)) for path in (root / 'javascript/package/src').glob('*.js')}
 assert javascript_paths == {entry['path'] for entry in data['runtime_files'] if entry['language'] == 'javascript'}
 python_paths = {str(path.relative_to(root)) for path in (root / 'python/staging/src').rglob('*.py') if '__pycache__' not in path.parts}

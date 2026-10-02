@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from ubukit_rmcm import prepare_rmcm
-from ubukit_rmcm._graph import _complete_graph_certificate
+from ubukit._impl.rmcm import prepare_rmcm
+from ubukit._impl.rmcm._graph import _complete_graph_certificate
 from .test_graph_parity import base
 
 @pytest.mark.parametrize('d',[1,3,8,32,128])
@@ -36,7 +36,7 @@ def test_unsafe_spacing_retains_original_numeric_and_edge_guards(v):
     assert not _complete_graph_certificate(X,100.)
     for limit in [len(X),len(X)**2]:
         results=[]
-        for lib,kw in [(base,{}),(__import__('ubukit_rmcm'),dict(graph_backend='auto'))]:
+        for lib,kw in [(base,{}),(__import__('importlib').import_module('ubukit._impl.rmcm'),dict(graph_backend='auto'))]:
             try:results.append(lib.prepare_rmcm(X,100.,max_edges=limit,**kw).n_edges)
             except Exception as e:results.append(type(e))
         assert results[0]==results[1]

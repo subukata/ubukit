@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
-from portable_accel import fit_kmeans,ExecutionPolicy
-from portable_accel._optional import numba_available
+from ubukit._impl.portable_accel import fit_kmeans,ExecutionPolicy
+from ubukit._impl.portable_accel._optional import numba_available
 @unittest.skipUnless(numba_available(),'Numba optional')
 class FinalizerIntegration(unittest.TestCase):
     def test_public_fit_finalizers(self):

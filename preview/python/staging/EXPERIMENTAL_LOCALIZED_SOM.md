@@ -1,6 +1,9 @@
+> Namespace dev6: this remains an unsupported private experiment under `ubukit._impl`; it is not a new facade export. The dev5 numerical implementation is unchanged.
+
 # Experimental, opt-in SOM-OLP probability-tail localization
 
-This isolated private dev5 candidate adds `portable_accel.som_olp_localized`.
+The dev5 candidate added the localization experiment. In this namespace-only dev6
+candidate it lives at `ubukit._impl.portable_accel.som_olp_localized`.
 Existing exports, backend implementations, and public defaults are unchanged.
 The preserved verified dev4 source and built distributions remain the baseline.
 This is not a public release or a universally faster replacement.
@@ -8,7 +11,7 @@ This is not a public release or a universally faster replacement.
 Explicit use:
 
 ```python
-from portable_accel.som_olp_localized import fit_som_olp_localized
+from ubukit._impl.portable_accel.som_olp_localized import fit_som_olp_localized
 result = fit_som_olp_localized(X, R, gamma=gamma, lam=lam,
     backend="cdist_optimized", policy=policy)
 ```

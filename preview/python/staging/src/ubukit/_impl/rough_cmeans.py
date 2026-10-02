@@ -339,7 +339,7 @@ def assign(X, centers, *, alpha=1.1, beta=0.0, p=1.0,
                            block_size, 0, check_sample_count=False)
     backend = _resolve_backend(backend)
     if backend == 'numba':
-        from _numba_kernel import fused_step
+        from ._numba_kernel import fused_step
         _, _, packed, U = fused_step(X, centers, alpha, beta, p, True, False)
         M = np.unpackbits(packed, axis=1, bitorder='little', count=len(centers)).astype(bool).T
         return U.T, M
@@ -423,7 +423,7 @@ def _step(X, C, alpha, beta, p, backend, block_size, return_memberships, workspa
     if backend == 'naive':
         return _step_naive(X, C, alpha, beta, p, return_memberships)
     if backend == 'numba':
-        from _numba_kernel import fused_step
+        from ._numba_kernel import fused_step
         out, empty, packed, U = fused_step(X, C, alpha, beta,
                                            p, return_memberships, True)
         if not np.isfinite(out).all():

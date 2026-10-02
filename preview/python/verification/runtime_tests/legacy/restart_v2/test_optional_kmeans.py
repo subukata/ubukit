@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
-from portable_accel import fit_kmeans,prepare,ExecutionPolicy
-from portable_accel._optional import numba_available
+from ubukit._impl.portable_accel import fit_kmeans,prepare,ExecutionPolicy
+from ubukit._impl.portable_accel._optional import numba_available
 @unittest.skipUnless(numba_available(),'optional Numba unavailable')
 class OptionalKmeans(unittest.TestCase):
     def test_cores_and_finalization(self):

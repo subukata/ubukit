@@ -1,5 +1,5 @@
-# Observed on the final Linux CPython 3.12 SOM candidate, not yet across OSes.
+# Observed on the final Linux CPython 3.12 namespace-dev6 candidate, not yet across OSes.
 numpy==2.3.5
 scipy==1.17.0
 scikit-learn==1.8.0
-threadpoolctl==3.7.0
+threadpoolctl==3.6.0

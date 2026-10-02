@@ -1,4 +1,4 @@
-# Reproduce Python dev5 / JavaScript dev6 from repository source
+# Reproduce Python dev6 / JavaScript dev6 from repository source
 
 Run from the repository root. Python examples below use POSIX virtualenv paths;
 Windows requires the corresponding `Scripts/python.exe` path and is unverified.
@@ -7,8 +7,7 @@ No command below publishes a package or deploys a site.
 
 ## Python build and install
 
-Use fresh, separate build and runtime environments. Do not combine this package
-with the former independent distributions, which own overlapping import paths.
+Use fresh, separate build and runtime environments. Keep old aggregate installations separate. Only `ubukit` is installed at the top level; standalone legacy names alone are no longer a namespace collision. Use the read-only install-environment guard for actual `ubukit` ownership conflicts.
 
 ```sh
 python3.12 -m venv .venv-build
@@ -16,7 +15,7 @@ python3.12 -m venv .venv-build
 mkdir -p preview/python/artifacts
 .venv-build/bin/python -m build --no-isolation --outdir preview/python/artifacts preview/python/staging
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -c preview/python/constraints-som-verified.txt preview/python/artifacts/ubukit_bundled_local_preview-0.0.0.dev5-py3-none-any.whl
+.venv/bin/python -m pip install -c preview/python/constraints-namespace-verified.txt preview/python/artifacts/ubukit_bundled_local_preview-0.0.0.dev6-py3-none-any.whl
 .venv/bin/python -m pip install pytest==8.4.2
 ```
 
@@ -114,7 +113,7 @@ and do not establish equal-quality algorithm superiority.
 
 ## Efficiency and backend compatibility checks
 
-The focused Python suite now includes the opt-in localized-tail tests and the
+The focused Python suite includes the namespace/no-alias and collision tests, plus the opt-in localized-tail tests and the
 intentional duplicate-backend contracts. With Numba absent the compiled-only
 class is skipped; the source guard still runs. Additional exact-arithmetic tests:
 
@@ -125,7 +124,7 @@ python3.12 preview/python/tools/check_duplicate_backend.py
 ```
 
 `check_package.py` expects both freshly built archive forms under
-`preview/python/artifacts` and verifies all 62 source/archive/installed modules.
+`preview/python/artifacts` and verifies all 63 source/archive/installed modules.
 `check_high_precision.py` runs 113 oracle and preserved-baseline cases. To check
 an installed duplicate-backend pair instead of repository sources, set
 `UBUKIT_SOURCE_ROOT` to that environment's site-packages before running its
@@ -147,10 +146,14 @@ See [EFFICIENCY.md](EFFICIENCY.md) for bounded serial benchmark commands and
 python3.12 preview/tools/verify_snapshot.py
 ```
 
-This checks all 89 runtime files (62 Python dev5 and 27 JavaScript dev6) against SOURCE_SNAPSHOT.json, plus the test/reference/evidence bytes in
+This checks all 90 runtime files (63 Python dev6 and 27 JavaScript dev6) against SOURCE_SNAPSHOT.json, plus the test/reference/evidence bytes in
 VERIFICATION_SNAPSHOT.json. Run it on a clean checkout before replay commands
 regenerate report JSON, or restore the committed evidence afterward. Package
 documentation was updated for GitHub; archive-byte equality with earlier
 standalone deliveries is not claimed. No registry release or public-license decision follows
 from a passing local test. Real browsers and other platform combinations need
 separate validation.
+
+## Namespace migration audit
+
+Run `python3.12 preview/python/tools/check_namespace_migration.py --baseline-root /path/to/preserved-dev5/staging/src` to reproduce the read-only 62-file numerical-AST and exact hash comparison. Use a preserved dev5 checkout or artifact; do not mix old and new runtime files in one environment. The full migration matrix and pickle/cache cautions are in [NAMESPACE_MIGRATION.md](NAMESPACE_MIGRATION.md). The manual CI drivers are adapted to dev6, but their explicit approved-SHA gate remains fail-closed until a separately approved candidate SHA is pinned. No Actions dispatch is part of this source integration.

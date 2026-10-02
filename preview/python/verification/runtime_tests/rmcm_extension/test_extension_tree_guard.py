@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from scipy.spatial import cKDTree
-from ubukit_rmcm._graph import _bounded_tree_pairs,_radius,graph_tree
+from ubukit._impl.rmcm._graph import _bounded_tree_pairs,_radius,graph_tree
 from .test_graph_parity import base
 
 @pytest.mark.parametrize('d',[1,3,8,32,128])

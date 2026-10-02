@@ -3,8 +3,8 @@ import importlib.util
 import numpy as np
 import pytest
 from scipy import sparse
-from ubukit_rmcm import prepare_rmcm, fit_rmcm, fit_rmcm_numpy
-from ubukit_rmcm.core import _hard
+from ubukit._impl.rmcm import prepare_rmcm, fit_rmcm, fit_rmcm_numpy
+from ubukit._impl.rmcm.core import _hard
 
 BACKENDS = ['numpy', 'csr', 'adjoint']
 if importlib.util.find_spec('numba'):

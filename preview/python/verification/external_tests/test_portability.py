@@ -14,7 +14,7 @@ class BlockOptional(importlib.abc.MetaPathFinder):
         return None
 
 sys.meta_path.insert(0,BlockOptional())
-import external_metrics as em
+import ubukit._impl.external_metrics as em
 rng=np.random.default_rng(18)
 x=rng.integers(20,size=1000);y=rng.integers(30,size=1000)
 xb,yb=x.copy(),y.copy()
