@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "versions": {
-    "python": "0.0.0.dev6",
-    "javascript": "0.1.0-dev.6"
+    "python": "0.1.0a1",
+    "javascript": "0.1.0-alpha.1"
   },
   "runtime_files": [
     {
@@ -148,7 +148,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/__init__.py",
-      "sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483"
+      "sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd"
     },
     {
       "language": "python",
@@ -485,7 +485,7 @@
     },
     {
       "path": "javascript/LICENSE-SCOPE.txt",
-      "sha256": "c42413f498c882c1252190aae35d033243097a94ee6e17849f5dfddbf43d32cf"
+      "sha256": "d90e67a66f24270afe148b341955f02b2bc5c3aa2ac374fc4df61dd5a608598f"
     },
     {
       "path": "javascript/LICENSE-SOM.txt",
@@ -497,7 +497,7 @@
     },
     {
       "path": "javascript/NOTICE.txt",
-      "sha256": "d29ac5f0609cb4c91d42a11aea10a5a418327306c74fb660f0a7341c1e2cc2ce"
+      "sha256": "cbf8a48d060b093a05398f5de1aacdc97cbd2001e6810c23317011151ebcc2ef"
     },
     {
       "path": "javascript/NUMERICAL_LIMITS.md",
@@ -505,23 +505,23 @@
     },
     {
       "path": "javascript/OPTIMIZATION.md",
-      "sha256": "234852fa2981092638d54f76a0f39b94e9c82b6ceca90a90a8ba81b1c89355f3"
+      "sha256": "f28a65b9f5d060704f8b6a415bbd4ae6135fd20d9fd81f0c76cd82fc424fd893"
     },
     {
       "path": "javascript/README.md",
-      "sha256": "8a8cb632d47299363f3bab6fea2a47a35721a264646f3513f3335d795fbe4f8b"
+      "sha256": "41f454e919dbf4709a266492f6577b828ec432662b6b100a16f9aaa63e31ca32"
     },
     {
       "path": "javascript/SOM.md",
-      "sha256": "c29db4a9b46f3d16f9075bafbd7021d13374db687536f0213c31a10c7dcf27b2"
+      "sha256": "261bd02a29e3112bee958f631b5cec77674a9d814f9eb1269fc83b23621f14f0"
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "4e44008f383a73191ed943c21271816cb6a8dbe42e1a5572c5d1d82af0d08d7b"
+      "sha256": "3a3dde1a943b9b2e0a934f2217c9fb91bfc1cfa07b70d1eae598d988a7c29b23"
     },
     {
       "path": "javascript/package.json",
-      "sha256": "5827d956522fa9b8767d9e6217a99d1619d8e83e1dae3e895e52f2e03914d911"
+      "sha256": "964a9d1c81509ec7a2eda2b443cc07336572b133015e954f0e97c53091a4a31e"
     },
     {
       "path": "javascript/src/clustering.js",
@@ -637,7 +637,7 @@
     },
     {
       "path": "python/EXPERIMENTAL_LOCALIZED_SOM.md",
-      "sha256": "8b4086f488b64d54f70d499ab4c34377dc0ea9660946b3f25c3e1e73c402903b"
+      "sha256": "3c8451997ad2c742d2dd5f61445733cb235c70615d1c6c3abf08a9a025ca8631"
     },
     {
       "path": "python/LICENSE",
@@ -645,7 +645,7 @@
     },
     {
       "path": "python/LICENSE-SCOPE.txt",
-      "sha256": "9e4f1133ae75d9ebb1311c2f0af0d72d9eeb5592b629dcf8c945dc05518bd7b8"
+      "sha256": "8d67807ae3e43d244f9e0ef879dd33baae850b90fd0a10dc19625556562fd519"
     },
     {
       "path": "python/LICENSE-SOM.txt",
@@ -661,27 +661,27 @@
     },
     {
       "path": "python/NOTICE.txt",
-      "sha256": "95a4123bbac3e8d2212886397bb4becba9ceb61369f98f9c0242d02e956778d1"
+      "sha256": "86a1e64eb52b6aa63d9a7be636ac4fa034f9557455fa7f93b2897fbc2ffe06b5"
     },
     {
       "path": "python/NUMERICAL_LIMITS.md",
-      "sha256": "1662b375c31ea0d57adfb1bd494899886d3dc458b2dd60455336923f01fa3204"
+      "sha256": "14be021acb87f7cdb7e2df2fc73364b749ff84febc4ce4ffdf0673237539b949"
     },
     {
       "path": "python/OPTIMIZATION.md",
-      "sha256": "2f4ab78554e6092070d834b1f3fb51539a96a07a28dc931ca2247bf4e530a886"
+      "sha256": "47251c66f9005f66ce4bea86dc2529e3085eb42fe9c511b1b595ba6edd7e175b"
     },
     {
       "path": "python/README.md",
-      "sha256": "8bab6600fddbab8eb6678155a5a401f3ba3f50765621ec23a25054e62acccd71"
+      "sha256": "0a259576f10f6ff08c5c8724ecf4de019032ae7e04e6becde0b9096fd818b1b4"
     },
     {
       "path": "python/SOM.md",
-      "sha256": "bce3be8d5086025023757875931d8162b5c584506c334e5a8ddd27eb8c4b834b"
+      "sha256": "309f0411548588ea384c7766f5469e0457d3527ba446ed3136dac981b18ab09b"
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "8bcdde99081237bc1af573e92b6455520f5eb7922d6f3263d0c98309ed66f42c"
+      "sha256": "82dd1aa66d9c93928508966f2618e356a9eae1fbd4286517b9fd2e32225d0d52"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -689,11 +689,11 @@
     },
     {
       "path": "python/pyproject.toml",
-      "sha256": "09b547563c459c4ae4b34843ee36ca593b0dca20b13cf34fccc87997baf53298"
+      "sha256": "f5db758fa3e8353f7d0eb8b0f3446a939d0bf12f6adce888c0b17c3cec7034ab"
     },
     {
       "path": "python/src/ubukit/__init__.py",
-      "sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483"
+      "sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd"
     },
     {
       "path": "python/src/ubukit/_impl/__init__.py",
@@ -949,7 +949,7 @@
     },
     {
       "path": "tools/provenance/PRODUCT_CONTRACT.json",
-      "sha256": "a3641511c60cf6562633d55161d54756ec7fb67afe73c9b7a87298cc049ae53c"
+      "sha256": "e3912cd3d29e926926ce2757a4e77aefe4f45e76472e52c017e72e20181f7b1c"
     }
   ]
 }

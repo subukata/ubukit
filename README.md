@@ -19,7 +19,7 @@ A Python and JavaScript library for clustering, self-organizing maps, evaluation
 - **Evaluation:** trustworthiness and continuity check neighborhood preservation; adjusted Rand index (ARI) and adjusted mutual information (AMI) measure chance-adjusted agreement between cluster labels
 - **Parameter search:** Tree-structured Parzen Estimator (TPE) search uses earlier trial results to suggest parameter values; random search samples without that feedback
 
-UbuKit is a pre-release preview and is not yet published to PyPI or npm. Follow [getting started](docs/getting-started.md) to build and install the packages locally.
+UbuKit is alpha software. Follow [getting started](docs/getting-started.md) to build and install local Python and JavaScript archives.
 
 ## Python
 
@@ -63,4 +63,4 @@ See [development and verification](docs/contributing.md) for contributor instruc
 
 ## License
 
-UbuKit project contributions use the [MIT License](LICENSE). Retained third-party terms are described in [license scope](LICENSE-SCOPE.txt). The private preview is not approved for public release.
+UbuKit project contributions use the [MIT License](LICENSE). Retained third-party terms are described in [license scope](LICENSE-SCOPE.txt).

@@ -1,6 +1,6 @@
 # Lightweight hyperparameter optimization
 
-This local preview adds a dependency-free optimizer core to UbuKit. It searches
+UbuKit includes a dependency-free optimizer core. It searches
 within user-provided ranges and returns the best **observed** successful setting.
 It does not promise the global optimum or uniformly better performance than
 Optuna. The existing UbuKit distribution still has its existing dependencies;
@@ -37,7 +37,7 @@ The result has `best_params`, `best_value`, `best_trial_id`, `history` (alias
 `trials`), `n_attempted`, `n_completed`, and `stop_reason`. The best fields are
 `None` if no evaluation succeeded. `result.to_dict()` creates a detached
 serialization-friendly dictionary for ordinary JSON-scalar inputs. State is
-in memory only; a durable resume format is not part of this preview.
+in memory only; a durable resume format is not provided.
 
 ## Search space
 

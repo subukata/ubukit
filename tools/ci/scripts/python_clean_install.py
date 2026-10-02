@@ -81,7 +81,7 @@ for kind, artifact in [('wheel', wheel[0]), ('sdist', sdist[0])]:
     run(kind+'-install', [python,'-m','pip','install','--no-cache-dir','--no-deps','-v',artifact])
     if a.with_numba:
         run(kind+'-extra-resolution', [python,'-m','pip','install','--no-index','--only-binary=:all:',
-                                       'ubukit-bundled-local-preview[numba]'])
+                                       'ubukit[numba]'])
     run(kind+'-pip-check', [python,'-m','pip','check'])
     run(kind+'-freeze', [python,'-m','pip','freeze','--all'])
     run(kind+'-origin', [python,'-I','-B',Path(__file__).with_name('installed_python_gate.py'),

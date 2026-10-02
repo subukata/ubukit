@@ -1,4 +1,4 @@
-# Traditional SOM and BatchSOM (private dev6 efficiency candidate)
+# Traditional SOM and BatchSOM
 
 The additive registry names are `som` and `som_batch`. They are separate from
 SOM-OLP (`som-olp`) and from neighborhood quality evaluation (`neighborhood`).
@@ -130,7 +130,7 @@ claimed for these new variants. Runtime dependencies added: zero.
 Algorithm reference: [SOM Toolbox algorithms](https://www.cis.hut.fi/somtoolbox/documentation/somalg.shtml).
 The new implementation is independent; existing SOM-OLP notices remain intact.
 
-## Private efficiency candidate: BMU route selection
+## BMU route selection
 
 `bmuBackend` accepts `"auto"` (default), `"scalar"`, or `"grouped"`.
 `"scalar"` retains the original direct-distance cutoff implementation.

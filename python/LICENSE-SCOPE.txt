@@ -16,6 +16,6 @@ not bundled and retain their respective licenses. Original third-party notices
 are retained unchanged; their historical statements do not override the current
 project-license selection.
 
-This private preview is not a public-release approval. No additional
-conditions restrict rights granted by MIT or the applicable third-party terms.
+No additional conditions restrict rights granted by MIT or the applicable
+third-party terms.
 Keep the scoped notices with their respective material.

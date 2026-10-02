@@ -20,5 +20,3 @@ MIT terms. Tool dependencies and dataset sources retain their separate terms
 and notices if separately distributed.
 
 No additional conditions restrict rights granted under the applicable licenses.
-The package remains private and unpublished; this is an administrative release
-status, not an extra license condition.

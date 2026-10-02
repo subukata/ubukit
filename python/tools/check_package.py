@@ -1,4 +1,4 @@
-"""Bind private dev6 source, wheel, sdist and installed runtime; enforce one root."""
+"""Bind alpha source, wheel, sdist and installed runtime; enforce one root."""
 import argparse,hashlib,importlib.metadata as md,json,pathlib,sys,sysconfig,tarfile,zipfile
 import ubukit
 ROOT=pathlib.Path(__file__).resolve().parents[1]
@@ -7,7 +7,7 @@ parser.add_argument('--artifacts',type=pathlib.Path,default=ROOT/'artifacts')
 artifacts=parser.parse_args().artifacts.resolve()
 STAGE=ROOT;PURE=pathlib.Path(sysconfig.get_paths()['purelib']).resolve()
 manifest=json.loads((STAGE/'SOURCE_MANIFEST.json').read_text())
-assert ubukit.__version__==md.version('ubukit-bundled-local-preview')==manifest['version']
+assert ubukit.__version__==md.version('ubukit')==manifest['version']
 assert pathlib.Path(ubukit.__file__).resolve().is_relative_to(PURE)
 assert not any(x in sys.modules for x in ('numpy','scipy','sklearn','numba'))
 contract=json.loads((ROOT.parent/'tools/provenance/PRODUCT_CONTRACT.json').read_text())['languages']['python']

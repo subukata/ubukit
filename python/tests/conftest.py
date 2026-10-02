@@ -9,7 +9,7 @@ import sysconfig
 def pytest_sessionstart(session):
     import ubukit
     import ubukit._impl.portable_accel._som_classic as som_module
-    distribution = metadata.distribution('ubukit-bundled-local-preview')
+    distribution = metadata.distribution('ubukit')
     purelib = Path(sysconfig.get_paths()['purelib']).resolve()
     owned = {str(path) for path in distribution.files}
     manifest = json.loads((Path(__file__).resolve().parents[1] / 'SOURCE_MANIFEST.json').read_text())

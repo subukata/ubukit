@@ -1,16 +1,17 @@
 {
-  "version": "0.0.0.dev6",
+  "version": "0.1.0a1",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "Private ubukit namespace with preserved safety and metric candidates; adds entropy-regularized FCM and its 39th public facade export; no public release",
+  "purpose": "Prospective public alpha package source with preserved numerical implementations and source lineage",
   "files": [
     {
       "path": "src/ubukit/__init__.py",
       "baseline_path": "src/ubukit/__init__.py",
-      "sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483",
+      "sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd",
       "baseline_sha256": "8a78105ca555f14b79e26bb6479071d606888943ba0b44dd85ecf41e4391a8f0",
-      "change": "add_entropy_fcm_public_export",
+      "change": "add_entropy_fcm_public_export_and_alpha_version",
       "numerical_ast_equal": true,
-      "pre_entropy_fcm_sha256": "84b05a87cf414e08db4649c05ba7f923b5f16e39fe6abd425905db2b6dc82e09"
+      "pre_entropy_fcm_sha256": "84b05a87cf414e08db4649c05ba7f923b5f16e39fe6abd425905db2b6dc82e09",
+      "pre_public_alpha_sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483"
     },
     {
       "path": "src/ubukit/_impl/__init__.py",

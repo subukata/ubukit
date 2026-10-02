@@ -36,7 +36,6 @@ algorithm/formula references from any directly borrowed implementation and its
 applicable notice. Existing external licenses are not replaced by a project
 source declaration. Dependencies retain their own terms.
 
-Before public distribution, verify the final artifact's notices and source
-records and obtain publication approval. Python's `Private :: Do Not Upload`
-classifier and JavaScript's `private: true` flag remain enabled. License
-selection does not authorize a registry upload or repository visibility change.
+Before public distribution, verify the final artifacts' notices and source
+records and obtain publication approval. License selection and alpha package
+metadata do not authorize a registry upload or repository visibility change.

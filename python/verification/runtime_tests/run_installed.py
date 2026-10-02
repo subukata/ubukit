@@ -16,7 +16,7 @@ def main():
     parser.add_argument('--python', required=True, help='Absolute virtualenv python executable')
     parser.add_argument('--label', required=True)
     parser.add_argument('--with-numba', action='store_true')
-    parser.add_argument('--distribution', default='ubukit-bundled-local-preview')
+    parser.add_argument('--distribution', default='ubukit')
     parser.add_argument('--include-large-sparse', action='store_true')
     args=parser.parse_args()
     executable=Path(args.python).absolute()

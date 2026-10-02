@@ -6,7 +6,7 @@ otherwise standardized. Implementation modules are private and live only under u
 """
 from importlib import import_module
 
-__version__ = "0.0.0.dev6"
+__version__ = "0.1.0a1"
 _EXPORTS = {
     "TPEOptimizer": (".optimization", "TPEOptimizer"),
     "optimize": (".optimization", "optimize"),

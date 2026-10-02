@@ -28,7 +28,7 @@ def isolated(code):
 
 
 def test_only_ubukit_is_owned_as_a_top_level_namespace():
-    dist = importlib.metadata.distribution('ubukit-bundled-local-preview')
+    dist = importlib.metadata.distribution('ubukit')
     assert dist.version == VERSION
     assert set((dist.read_text('top_level.txt') or '').split()) == {'ubukit'}
     runtime = [Path(item) for item in dist.files if str(item).endswith('.py')]

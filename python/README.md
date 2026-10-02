@@ -1,32 +1,41 @@
 # UbuKit for Python
 
-**PRIVATE PREVIEW. Not published to PyPI, TestPyPI, or any registry.**
-The provisional distribution remains `ubukit-bundled-local-preview`; this is not
-an approved public name. Project contributions use the [MIT License](LICENSE);
-see [license scope](LICENSE-SCOPE.txt) for retained third-party terms.
+Clustering, self-organizing maps, evaluation metrics and parameter search.
+This alpha uses distribution and import name `ubukit`, version `0.1.0a1`.
+Project contributions use the MIT License; `LICENSE-SCOPE.txt` describes retained
+third-party terms. License and notice files accompany both wheel and source archive.
 
 Start with [installation](#installation-boundary),
 [clustering and metric examples](#core-clustering-and-metric-examples),
-[online and batch self-organizing maps (SOM)](SOM.md), or [parameter optimization](OPTIMIZATION.md).
+[online and batch self-organizing maps (SOM)](#online-som-and-batchsom), or
+`OPTIMIZATION.md` in the source archive.
 
 ## Installation boundary
 
-Use a **new virtual environment** for this private trial. The previous aggregate
-installed overlapping top-level modules; upgrading/uninstalling it in a mixed
-legacy environment can remove files another distribution owns. The
-[install-environment guard](tools/check_install_environment.py) checks the target environment read-only.
-It blocks actual foreign `ubukit` ownership/imports and an old layout of this
-same aggregate. Unrelated standalone legacy module names no longer collide with
-the new package and do not by themselves block installation. No package is
-removed or repaired automatically. `pip check` alone does not detect file-owner
-collisions.
+Use a **new virtual environment** when moving from earlier previews. The old
+`ubukit-bundled-local-preview` distribution installed overlapping top-level
+modules; upgrading or uninstalling it in a mixed environment can remove files
+another distribution owns. `pip check` alone does not detect file-owner collisions.
 
-For a repository checkout, follow the [repository installation commands](../docs/getting-started.md#python)
-from the repository root. They build a wheel and install it in a fresh environment
-with `python/constraints/constraints-namespace-verified.txt`, the tested Linux /
-Python 3.12 base stack. Built wheels are not committed. These pins are not a
-tested matrix for every declared Python version. Stop if the environment guard
-reports a conflict.
+Install a supplied local wheel with the checked Linux / CPython 3.12 base stack:
+
+```sh
+python3.12 -m venv .venv
+.venv/bin/python -m pip install ./ubukit-0.1.0a1-py3-none-any.whl "numpy==2.3.5" "scipy==1.17.0" "scikit-learn==1.8.0" "threadpoolctl==3.6.0"
+.venv/bin/python -c "import ubukit; print(ubukit.__version__)"
+```
+
+Use the actual local path to your wheel. These commands do not require a registry
+release. Python >=3.10 is declared; the pins above are not a tested matrix for
+every Python version or platform. On Windows the environment executable is
+`Scripts/python.exe`; this path convention is not a Windows qualification claim.
+
+A repository checkout additionally provides `python/tools/check_install_environment.py`.
+Run it with the target environment's Python before installation. This read-only
+guard blocks foreign `ubukit` ownership/imports and legacy aggregate layouts;
+unrelated standalone module names do not by themselves block installation.
+Stop on a conflict. The guard does not remove or repair packages and is not
+included in the wheel or source archive.
 
 The public import is `import ubukit`. Former top-level imports
 `portable_accel`, `ubukit_fcm`, `rough_cmeans`, `ubukit_rmcm`, `external_metrics`,
@@ -86,9 +95,10 @@ retained so metadata is available; the copies add O(NK) time and storage
 
 ## Supported environments
 
-The installation constraints describe checked Linux x86-64 / CPython 3.12
-stacks. Other operating systems, architectures and Python versions, including
-the declared minimum, are not a tested support matrix. Existing acceleration
+Existing local correctness evidence covers Linux x86-64 / CPython 3.12.
+Other operating systems, architectures and Python versions, including the
+declared minimum, are not a tested support matrix. Optional Numba requires
+separate qualification for this alpha. Existing acceleration
 measurements exclude the RCM/ExRCM membership-copy cost; they do not establish
 end-to-end API speedups.
 
@@ -183,7 +193,11 @@ Convergence means the absolute Frobenius membership change is below `tol`;
 `tol=0` runs exactly `max_iter`, and membership convergence alone does not certify
 stationary centers. A signed objective outside float64 range is reported as
 infinity or zero with `objective_status`, `objective_sign`, and
-`log_abs_objective` diagnostics. See the [equations and scaling guide](../docs/entropy-fcm.md).
+`log_abs_objective` diagnostics. The membership update is a softmax of
+negative squared distance divided by `tau`, with the minimum distance subtracted
+before division. If coordinates scale by `s`, scale `tau` by `s**2` to preserve
+the mathematical memberships. Positive `tau` does not force hard assignments at
+zero distance; tiny float64 memberships can still underflow to zero.
 
 ### Rough clustering
 
@@ -221,7 +235,7 @@ For explicit SOM-OLP initialization, use
 `uk.run_som_olp(X, grid, W0, P0, gamma=.1, lam=1., max_iters=3, policy=policy)`.
 For repeated fits, use `prepared = uk.PreparedSOM(X, threads=1)` and
 `prepared.fit(grid, gamma=.1, lam=1., max_iters=3)`.
-See [SOM.md](SOM.md) for online and batch schedules, state and result contracts.
+See `SOM.md` in the source archive for online and batch schedules, state and result contracts.
 
 ### Evaluation metrics
 
@@ -237,14 +251,15 @@ print(uk.adjusted_mutual_info_score(truth, predicted, average_method="arithmetic
 print(uk.adjusted_scores(truth, predicted))  # {"ari": ..., "ami": ...}
 ```
 
-For parameter search, see [OPTIMIZATION.md](OPTIMIZATION.md). The complete
-[public-API check](../examples/python/all_methods.py) also covers the reference
-entry points, preparation helpers, result types and optional Numba.
+For parameter search, see `OPTIMIZATION.md` in the source archive. The repository
+also includes `examples/python/all_methods.py`, covering reference entry points,
+preparation helpers, result types and optional Numba.
 
 ## Dependency compatibility
 
-Install with one of the supplied tested constraint files. They preserve the two
-verified stacks; the unconstrained declared minimum versions are not a support
+Use the pinned base stack in the installation example. Repository constraint
+files preserve separately checked historical stacks; they are not bundled in
+the package archives. Unconstrained declared minimum versions are not a support
 matrix. In particular, old scikit-learn releases without a NumPy upper bound can
 be combined by a resolver with incompatible NumPy 2.x. A general dependency-support
 floor has not been validated. Do not infer that a successful unconstrained
@@ -315,9 +330,9 @@ arbitrary-precision trajectory. Returned-pair consistency and full-trajectory
 accuracy are distinct: restoring a large origin can round the published centers
 while memberships retain the working-coordinate update. Inspect the diagnostics.
 
-The [SOM-OLP numerical limits](NUMERICAL_LIMITS.md) describe its exceptional-range
-contract. [Parameter optimization](OPTIMIZATION.md) uses only the standard
-library; importing that API does not load the scientific dependencies.
+The source archive includes `NUMERICAL_LIMITS.md` for SOM-OLP's exceptional-range
+contract and `OPTIMIZATION.md` for parameter search. The optimization API uses
+only the standard library; importing it does not load scientific dependencies.
 
 ## Online SOM and BatchSOM
 
@@ -325,7 +340,9 @@ Use `ubukit.som(X, epochs=10)` for online updates and
 `ubukit.som_batch(X, epochs=10)` for batch updates (BatchSOM), holding each
 sample's best-matching unit (BMU) fixed throughout an epoch.
 Both default to a 16×16 rectangular map with arbitrary input dimension.
-Detailed API, examples, limits and sources: [SOM.md](SOM.md).
+Detailed API, examples, limits and sources are in `SOM.md` in the source archive.
 
 The separately checked SOM stack uses NumPy 2.3.5, SciPy 1.17.0, scikit-learn 1.8.0,
-and threadpoolctl 3.7.0 without Numba. Use `constraints/constraints-som-verified.txt` from this `python/` directory. These constraints apply to that stack; they do not qualify every resolver outcome.
+and threadpoolctl 3.7.0 without Numba. The repository records it in
+`python/constraints/constraints-som-verified.txt`. Those pins apply to that stack;
+they do not qualify every resolver outcome.

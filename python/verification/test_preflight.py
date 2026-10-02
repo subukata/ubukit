@@ -61,6 +61,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(result['status'], 'blocked')
         self.assertEqual(result['conflicts'][0]['kind'], 'existing_import_path')
 
+    def test_previous_preview_namespace_requires_fresh_environment(self):
+        root = Path('/synthetic')
+        dist = D('ubukit-bundled-local-preview', root, ['ubukit/__init__.py'])
+        old_spec = importlib.util.spec_from_file_location('ubukit', root / 'ubukit/__init__.py')
+        result = self.inspect([dist], {'ubukit': old_spec})
+        self.assertEqual(result['status'], 'blocked')
+        self.assertEqual(result['legacy_distributions'][0]['name'], 'ubukit-bundled-local-preview')
+        self.assertTrue(result['read_only'])
+
     def test_foreign_ubukit_owner_is_blocked(self):
         dist = D('another-owner', Path('/synthetic'), ['ubukit/__init__.py'])
         result = self.inspect([dist])
@@ -69,7 +78,7 @@ class Tests(unittest.TestCase):
 
     def test_current_owned_layout_is_clear(self):
         root = Path('/synthetic')
-        dist = D('ubukit-bundled-local-preview', root,
+        dist = D('ubukit', root,
                  ['ubukit/__init__.py', 'ubukit/_impl/rough_cmeans.py'])
         own_spec = importlib.util.spec_from_file_location('ubukit', root / 'ubukit/__init__.py')
         result = self.inspect([dist], {'ubukit': own_spec})

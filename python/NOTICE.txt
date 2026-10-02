@@ -1,6 +1,6 @@
-UbuKit private research preview. Project-owned contributions use the MIT License
-in LICENSE. LICENSE-SCOPE.txt identifies retained third-party terms and the
-limits of this license selection. No public release is approved.
+UbuKit project-owned contributions use the MIT License in LICENSE.
+LICENSE-SCOPE.txt identifies retained third-party terms and the limits of this
+license selection.
 
 The original SOM-OLP reference and corresponding derived implementations use
 source from https://github.com/subukata/som-olp at commit

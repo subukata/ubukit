@@ -8,7 +8,7 @@
       "namespace": "ubukit",
       "source_manifest": "python/SOURCE_MANIFEST.json",
       "metadata": "python/pyproject.toml",
-      "distribution": "ubukit-bundled-local-preview",
+      "distribution": "ubukit",
       "package_metadata": [
         "EXPERIMENTAL_LOCALIZED_SOM.md",
         "LICENSE",

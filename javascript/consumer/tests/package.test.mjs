@@ -16,10 +16,10 @@ const X={data:Float64Array.of(0,.1,.2,4,4.1,4.2),nSamples:6,nFeatures:1};
 function opts(a){return {nClusters:2,initCenters:Float64Array.of(0,4),maxIterations:4,tolerance:0,blockRows:2,...['som','som_batch'].includes(a)?{gridShape:[2,1]}:{},...a==='rmcm'?{delta:.3}:{},...a==='som-olp'?{grid:{data:Float64Array.of(-1,1),nSamples:2,nFeatures:1},lambda:.4}:{},...a==='neighborhood'?{embedding:X,k:1}:{}};}
 function consume(it){for(;;){const next=it.next();if(next.done)return next.value;}}
 
-test('installed package is a real tarball copy with exact private metadata and additive external-metric exports',async()=>{
+test('installed package is a real tarball copy with exact alpha metadata and additive external-metric exports',async()=>{
  assert.match(moduleURL,/consumer\/node_modules\/ubukit-js\/src\/index\.js$/);
  assert.equal(fs.lstatSync(packageURL).isSymbolicLink(),false);
- assert.equal(pkg.name,'ubukit-js');assert.equal(pkg.version,'0.1.0-dev.6');assert.equal(pkg.private,true);
+ assert.equal(pkg.name,'ubukit-js');assert.equal(pkg.version,'0.1.0-alpha.1');assert.equal(Object.hasOwn(pkg,'private'),false);
  assert.deepEqual(pkg.exports,{'.':'./src/index.js','./worker':'./src/worker-client.js','./session':'./src/session.js','./realtime-worker':'./src/realtime-worker-client.js','./metrics':'./src/metric-scheduler.js','./optimization':'./src/optimization.js','./external-metrics':'./src/external-metrics.js'});
  assert.equal(pkg.dependencies,undefined);assert.equal(pkg.scripts,undefined);assert.equal(pkg.license,'MIT AND BSD-3-Clause');
  const expected=['adjustedRandScore','adjustedMutualInfoScore','adjustedScores','adjusted_rand_score','adjusted_mutual_info_score','adjusted_scores','ExternalMetricDomainError','TPEOptimizer','SearchSpaceExhaustedError','ProposalError','floatRange','intRange','categorical','optimize','optimizeAsync','ClusteringSession','PreparedRMCM','RMCMGraphCache','algorithms','createMetricScheduler','createRealtimeWorkerClient','createSession','createWorkerClient','entropyFcm','entropyFcmSteps','exrcm','fcm','kmeans','membershipsFromSquaredDistances','neighborhood','neighborhoodSteps','normalizeInput','prepareRMCM','prepareRMCMSteps','rcm','rmcm','rmcmReference','rmcmSteps','roughAdmissible','run','runAsync','seededRandom','sessionAlgorithms','somOlp','somOlpSteps','steps','som','somBatch','som_batch','somSteps','somBatchSteps','somProject'];

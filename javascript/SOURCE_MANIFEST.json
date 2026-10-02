@@ -1,7 +1,7 @@
 {
   "schema_version": 5,
-  "purpose": "Private JS dev6 candidate with preserved safety and metric fixes plus entropy-regularized FCM; no public release",
-  "version": "0.1.0-dev.6",
+  "purpose": "Prospective public alpha package source with preserved numerical implementations and source lineage",
+  "version": "0.1.0-alpha.1",
   "runtime_files": {
     "src/clustering.js": {
       "sha256": "b2c75c49e7567a25ccb51ae41adaaed770fc059c0536c19533cfd262ac9a2532",

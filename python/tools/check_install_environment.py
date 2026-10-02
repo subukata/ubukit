@@ -11,7 +11,8 @@ from pathlib import Path
 import re
 import sys
 
-OWN = 'ubukit-bundled-local-preview'
+OWN = 'ubukit'
+LEGACY_DISTRIBUTIONS = {'ubukit-bundled-local-preview'}
 LEGACY_ROOTS = {'portable_accel', 'ubukit_fcm', 'ubukit_rmcm', 'rough_cmeans',
                 '_numba_kernel', 'external_metrics', '_external_metrics_numba'}
 TOP = {'ubukit'}
@@ -28,7 +29,7 @@ def inspect_environment():
             p = Path(f)
             top = p.parts[0] if p.parts else ''
             key = top[:-3] if top.endswith('.py') else top
-            if name == OWN and key in LEGACY_ROOTS:
+            if name in LEGACY_DISTRIBUTIONS or (name == OWN and key in LEGACY_ROOTS):
                 item = {'name': name, 'version': dist.version}
                 if item not in blocked_distributions:
                     blocked_distributions.append(item)
