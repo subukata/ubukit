@@ -31,7 +31,7 @@ def snapshots(root):
 def fixture(root):
     write(root, 'python/src/ubukit/__init__.py', '__version__ = "1.2.3"\n')
     write(root, 'javascript/src/index.js', 'export const value = 1;\n')
-    write(root, 'python/pyproject.toml', '[project]\nname = "ubukit-bundled-local-preview"\nversion = "1.2.3"\nlicense-files = []\n')
+    write(root, 'python/pyproject.toml', '[project]\nname = "ubukit"\nversion = "1.2.3"\nlicense-files = []\n')
     write(root, 'python/SOURCE_MANIFEST.json', {'version': '1.2.3', 'files': [{'path': 'src/ubukit/__init__.py', 'sha256': digest(root / 'python/src/ubukit/__init__.py')}]})
     write(root, 'javascript/package.json', {'name': 'ubukit-js', 'version': '2.3.4', 'exports': {'.': './src/index.js'}, 'files': ['src/index.js', 'SOURCE_MANIFEST.json']})
     write(root, 'javascript/SOURCE_MANIFEST.json', {'version': '2.3.4', 'runtime_files': {'src/index.js': {'sha256': digest(root / 'javascript/src/index.js')}}})
@@ -242,11 +242,11 @@ class ArchiveInventoryTests(unittest.TestCase):
         runtime = ['src/ubukit/__init__.py']
         self.sdist = {name: (self.source / 'python' / name).read_bytes() for name in runtime + spec['package_metadata']}
         self.sdist.update({name: b'generated\n' for name in spec['sdist_generated_files']})
-        self.sdist.update({'src/ubukit_bundled_local_preview.egg-info/' + name: b'generated\n' for name in spec['egg_info_files']})
+        self.sdist.update({'src/ubukit.egg-info/' + name: b'generated\n' for name in spec['egg_info_files']})
         self.sdist['PKG-INFO'] = b'Version: 1.2.3\n'
         self.wheel = {'ubukit/__init__.py': (self.source / 'python/src/ubukit/__init__.py').read_bytes()}
-        self.wheel.update({'ubukit_bundled_local_preview-1.2.3.dist-info/' + name: b'generated\n' for name in spec['wheel_metadata_files']})
-        self.wheel['ubukit_bundled_local_preview-1.2.3.dist-info/METADATA'] = b'Version: 1.2.3\n'
+        self.wheel.update({'ubukit-1.2.3.dist-info/' + name: b'generated\n' for name in spec['wheel_metadata_files']})
+        self.wheel['ubukit-1.2.3.dist-info/METADATA'] = b'Version: 1.2.3\n'
         metadata = json.loads((self.source / 'javascript/package.json').read_text())
         self.npm = {'package/' + name: (self.source / 'javascript' / name).read_bytes() for name in ['package.json', *metadata['files']]}
 
@@ -256,7 +256,7 @@ class ArchiveInventoryTests(unittest.TestCase):
                 for name, data in files.items():
                     item = tarfile.TarInfo(name); item.size = len(data)
                     archive.addfile(item, io.BytesIO(data))
-        tar(self.artifacts / 'python/candidate.tar.gz', {'ubukit_bundled_local_preview-1.2.3/' + n: data for n, data in self.sdist.items()})
+        tar(self.artifacts / 'python/candidate.tar.gz', {'ubukit-1.2.3/' + n: data for n, data in self.sdist.items()})
         tar(self.artifacts / 'javascript/candidate.tgz', self.npm)
         with zipfile.ZipFile(self.artifacts / 'python/candidate.whl', 'w') as archive:
             for name, data in self.wheel.items():

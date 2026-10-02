@@ -1,4 +1,4 @@
-# Private combined preview: numerical contracts and limits
+# Numerical contracts and limits
 
 ## FCM
 

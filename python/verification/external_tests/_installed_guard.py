@@ -11,7 +11,7 @@ RUNTIME_ROOTS = ('ubukit',)
 LEGACY_ROOTS = {'portable_accel', 'ubukit_fcm', 'ubukit_rmcm',
                 'rough_cmeans', '_numba_kernel', 'external_metrics', '_external_metrics_numba'}
 
-def check_installed(distribution='ubukit-bundled-local-preview', verify_hashes=False):
+def check_installed(distribution='ubukit', verify_hashes=False):
     if sys.prefix == sys.base_prefix:
         raise AssertionError('Run with a dedicated installed-wheel virtualenv, not the host interpreter')
     dist = importlib.metadata.distribution(distribution)

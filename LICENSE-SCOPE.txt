@@ -26,5 +26,4 @@ identity establishes reproducibility, not a legal ownership determination.
 
 Package scope is in python/LICENSE-SCOPE.txt and javascript/LICENSE-SCOPE.txt.
 No additional conditions restrict rights granted under the applicable licenses.
-The private release workflow is an administrative status, not an extra license
-condition or approval to publish this repository or its artifacts.
+Release administration does not add conditions to the applicable licenses.

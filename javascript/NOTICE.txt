@@ -1,4 +1,4 @@
-UbuKit private research preview. Project-owned contributions use the MIT License
+UbuKit project-owned contributions use the MIT License
 in LICENSE, including the project-developed WebAssembly kernels.
 LICENSE-SCOPE.txt preserves the separate terms of the material identified below.
 
@@ -14,6 +14,3 @@ wasm/DEVELOPMENT.md records the maintainer's development clarification and the
 distinction between preserved original and reconstructed source. Original
 external-metrics provenance notices retain their historical wording.
 
-The npm package remains configured private, and maintainer release review is
-open. This administrative status does not restrict rights granted by MIT or
-other applicable licenses for the material they cover.

@@ -3,20 +3,24 @@
 Clustering, self-organizing maps (SOM), evaluation metrics and parameter search for
 Node.js and browsers, using ES modules and no runtime npm dependencies.
 
-The package is `private: true` and unpublished. Project contributions use the
+This alpha is `ubukit-js` version `0.1.0-alpha.1`. Project contributions use the
 [MIT License](LICENSE); [license scope](LICENSE-SCOPE.txt) identifies third-party
-terms. Project-developed WebAssembly (WASM) kernels are included. See the
-[build instructions](../docs/getting-started.md#javascript) to create a local tarball from source.
+terms. Project-developed WebAssembly (WASM) kernels are included.
 
 ## Install locally
 
 ```sh
-npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-dev.6.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-alpha.1.tgz
 ```
 
-There are no runtime npm dependencies or install scripts. Package metadata keeps
-the existing Node >=20 requirement. This integration was executed on Linux with
-Node 24.19.0; that does not validate all Node >=20 versions or other OSes.
+Use the actual local path to your tarball; this command does not require a
+registry release. To create a tarball from a source checkout, run
+`npm pack --ignore-scripts` in its `javascript/` directory.
+
+There are no runtime npm dependencies or install scripts. Node >=20 is declared.
+Existing local checks cover Linux / Node 24; they do not qualify every Node >=20
+version, other operating systems, or actual browsers. Browser execution,
+including entropy-regularized FCM, remains unverified by the current checks.
 
 This example uses fuzzy c-means (FCM) for degrees of cluster membership.
 
@@ -193,7 +197,7 @@ logic remains unchanged. Requested WASM is not a promise that every operation
 executes in WASM. Read existing result diagnostics, where provided.
 
 Other OSes, architectures and actual browser execution are not qualified by
-these checks. Local validation does not authorize registry publication.
+these checks.
 
 ## SOM-OLP exceptional numerical ranges
 

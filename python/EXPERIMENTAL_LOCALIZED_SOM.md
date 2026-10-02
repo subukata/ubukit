@@ -6,7 +6,7 @@ The dev5 candidate added the localization experiment. In this namespace-only dev
 candidate it lives at `ubukit._impl.portable_accel.som_olp_localized`.
 Existing exports, backend implementations, and public defaults are unchanged.
 The preserved verified dev4 source and built distributions remain the baseline.
-This is not a public release or a universally faster replacement.
+This is not a supported public API or a universally faster replacement.
 
 Explicit use:
 

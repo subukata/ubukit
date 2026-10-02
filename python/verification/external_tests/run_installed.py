@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--python',required=True)
     parser.add_argument('--label',required=True)
     parser.add_argument('--with-numba',action='store_true')
-    parser.add_argument('--distribution',default='ubukit-bundled-local-preview')
+    parser.add_argument('--distribution',default='ubukit')
     args=parser.parse_args()
     executable=Path(args.python).absolute()
     if not executable.is_file():parser.error('supplied virtualenv Python does not exist')

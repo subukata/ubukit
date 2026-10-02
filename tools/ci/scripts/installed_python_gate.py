@@ -14,7 +14,7 @@ import sysconfig
 
 source = Path(sys.argv[1]).resolve()
 with_numba = len(sys.argv) > 2 and sys.argv[2] == 'numba'
-name = 'ubukit-bundled-local-preview'
+name = 'ubukit'
 dist = metadata.distribution(name)
 import ubukit
 manifest = json.loads((source / 'SOURCE_MANIFEST.json').read_text())

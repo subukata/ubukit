@@ -1,7 +1,7 @@
 # Online SOM and true Batch SOM
 
-Private additive candidate; no registry publication. These are separate algorithms
-from the existing `fit_som_olp`; that entry point and its numerical code are retained.
+Online SOM and batch SOM are separate algorithms from `fit_som_olp`.
+Each has its own update rule and result contract.
 
 ## Quick start
 

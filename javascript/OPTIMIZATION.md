@@ -1,4 +1,4 @@
-# Lightweight optimization: private candidate
+# Lightweight optimization
 
 `ubukit-js/optimization` provides a dependency-free optimizer for bounded, flat,
 single-objective hyperparameter search. It creates no threads, workers, or network
@@ -152,6 +152,6 @@ covariance modeling are not implemented. Memory grows with stored history;
 proposal cost grows with dimensions, observations and candidates. There is no
 bounded-history approximation.
 
-This is a private candidate, not a published release. Small synthetic benchmarks
+Small synthetic benchmarks
 do not establish universal superiority over random search or Optuna or justify a
 state-of-the-art claim. Use held-out validation and account for evaluation cost.

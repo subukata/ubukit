@@ -5,7 +5,7 @@ from ._installed_guard import check_installed
 
 
 def pytest_addoption(parser):
-    parser.addoption('--ubukit-distribution', default='ubukit-bundled-local-preview')
+    parser.addoption('--ubukit-distribution', default='ubukit')
     parser.addoption('--ubukit-provenance-out', default=None)
     parser.addoption('--include-large-sparse', action='store_true', default=False,
                      help='Include the original 8000-point sparse graph regression (not needed for default wheel smoke/regression)')

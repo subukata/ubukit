@@ -3,15 +3,15 @@ requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ubukit-bundled-local-preview"
-version = "0.0.0.dev6"
-description = "Local-only UbuKit prototype with sample-major membership axes"
+name = "ubukit"
+version = "0.1.0a1"
+description = "Clustering, self-organizing maps, evaluation metrics, and parameter search"
 readme = "README.md"
 requires-python = ">=3.10"
 # Project contributions are MIT; adapted compatibility portions retain BSD-3-Clause.
 license = "MIT AND BSD-3-Clause"
 license-files = ["LICENSE", "LICENSE-SCOPE.txt", "LICENSE-SOM.txt", "NOTICE.txt", "NOTICE-EXTERNAL-METRICS.txt", "THIRD_PARTY_LICENSES.txt"]
-classifiers = ["Private :: Do Not Upload"]
+classifiers = ["Development Status :: 3 - Alpha", "Programming Language :: Python :: 3"]
 dependencies = [
   "numpy>=1.24",
   "scipy>=1.10",

@@ -1,19 +1,21 @@
-> Namespace dev6: this harness now imports implementation modules only under `ubukit._impl`; ownership guards require the installed `ubukit` tree. Frozen numerical fixtures/tolerances and oracle bytes remain unchanged. Current runtime hashes are in `staging/SOURCE_MANIFEST.json` relative to the Python preview root; historical hashes/results below are not new migration measurements.
+> The harness imports implementation modules only under `ubukit._impl`; ownership guards require the installed `ubukit` tree. Frozen numerical fixtures, tolerances and oracle bytes remain unchanged. Current runtime hashes are in `python/SOURCE_MANIFEST.json` from the repository root. Historical results below do not qualify a newly built alpha artifact.
 
 # Installed external-metrics regression gate
 
-This gate exercises the two frozen external-metrics modules and the three lazy `ubukit` aliases in the private `0.0.0.dev6` distribution (namespace-only import relocation). It never imports an implementation from the checkout. The canonical modules must be owned by the selected virtualenv's installed distribution RECORD and their SHA-256 hashes must match that RECORD before and after execution.
+This gate exercises the two frozen external-metrics modules and the three lazy `ubukit` aliases in the installed `ubukit` distribution, version `0.1.0a1`. It never imports an implementation from the checkout. The canonical modules must be owned by the selected virtualenv's installed distribution RECORD and their SHA-256 hashes must match that RECORD before and after execution.
 
 ## Run
 
 From the repository root after installing the selected fresh environment:
 
 ```sh
-python3.12 preview/python/verification/external_tests/run_installed.py --python "$PWD/.venv/bin/python" --label repository
+python3.12 python/verification/external_tests/run_installed.py --python "$PWD/.venv/bin/python" --label repository
 ```
 
-For a Numba-enabled environment also pass `--with-numba`. See
-`preview/REPRODUCE.md` for provisioning and the complete sequence.
+For a separately qualified Numba-enabled environment also pass `--with-numba`.
+See `docs/getting-started.md` for the base installation and
+`docs/contributing.md` for repository verification guidance. These paths are
+relative to the repository root.
 
 The runner always uses isolated `python -I -B`, an empty working directory, no `PYTHONPATH`, one BLAS/OpenMP/Numba thread, disabled third-party pytest plugins, and a per-environment Numba cache. It installs nothing. Output goes under `results/<label>/` with environment versions, numerical counts/errors, portability results, new facade/route JUnit results, full logs and import provenance.
 
@@ -33,7 +35,7 @@ The copied standalone `test_external_metrics.py` and `test_portability.py` scrip
 
 ## Exact adaptations and limits
 
-The two numerical implementation files are not copied, edited or patched by this harness. It only imports their wheel-installed versions. Frozen test fixture sizes, seeds, numerical tolerances, and non-optional comparisons remain unchanged. The copied numerical script adds a dependency availability condition around optional Numba parity calls, preserving the entire NumPy/sklearn/independent panel in base mode, and directs report output into the selected results directory. The copied portability script changes only report destination and support imports. The preview-root VERIFICATION_SNAPSHOT.json records the final test bytes.
+The two numerical implementation files are not copied, edited or patched by this harness. It only imports their wheel-installed versions. Frozen test fixture sizes, seeds, numerical tolerances, and non-optional comparisons remain unchanged. The copied numerical script adds a dependency availability condition around optional Numba parity calls, preserving the entire NumPy/sklearn/independent panel in base mode, and directs report output into the selected results directory. The copied portability script changes only report destination and support imports. `tools/provenance/VERIFICATION_SNAPSHOT.json` at the repository root records the current verification bytes.
 
 No external dataset, benchmark, speed comparison, million-row timing case, or performance certification is run. Runtime elapsed seconds in logs are test bookkeeping only. The `N=10,000` cases are original correctness fixtures and remain included. Missing Numba omits only backend-parity work; the optional environments execute it. No scikit-fuzzy dependency is needed for this external-metrics gate.
 

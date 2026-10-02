@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "repository": "subukata/ubukit",
-  "approved_source_sha": "478fbc25266ea60a5dcb17c58c8cca364fa66225",
-  "approved_source_snapshot_sha256": "bc58d7647efc44791abae551198cbf8f3968c23d0b42ede331de72671394bdb5",
-  "approved_build_harness_sha": "5803629bffafb015f7d95f3d844c590445d0ec43",
-  "status": "selected_reviewed_product_layout_source",
+  "approved_source_sha": null,
+  "approved_source_snapshot_sha256": null,
+  "approved_build_harness_sha": null,
+  "status": "unselected_provisional_public_alpha",
   "historical_source_sha": "86321a9f1bc405ddb3251facfe1d876064c9c9dd",
   "historical_main_sha": "5a197111b605c495f3f2a7ba69a6e09bb44e8caf",
-  "note": "Select a reviewed immutable product-layout source SHA and source snapshot digest in a separate reviewed change. For reuse, also pin the successful build harness SHA. A dispatch input cannot authorize a new source.",
-  "approved_build_harness_snapshot_sha256": "69ae3beed4578368ac97ac252b9265e7dc0f4b20771b1b9f0d3a5877231b98ac"
+  "note": "No release source is selected. After identity and exact source review, select an immutable commit and source snapshot in a separate reviewed change. Upload and dispatch remain separate approvals.",
+  "approved_build_harness_snapshot_sha256": null
 }

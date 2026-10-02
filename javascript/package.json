@@ -1,7 +1,6 @@
 {
   "name": "ubukit-js",
-  "version": "0.1.0-dev.6",
-  "private": true,
+  "version": "0.1.0-alpha.1",
   "description": "Zero-dependency Float64Array CPU clustering, stateful sessions and neighborhood evaluation for browsers and Node",
   "type": "module",
   "exports": {

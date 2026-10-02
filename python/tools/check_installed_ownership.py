@@ -3,7 +3,7 @@ from importlib import metadata,util
 import hashlib,json,sys,sysconfig
 ROOT=Path(__file__).resolve().parents[1]
 m=json.loads((ROOT/'SOURCE_MANIFEST.json').read_text())
-d=metadata.distribution('ubukit-bundled-local-preview');purelib=Path(sysconfig.get_paths()['purelib']).resolve();owned={str(p) for p in d.files}
+d=metadata.distribution('ubukit');purelib=Path(sysconfig.get_paths()['purelib']).resolve();owned={str(p) for p in d.files}
 assert d.version==m['version']
 expected={r['path'].removeprefix('src/'):r['sha256'] for r in m['files']};assert len(expected)==len(m['files'])
 for n,h in expected.items():
