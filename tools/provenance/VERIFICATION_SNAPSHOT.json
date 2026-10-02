@@ -2231,11 +2231,11 @@
     },
     {
       "path": "tools/ci/browser/smoke.mjs",
-      "sha256": "15c975d2f4b83f85e0c2e1c73c5dfd652ff80c49e5ac06a6a5f4e8b0fe3146cc"
+      "sha256": "ac0c49fd5e76647a8307a0641b020e300e25fdac93f3e9229317b0082f769674"
     },
     {
       "path": "tools/ci/candidate-policy.json",
-      "sha256": "bd2ea61f50e3e370fc6e4c9be88e5b6341fbe16690c30684e4e17728dce9bfe6"
+      "sha256": "564bb21dcbbbc5e8f69e022fbbd37fef96b0659574f80d0efd25dbea1c443d93"
     },
     {
       "path": "tools/ci/constraints/base-py312.txt",

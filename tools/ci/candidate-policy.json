@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repository": "subukata/ubukit",
-  "approved_source_sha": "ea0f222fa81f6805dcdf983eda04ae3af0714556",
-  "approved_source_snapshot_sha256": "c35e60386fbf66a7ca1f1d7944572a387bf8c04311865ea24789b5a1f5e5679f",
+  "approved_source_sha": "478fbc25266ea60a5dcb17c58c8cca364fa66225",
+  "approved_source_snapshot_sha256": "bc58d7647efc44791abae551198cbf8f3968c23d0b42ede331de72671394bdb5",
   "approved_build_harness_sha": null,
   "status": "selected_reviewed_product_layout_source",
   "historical_source_sha": "86321a9f1bc405ddb3251facfe1d876064c9c9dd",
