@@ -1,13 +1,85 @@
 {
-  "description": "Final dev3 repository tests and frozen references; not historical pre-adaptation hashes",
+  "description": "Current Python dev3 / JavaScript dev4 tests, references, setup and selected evidence; historical measurements retain their original values",
   "files": [
     {
+      "path": "javascript/REPORT.md",
+      "sha256": "4b28bf6948b7025d884c61db9e2ae555aa9616dbbe956cf4413cdf0ee8611dfd"
+    },
+    {
+      "path": "javascript/REPRODUCE.md",
+      "sha256": "da8540817f7cd9809a32fd729812f246be02ae74de37d889a95e3fd494177fa0"
+    },
+    {
+      "path": "javascript/audit/audit-numerics.mjs",
+      "sha256": "b458fac6218aa415a902f277fe6e3a980e6a16d435fe668d759b11dab48bff78"
+    },
+    {
+      "path": "javascript/audit/audit-results.json",
+      "sha256": "f0bd2e04294766f605a962fa54b79d09c9a5aa2b3f2eb3b4e12b90fd8387a1e1"
+    },
+    {
+      "path": "javascript/audit/generate_numeric_reference.py",
+      "sha256": "e70dcd94d63b563e5661e6a8ae6210009a5a219689451929048fd2f9cf6aac7d"
+    },
+    {
+      "path": "javascript/audit/numeric-reference.json",
+      "sha256": "95098316524d99d832f58faec41e52dce2c5df6e67055da0f87fef078888bffb"
+    },
+    {
+      "path": "javascript/audit/sklearn-conditioning.json",
+      "sha256": "75d81fcb3c7ee9b9fc144927a737c2c196a85041b18e6c3a2df570404ed21494"
+    },
+    {
+      "path": "javascript/audit/synthetic-reference.json",
+      "sha256": "75d961e489fbcb95d65797c71249a56db19ecd7f4859c8ae8de428d5f4922141"
+    },
+    {
+      "path": "javascript/bench/reference-baseline.mjs",
+      "sha256": "7fafa02b3369317bf2ded569badfc1067a540933dd2c7da7b1efe85a38c11955"
+    },
+    {
+      "path": "javascript/bench/run-matched-node.mjs",
+      "sha256": "b56653d09db99e6382dba46f01a60b397d59e27126c4a7f9815a58fec30e17f4"
+    },
+    {
+      "path": "javascript/bench/run-matched-python.py",
+      "sha256": "70f7e18137d11bc8711b652cd653879901e7b77ee48abca39cd1f681826b058a"
+    },
+    {
+      "path": "javascript/bench/run-node.mjs",
+      "sha256": "444e18e5fca5eceb00c08943024e86ca92499d071cce13b677b5239dd1afceaf"
+    },
+    {
+      "path": "javascript/bench/run-sklearn.py",
+      "sha256": "140cda36ef7c7bac51a92a8cdc3ab7b50264d564e3a2d655e6d90a1b97b552d7"
+    },
+    {
+      "path": "javascript/browser-smoke.html",
+      "sha256": "8bc00a15b0904ead393b5748702918fb5bdb7aed243d121329e8dbb1922a0d8d"
+    },
+    {
+      "path": "javascript/browser-worker.mjs",
+      "sha256": "ed4178351e786225e198ad956b9761e7def38e1dcbc110048e661b399a342495"
+    },
+    {
+      "path": "javascript/consumer/package.json",
+      "sha256": "a695edf4fff70f1c8e2cd35c9dd7923d399697c43f87df3d35f7cddd67c32dd4"
+    },
+    {
       "path": "javascript/consumer/tests/package.test.mjs",
-      "sha256": "b196377348da5295c33da345821ab172e3fe801f3e19cd007ce6fdb01fcb4129"
+      "sha256": "a18ba543143d05e5c2db90529f1c1981353d9e59d7d6d7a79059224c740b2c58"
     },
     {
       "path": "javascript/consumer/tests/review-regressions.test.mjs",
       "sha256": "c01e6cd94748983d9fb3eb4446ecf52c41c801238ca50ac8897d1d6ecd57612f"
+    },
+    {
+      "path": "javascript/fixtures/benchmark-inputs.json",
+      "sha256": "adcf7ac43b3a9e0498a5825f647ed382266a14fc9de77d499e7c33e44add22bb"
+    },
+    {
+      "path": "javascript/fixtures/matched-10000-k50.json",
+      "sha256": "279feca5928fc800740b903785912ce2195975f2164b7281e379258eb5377042"
     },
     {
       "path": "javascript/fixtures/normal_interval_reference.json",
@@ -22,6 +94,46 @@
       "sha256": "78d71d31d29308c2c9d44c31b98551931c400a8a46ecac31479319f2309dcde0"
     },
     {
+      "path": "javascript/fixtures/sklearn-1.8.json",
+      "sha256": "97caa71beffe6692a6e81d98f9bbd9da816110bb5e9ff042047db8049a7c7d4f"
+    },
+    {
+      "path": "javascript/reports/all-tests.log",
+      "sha256": "770500a9bfeb4953d04519e5b52ebd8acda8d4906f602f2bb81de164108515b5"
+    },
+    {
+      "path": "javascript/reports/benchmark-node.json",
+      "sha256": "429e97215bedfe099dcc7d32f08c7d557d9d170e633c3033af3740728fcae33f"
+    },
+    {
+      "path": "javascript/reports/benchmark-sklearn.json",
+      "sha256": "b3d265f6cf4b5a0b162cea51783a5fea8152b5eb9d63c7429de1cd3c072b99c9"
+    },
+    {
+      "path": "javascript/reports/matched-node.json",
+      "sha256": "f5d45062ad197fc898c6a364a6b1145a52934f12ff7e998f1b2ca03eb291cf5e"
+    },
+    {
+      "path": "javascript/reports/matched-python.json",
+      "sha256": "a4cd794f69963e6d2136f1f50b472623ec30d6256af9cd95859072cdba64b830"
+    },
+    {
+      "path": "javascript/reports/matched-summary.csv",
+      "sha256": "cf764b1e5f304a962d36285a27275f55b09735faa6dcc181e0db6c5964805911"
+    },
+    {
+      "path": "javascript/reports/matched-summary.json",
+      "sha256": "09d1b68e65c18895dabc9f779fffd071cc55a0947bfb9c77b88d1819906cc4e3"
+    },
+    {
+      "path": "javascript/reports/runtime-compatibility.json",
+      "sha256": "4f4e93d58a157ffa776dafa83d3481cd64e134b09c91bddaa88092916489b9cc"
+    },
+    {
+      "path": "javascript/reports/sklearn-parity.json",
+      "sha256": "6be2829520cac8608bc03dda79f66f85a8f3a781ee35f393a4e857ff08a1fbea"
+    },
+    {
       "path": "javascript/tests/core-parity.test.mjs",
       "sha256": "6ba2adee2905cfe448f358b9032d7bc4caf637470c236c0afb40fa29f6b3bdb2"
     },
@@ -30,12 +142,20 @@
       "sha256": "021b9888596d971f0cf3037eb44d0972a2722365c61e609ac60198f27032e743"
     },
     {
+      "path": "javascript/tests/external-metrics.test.mjs",
+      "sha256": "51ef78476c368c2b4182efc51b9c6a3307ff0571e31e674fbf24eb7f5e8e917a"
+    },
+    {
       "path": "javascript/tests/extreme-fcm.test.mjs",
       "sha256": "6657d741de2304ae94c13480191bbd45267cb7fbca7e8a5abd96267195cd49ef"
     },
     {
       "path": "javascript/tests/extreme-som.test.mjs",
       "sha256": "9008339dfd3259fd03b7064a6d8bcbe0d771956d69fabf33fcad0240c3c68fb8"
+    },
+    {
+      "path": "javascript/tests/generate_references.py",
+      "sha256": "5d3f4167cfbd8de05621da7b98ce584f8f68097f2b0cd73e8df1fc90949dcf72"
     },
     {
       "path": "javascript/tests/highprecision-reference.json",
@@ -52,6 +172,14 @@
     {
       "path": "javascript/tests/parity.test.mjs",
       "sha256": "6607c70e32218a755c5b7c991ad94e861f7cf9da3286e28edad42f892982281d"
+    },
+    {
+      "path": "javascript/tests/runtime-compatibility.mjs",
+      "sha256": "02280882cbd0c3cad354e85dcaa704952de1cfc715cf8d9552a85c126ada7f35"
+    },
+    {
+      "path": "javascript/tools-build-report.py",
+      "sha256": "4e7376e17a2ab67c855dfa197bb1f68032e6b9a4f1b4db839dff6eb624a1257a"
     },
     {
       "path": "javascript/validation/baseline_package/SOURCE_MANIFEST.json",

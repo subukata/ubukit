@@ -1,0 +1,12 @@
+{
+  "sklearn": "1.8.0",
+  "cases": 174,
+  "maxARI": 0,
+  "maxAMI": 9.73780717790796e-11,
+  "worstAMI": {
+    "name": "balanced-10000-1000",
+    "method": "arithmetic",
+    "actual": -0.00020823572258461584,
+    "expected": -0.00020823581996268762
+  }
+}

@@ -37,3 +37,5 @@ export { createRealtimeWorkerClient } from './realtime-worker-client.js';
 export { createMetricScheduler } from './metric-scheduler.js';
 
 export { TPEOptimizer, SearchSpaceExhaustedError, ProposalError, floatRange, intRange, categorical, optimize, optimizeAsync } from './optimization.js';
+
+export { adjustedRandScore, adjustedMutualInfoScore, adjustedScores, adjusted_rand_score, adjusted_mutual_info_score, adjusted_scores, ExternalMetricDomainError } from './external-metrics.js';

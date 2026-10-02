@@ -2,9 +2,9 @@
 
 クラスタリング・SOM-OLP・近傍評価・軽量ハイパーパラメータ探索の Python / JavaScript 研究用実装です。
 
-## 最新実装: dev3 private preview
+## 最新実装: Python dev3 / JavaScript dev4 private preview
 
-**最新の統合ソースは [`preview/`](preview/) です。** Python は `0.0.0.dev3`、JavaScript は `0.1.0-dev.3`。
+**最新の統合ソースは [`preview/`](preview/) です。** Python は `0.0.0.dev3`、JavaScript は `0.1.0-dev.4`。
 Python の `import ubukit` に31の公開エクスポートをまとめ、ARI / AMI と TPE / random 探索を追加しました。
 FCM / SOM の極端な数値範囲への対処、入力検証・所有権・Worker / Session の修正を含みます。
 PyPI / npm には公開していません。リポジトリからローカルにビルドして使用します。
@@ -25,10 +25,10 @@ PyPI / npm には公開していません。リポジトリからローカルに
 | δ近傍に基づく rough clustering | `fit_rmcm`, `PreparedRMCM` | `run('rmcm', ...)`, `PreparedRMCM` |
 | 格子への写像 | `fit_som_olp`, `PreparedSOM` | `run('som-olp', ...)` |
 | Trustworthiness / Continuity | `joint_quality` | `run('neighborhood', ...)` |
-| 外部クラスタ評価 | `adjusted_rand_score`, `adjusted_mutual_info_score`, `adjusted_scores` | 未収録 |
+| 外部クラスタ評価 | `adjusted_rand_score`, `adjusted_mutual_info_score`, `adjusted_scores` | `adjustedRandScore`, `adjustedMutualInfoScore`, `adjustedScores` |
 | 軽量 TPE / random 探索 | `optimize`, `TPEOptimizer` | `optimize`, `optimizeAsync`, `TPEOptimizer` |
 
-JavaScript の ARI / AMI は別途追加作業中で、この dev3 スナップショットには含まれません。
+JavaScript dev4 は ARI / AMI と、分割表を共有する `adjustedScores` を追加しました。AMI は既定で arithmetic 正規化を使います。入力・数値・計算量の契約は [外部指標 API](preview/javascript/package/EXTERNAL_METRICS.md) を参照してください。Python は dev3 のままです。
 
 Python の統一 API ではクラスタ所属度を `(N, K)` に揃えています。ただし返り値の型・フィールド名は手法ごとに異なります。
 従来の `rough_cmeans` 直接 import は `(K, N)` のままです。JavaScript の配列は行優先の一次元 TypedArray です。
@@ -97,7 +97,7 @@ npm install --offline --ignore-scripts --no-audit --no-fund
 `preview/javascript/consumer/` 内で実行できます。
 
 ```js
-import { run, optimize, floatRange } from 'ubukit-js';
+import { run, optimize, floatRange, adjustedScores } from 'ubukit-js';
 
 const input = {
   data: Float64Array.of(0, 0.1, 4, 4.1),
@@ -106,6 +106,7 @@ const input = {
 };
 const result = run('fcm', input, { nClusters: 2, seed: 1, maxIterations: 20 });
 console.log(result.labels, result.membership);
+console.log(adjustedScores([0, 0, 1, 1], result.labels));
 const search = optimize(p => (p.x - 0.3) ** 2,
   { x: floatRange(-1, 1) }, { nTrials: 30, seed: 42 });
 console.log(search.bestParams, search.bestValue);
@@ -122,6 +123,7 @@ console.log(search.bestParams, search.bestValue);
 - 高い `m` の近接した軌道では有限精度の影響が大きく、所属度の精度が一様に改善するわけではありません
 - SOM の表現可能な範囲は Python / JavaScript で異なります。表現不能な最終結果を無断で clip しません
 - SOM の保守的な安全経路は、通常に標準化したデータでも極小の初期確率により遅くなる場合があります。実データHPO評価では840件の物理SOM評価中53件が2秒/fit以内に未完了でした
+- JavaScript の ARI は整数積を正確に計算してから最終比を Number に丸めます。AMI は条件付きエントロピーと全支持範囲の超幾何漸化式を使います。`min` 正規化の未定義ケースは明示的に拒否し、標本数・計算量にも上限があります。ブラウザ実行と任意入力での一律の誤差上限は未検証です
 - TPE は flat / single-objective の軽量実装です。条件付き空間、pruning、分散ストレージ、汎用的な Optuna 優位は主張しません
 
 [数値契約](preview/NUMERICAL_LIMITS.md)、[探索的な実データ評価](preview/HPO_FINDINGS_JA.md)、[小規模HPO計測](preview/OPTIMIZATION_PERFORMANCE_JA.md) を併せて読んでください。
@@ -129,15 +131,15 @@ console.log(search.bestParams, search.bestValue);
 
 ## 検証とデモ
 
-dev3 の事前検証では Python 4つの新規 installed-artifact 環境と JavaScript の実 tarball を検証しました。
-JavaScript は704テスト、Python は Numba 有無ごとの runtime / 新規数値・探索 / 外部指標テストを通過しています。
+Python dev3 は従来の4つの installed-artifact 環境とリポジトリソースからの再検証を維持しています。
+JavaScript dev4 はリポジトリのソースから新しく pack / install し、890テストを通過しました。独立した80桁参照による3,043件のARI・12,040件のAMI比較では、AMIの最大絶対誤差は3.33e-16でした。Python の実装はこのJS追加で変更していません。
 正確な件数、skip、対象外、今回のソースからの再実行結果は [VERIFICATION.md](preview/VERIFICATION.md) を参照してください。
-84のランタイムファイルは [SOURCE_SNAPSHOT.json](preview/SOURCE_SNAPSHOT.json) で固定しています。
+85のランタイムファイル（Python 60、JavaScript 25）は [SOURCE_SNAPSHOT.json](preview/SOURCE_SNAPSHOT.json) で固定しています。
 
-- [ブラウザ実データデモ](https://ubukit-browser-lab.ubucat.chatgpt.site): 同梱ライブラリは以前の版です。dev3 の全機能・数値契約を検証するデモではありません
+- [ブラウザ実データデモ](https://ubukit-browser-lab.ubucat.chatgpt.site): 同梱ライブラリは以前の版です。現在の全機能・数値契約を検証するデモではありません
 - [進捗ダッシュボード](https://acceleration-progress.ubucat.chatgpt.site): 作業状況と検証記録の概要
 
-上記サイトにはそれぞれのアクセス権が必要な場合があります。ブラウザのデモ動作と dev3 の全ブラウザ検証は区別します。
+上記サイトにはそれぞれのアクセス権が必要な場合があります。ブラウザのデモ動作と 現在の全ブラウザ検証は区別します。
 
 ## ライセンスと公開範囲
 

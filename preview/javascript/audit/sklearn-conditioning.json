@@ -1,0 +1,334 @@
+{
+  "sklearn_version": "1.8.0",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "examples": [
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3,
+      "averageMethod": "arithmetic",
+      "exact": 0.0,
+      "sklearn": 9.61027951144476e-16
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3,
+      "averageMethod": "geometric",
+      "exact": 0.0,
+      "sklearn": 1.1117971470239877e-15
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3,
+      "averageMethod": "min",
+      "exact": null,
+      "sklearn": 1.0
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3,
+      "averageMethod": "max",
+      "exact": 0.0,
+      "sklearn": 4.805139755722379e-16
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 10,
+      "averageMethod": "arithmetic",
+      "exact": 0.0,
+      "sklearn": 1.0250964812206684e-13
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 10,
+      "averageMethod": "geometric",
+      "exact": 0.0,
+      "sklearn": 1.0412593218743341e-13
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 10,
+      "averageMethod": "min",
+      "exact": null,
+      "sklearn": 1.0
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 10,
+      "averageMethod": "max",
+      "exact": 0.0,
+      "sklearn": 5.125482406103605e-14
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 10,
+      "averageMethod": "arithmetic",
+      "exact": -0.022727272727272728,
+      "sklearn": -0.022727272727230435,
+      "absolute_error": 4.229255834431456e-14
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 10,
+      "averageMethod": "geometric",
+      "exact": -0.022727272727272728,
+      "sklearn": -0.022727272727230435,
+      "absolute_error": 4.229255834431456e-14
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 10,
+      "averageMethod": "min",
+      "exact": -0.022727272727272728,
+      "sklearn": -0.022727272727230435,
+      "absolute_error": 4.229255834431456e-14
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 10,
+      "averageMethod": "max",
+      "exact": -0.022727272727272728,
+      "sklearn": -0.022727272727230435,
+      "absolute_error": 4.229255834431456e-14
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 100,
+      "averageMethod": "arithmetic",
+      "exact": 0.0,
+      "sklearn": -8.777388621222962e-11
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 100,
+      "averageMethod": "geometric",
+      "exact": 0.0,
+      "sklearn": -8.7840092156069e-11
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 100,
+      "averageMethod": "min",
+      "exact": null,
+      "sklearn": 1.0
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 100,
+      "averageMethod": "max",
+      "exact": 0.0,
+      "sklearn": -4.3886943104191556e-11
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 100,
+      "averageMethod": "arithmetic",
+      "exact": -0.00020206102242877348,
+      "sklearn": -0.000202061066342997,
+      "absolute_error": 4.391422352167419e-11
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 100,
+      "averageMethod": "geometric",
+      "exact": -0.00020206102242877348,
+      "sklearn": -0.000202061066342997,
+      "absolute_error": 4.391422352167419e-11
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 100,
+      "averageMethod": "min",
+      "exact": -0.00020206102242877348,
+      "sklearn": -0.000202061066342997,
+      "absolute_error": 4.391422352167419e-11
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 100,
+      "averageMethod": "max",
+      "exact": -0.00020206102242877348,
+      "sklearn": -0.000202061066342997,
+      "absolute_error": 4.391422352167419e-11
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 256,
+      "averageMethod": "arithmetic",
+      "exact": 0.0,
+      "sklearn": 2.997874148412533e-09
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 256,
+      "averageMethod": "geometric",
+      "exact": 0.0,
+      "sklearn": 2.9986065877772256e-09
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 256,
+      "averageMethod": "min",
+      "exact": null,
+      "sklearn": 0.999890590809628
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 256,
+      "averageMethod": "max",
+      "exact": 0.0,
+      "sklearn": 1.4989370764533248e-09
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 256,
+      "averageMethod": "arithmetic",
+      "exact": -3.0638193572106986e-05,
+      "sklearn": -3.063669482998809e-05,
+      "absolute_error": 1.4987421188952582e-09
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 256,
+      "averageMethod": "geometric",
+      "exact": -3.0638193572106986e-05,
+      "sklearn": -3.063669482998809e-05,
+      "absolute_error": 1.4987421188952582e-09
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 256,
+      "averageMethod": "min",
+      "exact": -3.0638193572106986e-05,
+      "sklearn": -3.063669482998809e-05,
+      "absolute_error": 1.4987421188952582e-09
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 256,
+      "averageMethod": "max",
+      "exact": -3.0638193572106986e-05,
+      "sklearn": -3.063669482998809e-05,
+      "absolute_error": 1.4987421188952582e-09
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 1000,
+      "averageMethod": "arithmetic",
+      "exact": 0.0,
+      "sklearn": 1.0619229595414924e-07
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 1000,
+      "averageMethod": "geometric",
+      "exact": 0.0,
+      "sklearn": 1.061976245999995e-07
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 1000,
+      "averageMethod": "min",
+      "exact": null,
+      "sklearn": 1.0
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 1000,
+      "averageMethod": "max",
+      "exact": 0.0,
+      "sklearn": 5.309615079624168e-08
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 1000,
+      "averageMethod": "arithmetic",
+      "exact": -2.002006010022042e-06,
+      "sklearn": -1.94892427593285e-06,
+      "absolute_error": 5.308173408919213e-08
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 1000,
+      "averageMethod": "geometric",
+      "exact": -2.002006010022042e-06,
+      "sklearn": -1.94892427593285e-06,
+      "absolute_error": 5.308173408919213e-08
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 1000,
+      "averageMethod": "min",
+      "exact": -2.002006010022042e-06,
+      "sklearn": -1.94892427593285e-06,
+      "absolute_error": 5.308173408919213e-08
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 1000,
+      "averageMethod": "max",
+      "exact": -2.002006010022042e-06,
+      "sklearn": -1.94892427593285e-06,
+      "absolute_error": 5.308173408919213e-08
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3000,
+      "averageMethod": "arithmetic",
+      "exact": 0.0,
+      "sklearn": -3.7819898847653435e-06
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3000,
+      "averageMethod": "geometric",
+      "exact": 0.0,
+      "sklearn": -3.7820444579686463e-06
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3000,
+      "averageMethod": "min",
+      "exact": null,
+      "sklearn": 1.0
+    },
+    {
+      "case": "singleton-vs-doublet",
+      "n": 3000,
+      "averageMethod": "max",
+      "exact": 0.0,
+      "sklearn": -1.8909913665275616e-06
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 3000,
+      "averageMethod": "arithmetic",
+      "exact": -2.2229637041155283e-07,
+      "sklearn": -2.113112724214236e-06,
+      "absolute_error": 1.890816353802683e-06
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 3000,
+      "averageMethod": "geometric",
+      "exact": -2.2229637041155283e-07,
+      "sklearn": -2.113112724214236e-06,
+      "absolute_error": 1.890816353802683e-06
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 3000,
+      "averageMethod": "min",
+      "exact": -2.2229637041155283e-07,
+      "sklearn": -2.113112724214236e-06,
+      "absolute_error": 1.890816353802683e-06
+    },
+    {
+      "case": "distinct-doublets",
+      "n": 3000,
+      "averageMethod": "max",
+      "exact": -2.2229637041155283e-07,
+      "sklearn": -2.113112724214236e-06,
+      "absolute_error": 1.890816353802683e-06
+    }
+  ]
+}

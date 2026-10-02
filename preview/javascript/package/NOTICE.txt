@@ -6,6 +6,7 @@ source from https://github.com/subukata/som-olp at commit
 unchanged in LICENSE-SOM.txt. This does not select a license for the whole project.
 
 The runtime in src/ derives from the selected final acceleration candidate.
-This dev3 snapshot includes reviewed numerical and optimization updates.
-Current and baseline runtime hashes are recorded in SOURCE_MANIFEST.json.
+Scoped review fixes and the dev4 external-metrics extension are recorded in
+SOURCE_MANIFEST.json. External-metric attribution and the retained BSD notice
+are in NOTICE-EXTERNAL-METRICS.txt and LICENSE-SCIKIT-LEARN.txt.
 The npm package remains private. No registry upload or deployment is authorized.

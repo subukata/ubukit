@@ -1,0 +1,15 @@
+External metrics provenance
+===========================
+The ARI ordered-pair expression and AMI public definitions and limiting
+conventions were compared with scikit-learn 1.8.0's cluster/_supervised.py.
+Treat these compatibility portions as adapted from scikit-learn. Its BSD
+3-Clause license and copyright are retained in LICENSE-SCIKIT-LEARN.txt.
+https://github.com/scikit-learn/scikit-learn/blob/1.8.0/sklearn/metrics/cluster/_supervised.py
+
+The JavaScript implementation is derived from the separately developed
+UbuKit Python external-metrics candidate's contingency organization and
+mode-centered hypergeometric recurrence. It adds exact BigInt ARI final
+combinatorics and direct conditional-entropy AMI normalization. Label encoding,
+bounded dense/sparse tables, within-call marginal-size grouping and recurrence
+code are original experiment code. No scikit-learn Cython implementation or
+third-party binary is included. No project-wide license is selected here.

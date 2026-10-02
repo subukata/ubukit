@@ -88,11 +88,43 @@ four medians against default Optuna, but independent UbuKit is worse than random
 on the mixed problem. This is not held-out evidence, a significance result, a
 state-of-the-art claim, a real clustering/SOM tuning evaluation, or a timing claim.
 
+## JavaScript external clustering metrics (dev4)
+
+ARI, AMI and shared-contingency joint scores add no runtime dependency. The
+inputs are equal-length Arrays or numeric TypedArrays, each containing only
+strings or only safe integer Numbers. The full contract and error codes are in
+[javascript/package/EXTERNAL_METRICS.md](javascript/package/EXTERNAL_METRICS.md).
+Python remains dev3 and retains its separately documented external-metric API.
+
+ARI uses exact integer combinatorics, with BigInt when necessary, before the
+final binary64 quotient. AMI uses direct conditional entropies, a full-support
+mode-centered hypergeometric recurrence and compensated summation. Naturally
+underflowed probability weights and binary64 rounding remain possible. This is
+not arbitrary precision or a universal absolute-error guarantee, and does not
+reproduce scikit-learn's high-K rounding artifacts.
+
+AMI defaults to arithmetic normalization. Geometric, min and max are optional.
+All-singletons versus a nonidentical nonconstant partition has undefined 0/0
+min-normalized AMI and raises AMI_SINGULAR_NORMALIZATION; arithmetic, geometric
+and max return zero. The joint API also raises when its AMI is unsupported.
+
+AMI permits at most 2**26 samples. ARI's length bound is 2**32 - 1, subject to
+available memory. AMI maxExpectedTerms defaults to 10,000,000 grouped support
+terms; exceeding it raises AMI_WORK_LIMIT. This bound is neither a wall-clock
+nor a total-memory guarantee. Many distinct large margins can be expensive.
+The APIs are synchronous; large calls belong in a separately managed worker.
+No scheduler/worker integration is added by this metric implementation.
+
+The independent 80-digit oracle panel measured maximum AMI absolute error
+3.33e-16 and exact final-Number ARI agreement. The benchmark results are bounded,
+machine-specific measurements; see [the report](javascript/REPORT.md). Node/VM
+smoke checks do not establish actual browser execution or cross-platform parity.
+
 ## Coverage boundary
 
 Validation is Linux x86-64, CPython 3.12 and Node. Other operating systems,
 architectures, Python versions and real browsers are unverified. Local bounded
 benchmarks do not establish universal performance bounds. Extreme correctness
 recovery can be slower, including about 5.1x in one Python high-m warm smoke case.
-No public push, package-registry publication, deployment or upload was performed
-while constructing this local bundle.
+This is a private repository preview. Package-registry publication and deployment
+are separate actions and are not established by these source checks.
