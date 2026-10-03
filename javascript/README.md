@@ -3,24 +3,32 @@
 Clustering, self-organizing maps (SOM), evaluation metrics and parameter search for
 Node.js and browsers, using ES modules and no runtime npm dependencies.
 
-This alpha is `ubukit-js` version `0.1.0-alpha.2`. Project contributions use the
+This alpha is `ubukit-js` version `0.1.0-alpha.3`. At source preparation on
+2026-10-03, new exact-artifact qualification and initial registry publication were
+pending. This is a dated preparation record; check the maintainer’s release record
+for later results and exact archive hashes. Project contributions use the
 [MIT License](LICENSE); [license scope](LICENSE-SCOPE.txt) identifies third-party
 terms. Project-developed WebAssembly (WASM) kernels are included.
 
 ## Install locally
 
 ```sh
-npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-alpha.2.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-alpha.3.tgz
 ```
 
 Use the actual local path to your tarball; this command does not require a
-registry release. To create a tarball from a source checkout, run
+registry release. No release described here had been published to npm at source
+preparation. A bare `npm install ubukit-js` command requires a subsequently
+announced and verified registry release; the local tarball method works without
+one. Code imports use `ubukit-js` after that local installation.
+To create a tarball from a source checkout, run
 `npm pack --ignore-scripts` in its `javascript/` directory.
 
 There are no runtime npm dependencies or install scripts. Node >=20 is declared.
-Existing local checks cover Linux / Node 24; they do not qualify every Node >=20
-version, other operating systems, or actual browsers. Browser execution,
-including entropy-regularized FCM, remains unverified by the current checks.
+The most recent completed exact-artifact checks are for alpha.2 on Linux x64,
+Windows x64 and macOS ARM64 / Node 24, including bounded actual-browser cases.
+They do not qualify the changed alpha.3 bytes. See [tested coverage](#tested-coverage)
+for the precise scope; the declared Node floor is not a tested version matrix.
 
 This example uses fuzzy c-means (FCM) for degrees of cluster membership.
 
@@ -180,8 +188,9 @@ uses the existing center-based restart contract. Fallback retry chunks remain
 cooperative and do not replay completed iteration progress/checkpoints. The
 memory estimate includes the additional log state; time budgets remain soft.
 
-The numerical checks cover Node workers. Browser execution has not been
-qualified by these checks.
+The numerical checks include Node workers. The alpha.2 browser/demo cases also
+exercise FCM, but do not qualify every exceptional-range numerical case in every
+browser; see [tested coverage](#tested-coverage).
 
 ## Optional kernels and limits
 
@@ -196,8 +205,9 @@ build dependency is required. Existing capability, memory and numerical fallback
 logic remains unchanged. Requested WASM is not a promise that every operation
 executes in WASM. Read existing result diagnostics, where provided.
 
-Other OSes, architectures and actual browser execution are not qualified by
-these checks.
+The alpha.2 browser qualification exercises actual k-means WASM and intentional
+fallbacks. It does not establish every optional-kernel path on every platform;
+see [tested coverage](#tested-coverage).
 
 ## SOM-OLP exceptional numerical ranges
 
@@ -239,7 +249,10 @@ scikit-learn's arithmetic-default ARI/AMI conventions; stable high-K answers
 intentionally do not reproduce its floating-point artifacts.
 
 The module has no Node-only imports and is designed for modern browsers.
-Installed-tarball checks cover Node; actual browser execution remains unverified.
+The exact alpha.2 installed-tarball checks cover Node and an external-metrics
+fixture/Worker page in Playwright Chromium, Firefox and WebKit on three operating
+systems. This bounded coverage does not establish universal browser parity or
+qualify newly built alpha.3 artifacts.
 
 ## Online SOM and BatchSOM
 
@@ -262,3 +275,54 @@ even if the hook is subsequently removed. Sessions therefore retain per-block
 refreshing. Only calls with unexposed, internally owned centers reuse transposes.
 Small row blocks and wider center matrices benefit most; large row blocks can
 be neutral. See `SOM.md` for the separate classic-SOM BMU route selector.
+
+## Resource boundaries
+
+Input validation, scratch estimates and cooperative chunk limits are not a
+complete service CPU/memory/wall-time budget. Applications accepting untrusted
+requests must limit encoded request size, sample/feature/cluster or map-unit
+counts, safe-integer dimension products, iterations/epochs, output/history size
+and concurrency before allocating arrays. Account for input conversions,
+`N*K` memberships, distances/weights, snapshots, returned copies, backend
+workspace and exceptional BigInt temporaries. A single float64 `N*K` array costs
+`8*N*K` bytes; several such arrays may coexist.
+
+Use a separately managed worker process with externally enforced CPU, memory
+and wall-time limits for untrusted server-side work. A browser Worker can be
+terminated to enforce a caller deadline, but is not by itself a hard memory/CPU
+quota. `timeBudgetMs`, cancellation hooks and AMI's `maxExpectedTerms` are bounded
+cooperative/algorithmic controls, not a multi-user security sandbox. Reject
+requests exceeding the application's limits instead of silently changing their
+numerical parameters. This guidance adds no API constraint or universal resource
+guarantee.
+
+## Tested coverage
+
+The last completed exact-artifact qualification is alpha.2 (2026-10-03), source
+`464969206fc336723b6f33f0ccaf70cf2110136d`, harness
+`3a638f8b4f2df24bd382a4f879a438c3a8ad3d73`. All three OS stages consumed the same
+frozen Linux-built tarball with matching hashes:
+
+- [Linux x64 / Ubuntu 24.04, Node 24.21.0](https://github.com/subukata/ubukit/actions/runs/37085466524)
+- [Windows x64 / Windows Server 2022, Node 24.21.0](https://github.com/subukata/ubukit/actions/runs/37086270594)
+- [macOS ARM64 / macOS 15, Node 24.20.0](https://github.com/subukata/ubukit/actions/runs/37086865574)
+
+Each passed 1,137 JavaScript tests across 51 files, 12 installed-package browser
+scenarios and six repository demo engine/host cases. Playwright Chromium
+153.0.8010.12, Firefox 155.0 and WebKit 26.6 executed normal WASM and unavailable/CSP
+fallback scenarios, bounded entropy-FCM and SOM/Worker cases, and the separate
+external-metrics fixture/Worker page. The demo ran through both `localhost` and
+`127.0.0.1`.
+
+WebKit is not native Safari. These checks do not establish every-algorithm/input
+browser coverage, native Safari, every Chrome/Edge channel, Intel macOS, other
+OS/architecture combinations or Node 20 qualification. The Windows stage used
+checkout line-ending conversion disabled and the frozen tarball; it does not
+qualify arbitrary Windows source checkouts or source builds. Python's separate
+full wheel regression ran only on Linux, and optional Numba did not run on any
+OS. Newly built alpha.3 archives need their own exact qualification; these passes
+are not publication approval or a production-security guarantee.
+
+The dated CI links above may require private repository access. For any later
+public release, use the maintainer’s corresponding release record and exact
+artifact hashes; these historical links are not a public support channel.

@@ -2,7 +2,7 @@
 
 # Installed-wheel runtime regressions
 
-This harness tests the installed `ubukit` distribution, version `0.1.0a2`. It must not be run against a source tree or editable installation. Every canonical runtime import is checked against the selected virtualenv's site-packages and the distribution's wheel RECORD, including recorded file hashes. Frozen baseline/reference modules live under `_oracles/` and load only under `_ubukit_oracle_*` aliases. They are never added to `sys.path`, bundled into the wheel, or used as candidate implementations.
+This harness tests the installed `ubukit` distribution, version `0.1.0a3`. It must not be run against a source tree or editable installation. Every canonical runtime import is checked against the selected virtualenv's site-packages and the distribution's wheel RECORD, including recorded file hashes. Frozen baseline/reference modules live under `_oracles/` and load only under `_ubukit_oracle_*` aliases. They are never added to `sys.path`, bundled into the wheel, or used as candidate implementations.
 
 ## Run
 

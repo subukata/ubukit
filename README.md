@@ -19,7 +19,15 @@ A Python and JavaScript library for clustering, self-organizing maps, evaluation
 - **Evaluation:** trustworthiness and continuity check neighborhood preservation; adjusted Rand index (ARI) and adjusted mutual information (AMI) measure chance-adjusted agreement between cluster labels
 - **Parameter search:** Tree-structured Parzen Estimator (TPE) search uses earlier trial results to suggest parameter values; random search samples without that feedback
 
-UbuKit is alpha software. Follow [getting started](docs/getting-started.md) to build and install local Python and JavaScript archives.
+This checkout prepares **alpha.3** (`ubukit==0.1.0a3`, `ubukit-js@0.1.0-alpha.3`).
+At source preparation on 2026-10-03, initial registry publication and fresh
+exact-artifact qualification were pending. This is a dated preparation record;
+check the maintainer’s release record for subsequent results and exact archive
+hashes. The most recent
+three-OS qualification belongs to the separate, frozen alpha.2 archives; it does
+not qualify this changed source. Follow [getting started](docs/getting-started.md)
+to build and install local archives, and read the [security and resource
+boundaries](SECURITY.md) before using untrusted input.
 
 ## Python
 
@@ -64,3 +72,8 @@ See [development and verification](docs/contributing.md) for contributor instruc
 ## License
 
 UbuKit project contributions use the [MIT License](LICENSE). Retained third-party terms are described in [license scope](LICENSE-SCOPE.txt).
+
+The source and intended terms for the logo and mascot images in `docs/assets/`
+(`ubukit-logo-b.png` and `ubukit-mascot.png`) need explicit owner confirmation
+before public repository publication. This note
+does not make or revoke a license grant for those assets.

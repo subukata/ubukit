@@ -2,7 +2,7 @@
 
 # Installed external-metrics regression gate
 
-This gate exercises the two frozen external-metrics modules and the three lazy `ubukit` aliases in the installed `ubukit` distribution, version `0.1.0a2`. It never imports an implementation from the checkout. The canonical modules must be owned by the selected virtualenv's installed distribution RECORD and their SHA-256 hashes must match that RECORD before and after execution.
+This gate exercises the two frozen external-metrics modules and the three lazy `ubukit` aliases in the installed `ubukit` distribution, version `0.1.0a3`. It never imports an implementation from the checkout. The canonical modules must be owned by the selected virtualenv's installed distribution RECORD and their SHA-256 hashes must match that RECORD before and after execution.
 
 ## Run
 
