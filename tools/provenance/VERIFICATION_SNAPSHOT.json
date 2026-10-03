@@ -2263,7 +2263,7 @@
     },
     {
       "path": "tools/ci/candidate-policy.json",
-      "sha256": "81094a9dd9b7b317ee70783e814e5c75bedd8ef32105eff9dcbd132835f5de8b"
+      "sha256": "dab6e01829cf7926b4ad25fed2fa053ce338a2d94e1e64b407a91135782de1f6"
     },
     {
       "path": "tools/ci/constraints/base-py312-locked.txt",
@@ -2295,7 +2295,7 @@
     },
     {
       "path": "tools/ci/exact-alpha.json",
-      "sha256": "08fb3f78e2eff61d977a80f74f33bcfd6b7be2790429cc42893e23dde010f745"
+      "sha256": "0a0d365fd9bdf77d6cc8bee80464bee5cadb60ef180383f15ee96b7226d93912"
     },
     {
       "path": "tools/ci/scripts/build_candidate.py",
