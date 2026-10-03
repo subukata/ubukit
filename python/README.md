@@ -1,7 +1,7 @@
 # UbuKit for Python
 
 Clustering, self-organizing maps, evaluation metrics and parameter search.
-This alpha uses distribution and import name `ubukit`, version `0.1.0a2`.
+This alpha uses distribution and import name `ubukit`, version `0.1.0a3`.
 Project contributions use the MIT License; `LICENSE-SCOPE.txt` describes retained
 third-party terms. License and notice files accompany both wheel and source archive.
 
@@ -17,18 +17,24 @@ Use a **new virtual environment** when moving from earlier previews. The old
 modules; upgrading or uninstalling it in a mixed environment can remove files
 another distribution owns. `pip check` alone does not detect file-owner collisions.
 
-Install a supplied local wheel with the checked Linux / CPython 3.12 base stack:
+At source preparation on 2026-10-03, this alpha.3 candidate had not completed
+fresh exact-artifact qualification or initial registry publication. This is a
+dated preparation record; check the maintainer’s release record for later results
+and exact archive hashes. Install a supplied local wheel with the CPython 3.12 base stack
+used for the separate alpha.2 qualification:
 
 ```sh
 python3.12 -m venv .venv
-.venv/bin/python -m pip install ./ubukit-0.1.0a2-py3-none-any.whl "numpy==2.3.5" "scipy==1.17.0" "scikit-learn==1.8.0" "threadpoolctl==3.6.0"
+.venv/bin/python -m pip install ./ubukit-0.1.0a3-py3-none-any.whl "numpy==2.3.5" "scipy==1.17.0" "scikit-learn==1.8.0" "threadpoolctl==3.6.0"
 .venv/bin/python -c "import ubukit; print(ubukit.__version__)"
 ```
 
 Use the actual local path to your wheel. These commands do not require a registry
 release. Python >=3.10 is declared; the pins above are not a tested matrix for
-every Python version or platform. On Windows the environment executable is
-`Scripts/python.exe`; this path convention is not a Windows qualification claim.
+every Python version or platform. Alpha.2 frozen wheel/sdist artifacts passed the
+defined checks on Linux X64, Windows X64 and macOS ARM64. The extended full Python
+regression was Linux-only, and optional Numba was absent on every OS. Those results
+do not certify this changed alpha.3 candidate. On Windows use `Scripts/python.exe`.
 
 A repository checkout additionally provides `python/tools/check_install_environment.py`.
 Run it with the target environment's Python before installation. This read-only
@@ -57,7 +63,8 @@ model persistence format or pickle migration tool.
 Old Numba `.nbc`/`.nbi` caches are not distributed or reused as compatibility
 artifacts. Use a fresh candidate-specific cache for validation; first use may
 compile again. Numba remains optional and is loaded only when a selected path
-needs it. No global module aliases recreate old names.
+needs it. Keep compiler caches private to a trusted account and never reuse an
+attacker-writable cache. No global module aliases recreate old names.
 
 ## Results: samples first
 

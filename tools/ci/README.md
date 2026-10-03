@@ -1,8 +1,13 @@
 # Exact alpha candidate validation
 
+Current preparation: alpha.3 security-boundary hardening. Read
+[SECURITY_BOUNDARIES.md](SECURITY_BOUNDARIES.md) for changes and qualification
+limits. The separate frozen alpha.2 bundle completed its defined three-OS gates;
+those results do not qualify the new alpha.3 source.
+
 This manual-only harness builds wheel, sdist and npm tarball once, then consumes the same frozen artifacts in separately approved OS stages. It does not publish packages, enable paid runners, change billing settings, or start the next stage automatically.
 
-See [EXACT_ALPHA.md](EXACT_ALPHA.md) for the frozen-alpha identity, two-commit selection process and exact-artifact release handoff. The workflow remains private and manual-only.
+See [EXACT_ALPHA.md](EXACT_ALPHA.md) for the historical two-commit selection process and exact-artifact release handoff. The workflow remains private and manual-only.
 
 ## Current state: intentionally blocked
 
@@ -63,7 +68,7 @@ The boolean input is a human preflight record, not a billing API or enforcement 
 
 ## Execution coverage and limits
 
-Python gates use independent clean wheel/sdist installations, constrained build tools and binary-only runtime dependencies, ownership/hash checks, the sole `ubukit` namespace, absent legacy aliases, exact facade exports, focused tests, high-precision oracles, API and examples. Linux additionally runs inherited runtime/external harnesses and new tests. Full dependency reproducibility across OSes is not claimed; installed versions are captured.
+Python gates use independent clean wheel/sdist installations, constrained build tools and binary-only runtime dependencies, ownership/hash checks, the sole `ubukit` namespace, absent legacy aliases, exact facade exports, focused tests, high-precision oracles, API and examples. Linux additionally runs inherited runtime/external harnesses and new tests. The active CPython 3.12 base/test/build wheels are fully version- and hash-locked; installed versions are captured. Optional Numba and other profiles remain outside those active locks.
 
 JavaScript uses offline scripts-disabled installation of the frozen tarball, discovered installed-package tests, package/API documentation contracts, VM and worker compatibility, SOM VM cases and differential/efficiency workers. The JavaScript gate remains independent of Python failure after source verification succeeds.
 

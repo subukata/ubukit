@@ -115,6 +115,8 @@
   },
   "verification": {
     "include": [
+      ".gitattributes",
+      "SECURITY.md",
       ".github/**/*",
       "tools/**/*",
       "python/**/*",

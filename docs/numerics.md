@@ -101,8 +101,10 @@ nor a total-memory guarantee. Many distinct large margins can be expensive.
 The APIs are synchronous; large calls belong in a separately managed worker.
 No scheduler/worker integration is added by this metric implementation.
 
-Node/VM smoke checks do not establish actual browser execution or
-cross-platform parity.
+The exact alpha.2 artifact checks also executed bounded external-metric fixtures
+and a Worker page in Playwright Chromium, Firefox and WebKit on three operating
+systems. This does not establish universal numerical parity; see the
+[coverage boundary](#coverage-boundary).
 
 ## Online SOM and BatchSOM
 
@@ -129,10 +131,84 @@ memory estimates exclude runtime/library workspace, caller copies and exceptiona
 integer temporaries. Read the complete [Python](../python/SOM.md) and
 [JavaScript](../javascript/SOM.md) contracts.
 
+## Resource boundaries for untrusted requests
+
+Numerical input validation is not a service resource budget. There is no universal
+library-wide cap on samples, features, clusters/map units, iterations or total
+output bytes. In particular, Python FCM can allocate membership arrays for any
+accepted positive cluster count; `K > N` is not rejected merely for exceeding the
+sample count. Do not expose these parameters directly to untrusted callers.
+
+Apply application-specific limits before parsing/converting large payloads or
+allocating numerical arrays. Bound encoded request size, dimensions and their
+products (for example `N*D`, `N*K`, `K*D` or `N*M`), iteration/epoch counts,
+concurrency, and the arrays/history/snapshots requested as output. Validate shape
+and integer range before multiplying dimensions; JavaScript products must remain
+safe integers. A float64 `(N,K)` array alone requires `8*N*K` bytes. Memberships,
+distances, weights, input conversions, owned snapshots and returned copies can
+coexist, so this is not a peak-memory estimate. NumPy/SciPy/BLAS workspace and
+exceptional integer/BigInt temporaries also require headroom.
+
+For example, a small FCM service might admit at most a 1 MiB encoded request,
+1,000 samples, 32 features, 16 clusters and 100 iterations, check all resulting
+array sizes, and cap serialized results at 1 MiB. These are illustrative caller
+limits, not UbuKit defaults, new API constraints or a guarantee that the request
+will finish within any CPU or memory budget. Pick and test limits for the actual
+backend and deployment. Do not truncate parameters silently or change the
+numerical method to make an over-budget request fit; reject it before execution.
+
+Run admitted work in an isolated worker process or comparably enforceable
+execution boundary with caller-enforced CPU, memory and wall-time limits. Bound
+thread counts, queued work and concurrency as well as per-request work. Terminate
+work that exceeds its deadline and discard incomplete results. Cooperative
+callbacks, `timeBudgetMs`, primary scratch checks and AMI's `maxExpectedTerms` do
+not provide this isolation. A browser Worker avoids blocking the main thread and
+can be terminated, but by itself is not a hard memory/CPU quota or a security
+sandbox for a multi-user service. Extreme-range recovery can be slower than
+ordinary arithmetic even for the same array dimensions.
+
+Optional Numba remains outside the qualified base profile. When enabling it,
+use a private, trusted `NUMBA_CACHE_DIR` writable only by the executing trusted
+account, separate from uploads, shared writable directories and other tenants.
+Do not consume attacker-supplied compiler caches or untrusted pickle files. The
+cache guidance is a deployment trust requirement, not evidence of a demonstrated
+UbuKit cache exploit. See the [security-policy draft](../SECURITY.md).
+
 ## Coverage boundary
 
-Validation is Linux x86-64, CPython 3.12 and Node. Other operating systems,
-architectures, Python versions and real browsers are unverified. Local bounded
-benchmarks do not establish universal performance bounds. Extreme numerical
-recovery can be slower.
-This is a pre-release preview, not a published package.
+The most recent completed exact-artifact qualification, recorded on 2026-10-03,
+is for `ubukit==0.1.0a2` and `ubukit-js@0.1.0-alpha.2`, source
+`464969206fc336723b6f33f0ccaf70cf2110136d`, with verification harness
+`3a638f8b4f2df24bd382a4f879a438c3a8ad3d73`. The same frozen Linux-built wheel,
+sdist and npm tarball were consumed on all three systems, with matching artifact
+hashes:
+
+- [Linux x64 / Ubuntu 24.04](https://github.com/subukata/ubukit/actions/runs/37085466524): CPython 3.12.14, Node 24.21.0; full configured Python wheel regression in addition to the clean wheel/sdist gates.
+- [Windows x64 / Windows Server 2022](https://github.com/subukata/ubukit/actions/runs/37086270594): CPython 3.12.10, Node 24.21.0; clean wheel/sdist focused, oracle, API and example gates, without the Linux-only full wheel regression.
+- [macOS ARM64 / macOS 15](https://github.com/subukata/ubukit/actions/runs/37086865574): CPython 3.12.10, Node 24.20.0; the same bounded Python scope as Windows.
+
+Each OS passed 1,137 JavaScript tests across 51 files, 12 installed-package
+browser scenarios and six repository demo engine/host cases. The browser engines
+were Playwright Chromium 153.0.8010.12, Firefox 155.0 and WebKit 26.6. Scenarios
+include normal WASM execution, WebAssembly-unavailable and CSP-blocked fallbacks,
+external-metric fixtures/Worker execution, entropy-regularized FCM and bounded
+SOM/Worker cases. The demo cases use both `localhost` and `127.0.0.1`.
+See the [harness coverage](../tools/ci/README.md#execution-coverage-and-limits)
+and its scripts for the exact algorithms and assertions.
+
+No optional Numba backend ran in any of these three stages. WebKit is not native
+Safari. These results do not qualify native Safari, every Chrome/Edge channel,
+Intel macOS, other OS/architecture combinations, minimum Python 3.10 / Node 20,
+lower dependency bounds or every browser algorithm/input range. The Windows run
+used checkout line-ending conversion disabled and frozen Linux-built artifacts;
+it is not a guarantee for arbitrary Windows source checkouts or source builds.
+Local bounded benchmarks do not establish universal performance bounds.
+
+The locally prepared alpha.3 candidates require new source/harness identities
+and fresh exact-artifact qualification. Alpha.2 results cannot certify their
+changed bytes. These are unpublished pre-releases; no PyPI/npm publication or
+production-security guarantee is implied by a test pass.
+
+The dated CI links above may require private repository access. For any later
+public release, use the maintainer’s corresponding release record and exact
+artifact hashes; these historical links are not a public support channel.

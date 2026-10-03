@@ -1,7 +1,7 @@
 {
   "schema_version": 5,
-  "purpose": "New security-repaired alpha.2 package source; prior alpha.1 source lineage and frozen archives remain unchanged",
-  "version": "0.1.0-alpha.2",
+  "purpose": "New security-boundary alpha.3 package source; prior alpha.2 source and frozen archives remain unchanged",
+  "version": "0.1.0-alpha.3",
   "runtime_files": {
     "src/clustering.js": {
       "sha256": "b2c75c49e7567a25ccb51ae41adaaed770fc059c0536c19533cfd262ac9a2532",
