@@ -3,14 +3,14 @@
 Clustering, self-organizing maps (SOM), evaluation metrics and parameter search for
 Node.js and browsers, using ES modules and no runtime npm dependencies.
 
-This alpha is `ubukit-js` version `0.1.0-alpha.1`. Project contributions use the
+This alpha is `ubukit-js` version `0.1.0-alpha.2`. Project contributions use the
 [MIT License](LICENSE); [license scope](LICENSE-SCOPE.txt) identifies third-party
 terms. Project-developed WebAssembly (WASM) kernels are included.
 
 ## Install locally
 
 ```sh
-npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-alpha.1.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./ubukit-js-0.1.0-alpha.2.tgz
 ```
 
 Use the actual local path to your tarball; this command does not require a

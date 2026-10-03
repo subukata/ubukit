@@ -10,11 +10,12 @@ Build a wheel, then install it in a fresh environment with the checked base depe
 
 ```sh
 python3.12 -m venv .venv-build
-.venv-build/bin/python -m pip install build==1.4.0 setuptools==82.0.1 wheel==0.46.3
+.venv-build/bin/python -m pip install --index-url https://pypi.org/simple --require-hashes --only-binary=:all: --no-deps -r tools/ci/constraints/installer.txt
+.venv-build/bin/python -m pip install --index-url https://pypi.org/simple --require-hashes --only-binary=:all: -r tools/ci/constraints/build-py312-locked.txt
 .venv-build/bin/python -m build --no-isolation --outdir python/artifacts python
 python3.12 -m venv .venv
 .venv/bin/python -I -B python/tools/check_install_environment.py
-.venv/bin/python -m pip install -c python/constraints/constraints-namespace-verified.txt python/artifacts/ubukit-0.1.0a1-py3-none-any.whl
+.venv/bin/python -m pip install -c python/constraints/constraints-namespace-verified.txt python/artifacts/ubukit-0.1.0a2-py3-none-any.whl
 .venv/bin/python -c "import ubukit; print(ubukit.__version__)"
 ```
 
@@ -29,7 +30,7 @@ mkdir -p javascript/artifacts
 cd javascript
 npm pack --ignore-scripts --pack-destination artifacts
 cd ..
-npm install --offline --ignore-scripts --no-audit --no-fund ./javascript/artifacts/ubukit-js-0.1.0-alpha.1.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund ./javascript/artifacts/ubukit-js-0.1.0-alpha.2.tgz
 ```
 
 If you already have the tarball, install it using its local path and skip `npm pack`. The package has no runtime npm dependencies.

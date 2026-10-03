@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "repository": "subukata/ubukit",
-  "approved_source_sha": "b9f9d9f8fad6b0e9903b21838e158bb4f5ebe271",
-  "approved_source_snapshot_sha256": "eb6807035e64d369b8317f34d97c667f548917685f22addd3bdee29d005c9049",
+  "approved_source_sha": null,
+  "approved_source_snapshot_sha256": null,
   "approved_build_harness_sha": null,
-  "status": "selected_exact_alpha_pending_ci",
+  "status": "unselected_security_repair_alpha2",
   "historical_source_sha": "86321a9f1bc405ddb3251facfe1d876064c9c9dd",
   "historical_main_sha": "5a197111b605c495f3f2a7ba69a6e09bb44e8caf",
-  "note": "Exact frozen alpha source selected by immutable commit and tree. Fresh Linux build required; this selection is not a CI result or publication approval. Any different build-harness reuse requires separately reviewed pins.",
+  "note": "New security-repaired alpha.2 source. Prior alpha.1 source and artifacts remain historical evidence. Select the actual reviewed source commit in a separate harness change; require a fresh build.",
   "approved_build_harness_snapshot_sha256": null
 }

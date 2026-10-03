@@ -68,8 +68,10 @@ jobs:
         shell: bash
         run: |
           python harness/tools/ci/scripts/exact_alpha.py verify candidate
-          python -m pip install --no-cache-dir -r harness/tools/ci/constraints/build-tools.txt
+          python -m pip install --index-url https://pypi.org/simple --no-cache-dir --only-binary=:all: --require-hashes --no-deps -r harness/tools/ci/constraints/installer.txt
+          python -m pip install --index-url https://pypi.org/simple --no-cache-dir --only-binary=:all: --require-hashes -r harness/tools/ci/constraints/build-py312-locked.txt
           python -m pip freeze --all
+          node --test harness/tools/tests/demo-server-security.test.mjs
           node --version
           npm --version
           python harness/tools/ci/scripts/build_candidate.py --source candidate --output candidate-dist
@@ -134,7 +136,9 @@ jobs:
       - name: Chromium Firefox WebKit normal and fallback cases
         if: ${{ !cancelled() && steps.browser_tools.outcome == 'success' }}
         shell: bash
-        run: node harness/tools/ci/browser/run.mjs "$RUNNER_TEMP/javascript-result/candidate" "$RUNNER_TEMP/browser-results"
+        run: |
+          node harness/tools/ci/browser/run.mjs "$RUNNER_TEMP/javascript-result/candidate" "$RUNNER_TEMP/browser-results"
+          node harness/tools/ci/browser/demo-smoke.mjs candidate "$RUNNER_TEMP/browser-results"
       - name: Collect bounded evidence
         id: evidence
         if: ${{ always() }}

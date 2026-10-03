@@ -122,7 +122,7 @@ class PreparedRMCM:
                 try:
                     from ._numba import aggregate
                 except ImportError as exc:
-                    raise ImportError("backend='numba' requires pip install 'ubukit-rmcm[numba]'") from exc
+                    raise ImportError("backend='numba' requires pip install 'ubukit[numba]'") from exc
                 self._aggregate_numba = aggregate
 
     @property

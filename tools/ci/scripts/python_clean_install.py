@@ -53,7 +53,10 @@ env.update({k:'1' for k in ('OPENBLAS_NUM_THREADS','OMP_NUM_THREADS','MKL_NUM_TH
                             'NUMBA_NUM_THREADS','NUMEXPR_NUM_THREADS','PYTEST_DISABLE_PLUGIN_AUTOLOAD',
                             'PYTHONDONTWRITEBYTECODE')})
 env.update(PYTHONHASHSEED='0', PIP_DISABLE_PIP_VERSION_CHECK='1',
-           PIP_CONSTRAINT=str(a.build_constraints.resolve()))
+           PIP_CONFIG_FILE=os.devnull, PIP_EXTRA_INDEX_URL='')
+env.pop('PIP_CONSTRAINT', None)
+env.pop('PIP_BUILD_CONSTRAINT', None)
+locks = Path(__file__).resolve().parents[1] / 'constraints'
 stages = []
 def run(label, argv, extra_env=None):
     with (out/(label+'.log')).open('w', encoding='utf-8') as f:
@@ -71,14 +74,27 @@ for kind, artifact in [('wheel', wheel[0]), ('sdist', sdist[0])]:
     venv.EnvBuilder(with_pip=True, clear=False).create(vp)
     python = vp/('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
     env['NUMBA_CACHE_DIR'] = str(out/f'numba-cache-{kind}')
-    deps = ['numpy','scipy','scikit-learn','threadpoolctl','pytest==8.4.2']
-    if a.with_numba: deps.append('numba')
-    # Binary-only dependencies make missing platform wheels a clear failure, not an accidental compiler test.
-    run(kind+'-dependencies', [python,'-m','pip','install','--no-cache-dir','--only-binary=:all:',
-                             '-c',a.constraints.resolve(),*deps])
-    # An explicit local sdist exercises PEP 517 isolated build with its declared backend.
-    # --no-deps cannot silently alter the verified runtime dependency set.
-    run(kind+'-install', [python,'-m','pip','install','--no-cache-dir','--no-deps','-v',artifact])
+    # Bootstrap a reviewed, hash-bound installer before processing any dependency or sdist.
+    run(kind+'-installer', [python,'-m','pip','install','--index-url','https://pypi.org/simple',
+                           '--no-cache-dir','--only-binary=:all:','--require-hashes','--no-deps',
+                           '-r',locks/'installer.txt'])
+    run(kind+'-dependencies', [python,'-m','pip','install','--index-url','https://pypi.org/simple',
+                              '--no-cache-dir','--only-binary=:all:','--require-hashes',
+                              '-c',a.constraints.resolve(),'-r',locks/'test-py312-locked.txt'])
+    if a.with_numba:
+        # Optional legacy backend validation is outside the base exact-candidate lock/profile.
+        run(kind+'-optional-numba', [python,'-m','pip','install','--index-url','https://pypi.org/simple',
+                                   '--no-cache-dir','--only-binary=:all:',
+                                   '-c',a.constraints.resolve(),'numba'])
+    # Preverify the complete PEP 517 wheelhouse. Isolated sdist builds cannot reach an index.
+    wheelhouse = out/f'build-wheelhouse-{kind}'
+    wheelhouse.mkdir()
+    run(kind+'-build-wheelhouse', [python,'-m','pip','download','--index-url','https://pypi.org/simple',
+                                 '--no-cache-dir','--only-binary=:all:','--require-hashes',
+                                 '--dest',wheelhouse,'-r',locks/'build-py312-locked.txt'])
+    run(kind+'-install', [python,'-m','pip','install','--no-cache-dir','--no-deps',
+                          '--build-constraint',a.build_constraints.resolve(),'-v',artifact],
+        {'PIP_NO_INDEX':'1','PIP_FIND_LINKS':wheelhouse.as_uri()})
     if a.with_numba:
         run(kind+'-extra-resolution', [python,'-m','pip','install','--no-index','--only-binary=:all:',
                                        'ubukit[numba]'])

@@ -1,7 +1,7 @@
 # UbuKit for Python
 
 Clustering, self-organizing maps, evaluation metrics and parameter search.
-This alpha uses distribution and import name `ubukit`, version `0.1.0a1`.
+This alpha uses distribution and import name `ubukit`, version `0.1.0a2`.
 Project contributions use the MIT License; `LICENSE-SCOPE.txt` describes retained
 third-party terms. License and notice files accompany both wheel and source archive.
 
@@ -21,7 +21,7 @@ Install a supplied local wheel with the checked Linux / CPython 3.12 base stack:
 
 ```sh
 python3.12 -m venv .venv
-.venv/bin/python -m pip install ./ubukit-0.1.0a1-py3-none-any.whl "numpy==2.3.5" "scipy==1.17.0" "scikit-learn==1.8.0" "threadpoolctl==3.6.0"
+.venv/bin/python -m pip install ./ubukit-0.1.0a2-py3-none-any.whl "numpy==2.3.5" "scipy==1.17.0" "scikit-learn==1.8.0" "threadpoolctl==3.6.0"
 .venv/bin/python -c "import ubukit; print(ubukit.__version__)"
 ```
 

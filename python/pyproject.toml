@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=77.0.3"]
+requires = ["setuptools>=83.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ubukit"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Clustering, self-organizing maps, evaluation metrics, and parameter search"
 readme = "README.md"
 requires-python = ">=3.10"

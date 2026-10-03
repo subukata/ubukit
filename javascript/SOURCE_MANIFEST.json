@@ -1,7 +1,7 @@
 {
   "schema_version": 5,
-  "purpose": "Prospective public alpha package source with preserved numerical implementations and source lineage",
-  "version": "0.1.0-alpha.1",
+  "purpose": "New security-repaired alpha.2 package source; prior alpha.1 source lineage and frozen archives remain unchanged",
+  "version": "0.1.0-alpha.2",
   "runtime_files": {
     "src/clustering.js": {
       "sha256": "b2c75c49e7567a25ccb51ae41adaaed770fc059c0536c19533cfd262ac9a2532",
@@ -115,11 +115,13 @@
       "pre_efficiency_dev5_sha256": "d26f19225417c525cbb8b1f4384daf0ca355883d77c6891a8175ce717efc7789"
     },
     "src/session-validation.js": {
-      "sha256": "4296647e57a507dc79f40a8fde75d478b932068f94bab41cc73d4ac7ebeac9f5",
+      "sha256": "63c6ec6092ff2ac488d5896302526f049470719d1bb99d66658b32cf86185ff8",
       "baseline_sha256": "ddd65bba164454428bda5a437976b2e87111af1251131b5a016f7c00bf08109c",
       "pre_som_dev4_sha256": "a18d5b7adae6b10037081b9b25f5b9d488ae73f535a82cc90ad311ad1c7ce781",
       "pre_efficiency_dev5_sha256": "d304c1160c05b8a1ea29031c5aa37384274a6fcc2c6c1228445672d09ad62def",
-      "pre_warm_preflight_sha256": "e4f72dbf845d8f7901790fa60a51eb0ce7c3931f37187b1dbbcdb3f62e5e1cb6"
+      "pre_warm_preflight_sha256": "e4f72dbf845d8f7901790fa60a51eb0ce7c3931f37187b1dbbcdb3f62e5e1cb6",
+      "pre_security_alpha2_sha256": "4296647e57a507dc79f40a8fde75d478b932068f94bab41cc73d4ac7ebeac9f5",
+      "security_alpha2_change": "Copy own enumerable properties without invoking inherited setters"
     },
     "src/session.js": {
       "sha256": "6a241895b4ff5fd43d0aef53a754a29a51f0e598e5841dc376ee9a1045b68120",

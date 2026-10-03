@@ -351,7 +351,7 @@ def fit_fcm(X, n_clusters=None, *, init=None, m=2.0, max_iter=300,
             try:
                 from . import _numba  # retain optional-dependency validation
             except ImportError as exc:
-                raise ImportError("Numba backend requires pip install ubukit-fcm[numba]") from exc
+                raise ImportError("Numba backend requires pip install 'ubukit[numba]'") from exc
         from ._robust import fit_robust
         starting_u = initial_u
         if starting_u is None:
@@ -411,7 +411,7 @@ def fit_fcm(X, n_clusters=None, *, init=None, m=2.0, max_iter=300,
         try:
             from . import _numba
         except ImportError as exc:
-            raise ImportError("Numba backend requires pip install ubukit-fcm[numba]") from exc
+            raise ImportError("Numba backend requires pip install 'ubukit[numba]'") from exc
         update = _numba.update_membership_parallel if backend == "numba_parallel" else _numba.update_membership_serial
         if backend == "numba_parallel":
             numba_state = _numba.set_threads(int(threads))
