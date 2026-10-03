@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "repository": "subukata/ubukit",
-  "candidate_label": "provisional-alpha-0.1.0",
-  "source_tree_sha1": "6d6d7d875058be3ee9aa8db8b001df7657e0f52f",
-  "source_file_count": 618,
-  "source_snapshot_sha256": "eb6807035e64d369b8317f34d97c667f548917685f22addd3bdee29d005c9049",
+  "candidate_label": "security-repaired-alpha-0.1.0-2",
+  "source_tree_sha1": "af84f6b6817be8da27c69e00c8e9a014eebffca7",
+  "source_file_count": 632,
+  "source_snapshot_sha256": "7cf8851c72eea56dba72feb4863143c5787ac38c9434ac76eeae6096bcbb5242",
   "python": {
     "distribution": "ubukit",
-    "version": "0.1.0a1"
+    "version": "0.1.0a2"
   },
   "javascript": {
     "distribution": "ubukit-js",
-    "version": "0.1.0-alpha.1"
+    "version": "0.1.0-alpha.2"
   },
   "first_stage": {
     "stage": "linux",
@@ -31,5 +31,5 @@
       "webkit"
     ]
   },
-  "note": "This is an exact frozen-source identity, not a selected commit, CI result, or publication approval. Keep candidate-policy.json unselected until the actual source commit is reviewed. A preview run cannot validate these alpha packages."
+  "note": "New security-repaired alpha.2 identity. Prior alpha.1 source and artifacts remain historical. Require fresh build and exact new bundle qualification; this identity is not publication approval."
 }
