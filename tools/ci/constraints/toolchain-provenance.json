@@ -1,0 +1,407 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-10-03T00:56:11.346763+00:00",
+  "scope": "CPython 3.12 verification dependency wheels; not a public-consumer lock or security certification",
+  "source": "Official PyPI version JSON; hashes checked during installation/download",
+  "packages": [
+    {
+      "name": "pip",
+      "version": "26.2",
+      "metadata_url": "https://pypi.org/pypi/pip/26.2/json",
+      "requires_python": ">=3.10",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "pip-26.2-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/62/36/a3aed958d60531cb442b7ab4596cda7b3621cfb916f8ae1d6769795c7dc1/pip-26.2-py3-none-any.whl",
+          "sha256": "931c303696af6fa3417112103b1cad26890e5a07eccb5b99783700e33f2b8aad",
+          "size": 1816475
+        }
+      ]
+    },
+    {
+      "name": "build",
+      "version": "1.4.0",
+      "metadata_url": "https://pypi.org/pypi/build/1.4.0/json",
+      "requires_python": ">=3.9",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "build-1.4.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/c5/0d/84a4380f930db0010168e0aa7b7a8fed9ba1835a8fbb1472bc6d0201d529/build-1.4.0-py3-none-any.whl",
+          "sha256": "6a07c1b8eb6f2b311b96fcbdbce5dab5fe637ffda0fd83c9cac622e927501596",
+          "size": 24141
+        }
+      ]
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "metadata_url": "https://pypi.org/pypi/packaging/26.3/json",
+      "requires_python": ">=3.9",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "packaging-26.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl",
+          "sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+          "size": 129956
+        }
+      ]
+    },
+    {
+      "name": "pyproject-hooks",
+      "version": "1.3.3",
+      "metadata_url": "https://pypi.org/pypi/pyproject-hooks/1.3.3/json",
+      "requires_python": ">=3.8",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "pyproject_hooks-1.3.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/85/11/044d1ae1b4ec0d7af88ee5bc91e081be1022533032b906a7bdabdbb60977/pyproject_hooks-1.3.3-py3-none-any.whl",
+          "sha256": "5fc53fdac9f7bd63fbcdc868fb5f90b4784d78a53a3d3388cd738b807441a20b",
+          "size": 10724
+        }
+      ]
+    },
+    {
+      "name": "setuptools",
+      "version": "83.0.0",
+      "metadata_url": "https://pypi.org/pypi/setuptools/83.0.0/json",
+      "requires_python": ">=3.10",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "setuptools-83.0.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl",
+          "sha256": "29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3",
+          "size": 1008090
+        }
+      ]
+    },
+    {
+      "name": "wheel",
+      "version": "0.46.3",
+      "metadata_url": "https://pypi.org/pypi/wheel/0.46.3/json",
+      "requires_python": ">=3.9",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "wheel-0.46.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/87/22/b76d483683216dde3d67cba61fb2444be8d5be289bf628c13fc0fd90e5f9/wheel-0.46.3-py3-none-any.whl",
+          "sha256": "4b399d56c9d9338230118d705d9737a2a468ccca63d5e813e2a4fc7815d8bc4d",
+          "size": 30557
+        }
+      ]
+    },
+    {
+      "name": "colorama",
+      "version": "0.4.6",
+      "metadata_url": "https://pypi.org/pypi/colorama/0.4.6/json",
+      "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "colorama-0.4.6-py2.py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl",
+          "sha256": "4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6",
+          "size": 25335
+        }
+      ]
+    },
+    {
+      "name": "numpy",
+      "version": "2.3.5",
+      "metadata_url": "https://pypi.org/pypi/numpy/2.3.5/json",
+      "requires_python": ">=3.11",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-macosx_10_13_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/44/37/e669fe6cbb2b96c62f6bbedc6a81c0f3b7362f6a59230b23caa673a85721/numpy-2.3.5-cp312-cp312-macosx_10_13_x86_64.whl",
+          "sha256": "74ae7b798248fe62021dbf3c914245ad45d1a6b0cb4a29ecb4b31d0bfbc4cc3e",
+          "size": 16733873
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-macosx_11_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/c5/65/df0db6c097892c9380851ab9e44b52d4f7ba576b833996e0080181c0c439/numpy-2.3.5-cp312-cp312-macosx_11_0_arm64.whl",
+          "sha256": "ee3888d9ff7c14604052b2ca5535a30216aa0a58e948cdd3eeb8d3415f638769",
+          "size": 12259838
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-macosx_14_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/5b/e1/1ee06e70eb2136797abe847d386e7c0e830b67ad1d43f364dd04fa50d338/numpy-2.3.5-cp312-cp312-macosx_14_0_arm64.whl",
+          "sha256": "612a95a17655e213502f60cfb9bf9408efdc9eb1d5f50535cc6eb365d11b42b5",
+          "size": 5088378
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-macosx_14_0_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/6d/9c/1ca85fb86708724275103b81ec4cf1ac1d08f465368acfc8da7ab545bdae/numpy-2.3.5-cp312-cp312-macosx_14_0_x86_64.whl",
+          "sha256": "3101e5177d114a593d79dd79658650fe28b5a0d8abeb8ce6f437c0e6df5be1a4",
+          "size": 6628559
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "url": "https://files.pythonhosted.org/packages/74/78/fcd41e5a0ce4f3f7b003da85825acddae6d7ecb60cf25194741b036ca7d6/numpy-2.3.5-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "sha256": "8b973c57ff8e184109db042c842423ff4f60446239bd585a5131cc47f06f789d",
+          "size": 14250702
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/b6/23/2a1b231b8ff672b4c450dac27164a8b2ca7d9b7144f9c02d2396518352eb/numpy-2.3.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+          "sha256": "0d8163f43acde9a73c2a33605353a4f1bc4798745a8b1d73183b28e5b435ae28",
+          "size": 16606086
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-musllinux_1_2_aarch64.whl",
+          "url": "https://files.pythonhosted.org/packages/a0/c5/5ad26fbfbe2012e190cc7d5003e4d874b88bb18861d0829edc140a713021/numpy-2.3.5-cp312-cp312-musllinux_1_2_aarch64.whl",
+          "sha256": "51c1e14eb1e154ebd80e860722f9e6ed6ec89714ad2db2d3aa33c31d7c12179b",
+          "size": 16025985
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-musllinux_1_2_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/d2/fa/dd48e225c46c819288148d9d060b047fd2a6fb1eb37eae25112ee4cb4453/numpy-2.3.5-cp312-cp312-musllinux_1_2_x86_64.whl",
+          "sha256": "b46b4ec24f7293f23adcd2d146960559aaf8020213de8ad1909dba6c013bf89c",
+          "size": 18542976
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-win32.whl",
+          "url": "https://files.pythonhosted.org/packages/05/79/ccbd23a75862d95af03d28b5c6901a1b7da4803181513d52f3b86ed9446e/numpy-2.3.5-cp312-cp312-win32.whl",
+          "sha256": "3997b5b3c9a771e157f9aae01dd579ee35ad7109be18db0e85dbdbe1de06e952",
+          "size": 6285274
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/2d/57/8aeaf160312f7f489dea47ab61e430b5cb051f59a98ae68b7133ce8fa06a/numpy-2.3.5-cp312-cp312-win_amd64.whl",
+          "sha256": "86945f2ee6d10cdfd67bcb4069c1662dd711f7e2a4343db5cecec06b87cf31aa",
+          "size": 12782922
+        },
+        {
+          "filename": "numpy-2.3.5-cp312-cp312-win_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/78/a6/aae5cc2ca78c45e64b9ef22f089141d661516856cf7c8a54ba434576900d/numpy-2.3.5-cp312-cp312-win_arm64.whl",
+          "sha256": "f28620fe26bee16243be2b7b874da327312240a7cdc38b769a697578d2100013",
+          "size": 10194667
+        }
+      ]
+    },
+    {
+      "name": "scipy",
+      "version": "1.17.0",
+      "metadata_url": "https://pypi.org/pypi/scipy/1.17.0/json",
+      "requires_python": ">=3.11",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-macosx_10_14_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/0b/11/7241a63e73ba5a516f1930ac8d5b44cbbfabd35ac73a2d08ca206df007c4/scipy-1.17.0-cp312-cp312-macosx_10_14_x86_64.whl",
+          "sha256": "0d5018a57c24cb1dd828bcf51d7b10e65986d549f52ef5adb6b4d1ded3e32a57",
+          "size": 31364580
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/ed/1d/5057f812d4f6adc91a20a2d6f2ebcdb517fdbc87ae3acc5633c9b97c8ba5/scipy-1.17.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "sha256": "88c22af9e5d5a4f9e027e26772cc7b5922fab8bcc839edb3ae33de404feebd9e",
+          "size": 27969012
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-macosx_14_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/e3/21/f6ec556c1e3b6ec4e088da667d9987bb77cc3ab3026511f427dc8451187d/scipy-1.17.0-cp312-cp312-macosx_14_0_arm64.whl",
+          "sha256": "f3cd947f20fe17013d401b64e857c6b2da83cae567adbb75b9dcba865abc66d8",
+          "size": 20140691
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-macosx_14_0_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/7a/fe/5e5ad04784964ba964a96f16c8d4676aa1b51357199014dce58ab7ec5670/scipy-1.17.0-cp312-cp312-macosx_14_0_x86_64.whl",
+          "sha256": "e8c0b331c2c1f531eb51f1b4fc9ba709521a712cce58f1aa627bc007421a5306",
+          "size": 22463015
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "url": "https://files.pythonhosted.org/packages/4a/69/7c347e857224fcaf32a34a05183b9d8a7aca25f8f2d10b8a698b8388561a/scipy-1.17.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "sha256": "5194c445d0a1c7a6c1a4a4681b6b7c71baad98ff66d96b949097e7513c9d6742",
+          "size": 32724197
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/d1/fe/66d73b76d378ba8cc2fe605920c0c75092e3a65ae746e1e767d9d020a75a/scipy-1.17.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+          "sha256": "9eeb9b5f5997f75507814ed9d298ab23f62cf79f5a3ef90031b1ee2506abdb5b",
+          "size": 35009148
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-musllinux_1_2_aarch64.whl",
+          "url": "https://files.pythonhosted.org/packages/af/07/07dec27d9dc41c18d8c43c69e9e413431d20c53a0339c388bcf72f353c4b/scipy-1.17.0-cp312-cp312-musllinux_1_2_aarch64.whl",
+          "sha256": "40052543f7bbe921df4408f46003d6f01c6af109b9e2c8a66dd1cf6cf57f7d5d",
+          "size": 34798766
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-musllinux_1_2_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/81/61/0470810c8a093cdacd4ba7504b8a218fd49ca070d79eca23a615f5d9a0b0/scipy-1.17.0-cp312-cp312-musllinux_1_2_x86_64.whl",
+          "sha256": "0cf46c8013fec9d3694dc572f0b54100c28405d55d3e2cb15e2895b25057996e",
+          "size": 37405953
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/92/ce/672ed546f96d5d41ae78c4b9b02006cedd0b3d6f2bf5bb76ea455c320c28/scipy-1.17.0-cp312-cp312-win_amd64.whl",
+          "sha256": "0937a0b0d8d593a198cededd4c439a0ea216a3f36653901ea1f3e4be949056f8",
+          "size": 36328121
+        },
+        {
+          "filename": "scipy-1.17.0-cp312-cp312-win_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/9d/21/38165845392cae67b61843a52c6455d47d0cc2a40dd495c89f4362944654/scipy-1.17.0-cp312-cp312-win_arm64.whl",
+          "sha256": "f603d8a5518c7426414d1d8f82e253e454471de682ce5e39c29adb0df1efb86b",
+          "size": 24314368
+        }
+      ]
+    },
+    {
+      "name": "scikit-learn",
+      "version": "1.8.0",
+      "metadata_url": "https://pypi.org/pypi/scikit-learn/1.8.0/json",
+      "requires_python": ">=3.11",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "scikit_learn-1.8.0-cp312-cp312-macosx_10_13_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/90/74/e6a7cc4b820e95cc38cf36cd74d5aa2b42e8ffc2d21fe5a9a9c45c1c7630/scikit_learn-1.8.0-cp312-cp312-macosx_10_13_x86_64.whl",
+          "sha256": "5fb63362b5a7ddab88e52b6dbb47dac3fd7dafeee740dc6c8d8a446ddedade8e",
+          "size": 8548242
+        },
+        {
+          "filename": "scikit_learn-1.8.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/49/d8/9be608c6024d021041c7f0b3928d4749a706f4e2c3832bbede4fb4f58c95/scikit_learn-1.8.0-cp312-cp312-macosx_12_0_arm64.whl",
+          "sha256": "5025ce924beccb28298246e589c691fe1b8c1c96507e6d27d12c5fadd85bfd76",
+          "size": 8079075
+        },
+        {
+          "filename": "scikit_learn-1.8.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "url": "https://files.pythonhosted.org/packages/dd/47/f187b4636ff80cc63f21cd40b7b2d177134acaa10f6bb73746130ee8c2e5/scikit_learn-1.8.0-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+          "sha256": "4496bb2cf7a43ce1a2d7524a79e40bc5da45cf598dbf9545b7e8316ccba47bb4",
+          "size": 8660492
+        },
+        {
+          "filename": "scikit_learn-1.8.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+          "url": "https://files.pythonhosted.org/packages/97/74/b7a304feb2b49df9fafa9382d4d09061a96ee9a9449a7cbea7988dda0828/scikit_learn-1.8.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+          "sha256": "a0bcfe4d0d14aec44921545fd2af2338c7471de9cb701f1da4c9d85906ab847a",
+          "size": 8931904
+        },
+        {
+          "filename": "scikit_learn-1.8.0-cp312-cp312-win_amd64.whl",
+          "url": "https://files.pythonhosted.org/packages/9f/c4/0ab22726a04ede56f689476b760f98f8f46607caecff993017ac1b64aa5d/scikit_learn-1.8.0-cp312-cp312-win_amd64.whl",
+          "sha256": "35c007dedb2ffe38fe3ee7d201ebac4a2deccd2408e8621d53067733e3c74809",
+          "size": 8019359
+        },
+        {
+          "filename": "scikit_learn-1.8.0-cp312-cp312-win_arm64.whl",
+          "url": "https://files.pythonhosted.org/packages/24/90/344a67811cfd561d7335c1b96ca21455e7e472d281c3c279c4d3f2300236/scikit_learn-1.8.0-cp312-cp312-win_arm64.whl",
+          "sha256": "8c497fff237d7b4e07e9ef1a640887fa4fb765647f86fbe00f969ff6280ce2bb",
+          "size": 7641898
+        }
+      ]
+    },
+    {
+      "name": "threadpoolctl",
+      "version": "3.6.0",
+      "metadata_url": "https://pypi.org/pypi/threadpoolctl/3.6.0/json",
+      "requires_python": ">=3.9",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "threadpoolctl-3.6.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl",
+          "sha256": "43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb",
+          "size": 18638
+        }
+      ]
+    },
+    {
+      "name": "joblib",
+      "version": "1.6.0",
+      "metadata_url": "https://pypi.org/pypi/joblib/1.6.0/json",
+      "requires_python": ">=3.10",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "joblib-1.6.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/18/53/84099323c2ec4be98d935f63c033ac4151ee83836ca1050ede3b3aadf155/joblib-1.6.0-py3-none-any.whl",
+          "sha256": "3dbbf9f6e4b592a2357b854608e980fe6390d131d7a82f011a377ef2ebef7aba",
+          "size": 306115
+        }
+      ]
+    },
+    {
+      "name": "cloudpickle",
+      "version": "3.1.2",
+      "metadata_url": "https://pypi.org/pypi/cloudpickle/3.1.2/json",
+      "requires_python": ">=3.8",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "cloudpickle-3.1.2-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl",
+          "sha256": "9acb47f6afd73f60dc1df93bb801b472f05ff42fa6c84167d25cb206be1fbf4a",
+          "size": 22228
+        }
+      ]
+    },
+    {
+      "name": "pytest",
+      "version": "9.0.3",
+      "metadata_url": "https://pypi.org/pypi/pytest/9.0.3/json",
+      "requires_python": ">=3.10",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "pytest-9.0.3-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/d4/24/a372aaf5c9b7208e7112038812994107bc65a84cd00e0354a88c2c77a617/pytest-9.0.3-py3-none-any.whl",
+          "sha256": "2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9",
+          "size": 375249
+        }
+      ]
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "metadata_url": "https://pypi.org/pypi/iniconfig/2.3.0/json",
+      "requires_python": ">=3.10",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "iniconfig-2.3.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl",
+          "sha256": "f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12",
+          "size": 7484
+        }
+      ]
+    },
+    {
+      "name": "pluggy",
+      "version": "1.6.0",
+      "metadata_url": "https://pypi.org/pypi/pluggy/1.6.0/json",
+      "requires_python": ">=3.9",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "pluggy-1.6.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
+          "sha256": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746",
+          "size": 20538
+        }
+      ]
+    },
+    {
+      "name": "Pygments",
+      "version": "2.21.0",
+      "metadata_url": "https://pypi.org/pypi/Pygments/2.21.0/json",
+      "requires_python": ">=3.9",
+      "vulnerabilities_reported_by_pypi": [],
+      "files": [
+        {
+          "filename": "pygments-2.21.0-py3-none-any.whl",
+          "url": "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl",
+          "sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+          "size": 1250147
+        }
+      ]
+    }
+  ]
+}

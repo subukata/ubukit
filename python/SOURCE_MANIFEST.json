@@ -1,17 +1,19 @@
 {
-  "version": "0.1.0a1",
+  "version": "0.1.0a2",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "Prospective public alpha package source with preserved numerical implementations and source lineage",
+  "purpose": "New security-repaired alpha.2 package source; prior alpha.1 source lineage and frozen archives remain unchanged",
   "files": [
     {
       "path": "src/ubukit/__init__.py",
       "baseline_path": "src/ubukit/__init__.py",
-      "sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd",
+      "sha256": "84bffddd91d330ea8be956035adce6e5efd2b2b2b76829399bb6269538bffd92",
       "baseline_sha256": "8a78105ca555f14b79e26bb6479071d606888943ba0b44dd85ecf41e4391a8f0",
       "change": "add_entropy_fcm_public_export_and_alpha_version",
       "numerical_ast_equal": true,
       "pre_entropy_fcm_sha256": "84b05a87cf414e08db4649c05ba7f923b5f16e39fe6abd425905db2b6dc82e09",
-      "pre_public_alpha_sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483"
+      "pre_public_alpha_sha256": "3cca8bd9f104367a57cbf8b65ab8b2a48d52c3817b1c837d3b89bc717ea5b483",
+      "pre_security_alpha2_sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd",
+      "security_alpha2_change": "Version identity or optional installation guidance only"
     },
     {
       "path": "src/ubukit/_impl/__init__.py",
@@ -53,10 +55,12 @@
     {
       "path": "src/ubukit/_impl/fcm/__init__.py",
       "baseline_path": "src/ubukit_fcm/__init__.py",
-      "sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
+      "sha256": "707082026be50c7be5d1cc721111ea57a0fb025086d8825faccacdfa8b2a2fc0",
       "baseline_sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
       "change": "unchanged_bytes",
-      "numerical_ast_equal": true
+      "numerical_ast_equal": true,
+      "pre_security_alpha2_sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda",
+      "security_alpha2_change": "Version identity or optional installation guidance only"
     },
     {
       "path": "src/ubukit/_impl/fcm/_numba.py",
@@ -85,11 +89,13 @@
     {
       "path": "src/ubukit/_impl/fcm/core.py",
       "baseline_path": "src/ubukit_fcm/core.py",
-      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346",
+      "sha256": "7c5a7a8c55ae1b28b179d65b1d15d1ef5a7ee70be667148dd4a85eb9eda1c817",
       "baseline_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
       "change": "fcm_zero_subnormal_recovery_guard",
       "numerical_ast_equal": false,
-      "pre_safety_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8"
+      "pre_safety_sha256": "5c2b201f18e4e3aa5be3e8edf7bda6ce9adad6ebc22d15e938c78a6082f2dfd8",
+      "pre_security_alpha2_sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346",
+      "security_alpha2_change": "Version identity or optional installation guidance only"
     },
     {
       "path": "src/ubukit/_impl/fcm/log_membership.py",
@@ -447,10 +453,12 @@
     {
       "path": "src/ubukit/_impl/rmcm/__init__.py",
       "baseline_path": "src/ubukit_rmcm/__init__.py",
-      "sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a",
+      "sha256": "97666884b3037b3c095ffb814fe5e7ed6ca0a898131f6d47042d314fb4e7a6ef",
       "baseline_sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a",
       "change": "unchanged_bytes",
-      "numerical_ast_equal": true
+      "numerical_ast_equal": true,
+      "pre_security_alpha2_sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a",
+      "security_alpha2_change": "Version identity or optional installation guidance only"
     },
     {
       "path": "src/ubukit/_impl/rmcm/_graph.py",
@@ -487,10 +495,12 @@
     {
       "path": "src/ubukit/_impl/rmcm/core.py",
       "baseline_path": "src/ubukit_rmcm/core.py",
-      "sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4",
+      "sha256": "fc176a10aff17430cb19bd8ab828f54e65fc293a1d275c662595028c57e1f4c0",
       "baseline_sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4",
       "change": "unchanged_bytes",
-      "numerical_ast_equal": true
+      "numerical_ast_equal": true,
+      "pre_security_alpha2_sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4",
+      "security_alpha2_change": "Version identity or optional installation guidance only"
     },
     {
       "path": "src/ubukit/_impl/rough_cmeans.py",

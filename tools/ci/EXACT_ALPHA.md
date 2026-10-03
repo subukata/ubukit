@@ -1,3 +1,5 @@
+> Historical alpha.1 handoff description. The security-repaired alpha.2 candidate uses the same immutable two-commit procedure; see [SECURITY_REPAIR.md](SECURITY_REPAIR.md). Prior alpha.1 results do not validate alpha.2.
+
 # Exact alpha source and artifact handoff
 
 This configuration is private, manual-only and unselected. It performs no

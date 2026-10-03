@@ -6,7 +6,7 @@ from pathlib import Path
 
 import ubukit
 from importlib.metadata import version
-assert ubukit.__version__ == version("ubukit") == "0.1.0a1"
+assert ubukit.__version__ == version("ubukit") == "0.1.0a2"
 assert "numpy" not in sys.modules, "Facade import must not eagerly load numerical runtimes"
 assert "numba" not in sys.modules
 

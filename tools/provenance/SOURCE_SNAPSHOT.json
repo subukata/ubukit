@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "versions": {
-    "python": "0.1.0a1",
-    "javascript": "0.1.0-alpha.1"
+    "python": "0.1.0a2",
+    "javascript": "0.1.0-alpha.2"
   },
   "runtime_files": [
     {
@@ -98,7 +98,7 @@
     {
       "language": "javascript",
       "path": "javascript/src/session-validation.js",
-      "sha256": "4296647e57a507dc79f40a8fde75d478b932068f94bab41cc73d4ac7ebeac9f5"
+      "sha256": "63c6ec6092ff2ac488d5896302526f049470719d1bb99d66658b32cf86185ff8"
     },
     {
       "language": "javascript",
@@ -148,7 +148,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/__init__.py",
-      "sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd"
+      "sha256": "84bffddd91d330ea8be956035adce6e5efd2b2b2b76829399bb6269538bffd92"
     },
     {
       "language": "python",
@@ -178,7 +178,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/_impl/fcm/__init__.py",
-      "sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda"
+      "sha256": "707082026be50c7be5d1cc721111ea57a0fb025086d8825faccacdfa8b2a2fc0"
     },
     {
       "language": "python",
@@ -198,7 +198,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/_impl/fcm/core.py",
-      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346"
+      "sha256": "7c5a7a8c55ae1b28b179d65b1d15d1ef5a7ee70be667148dd4a85eb9eda1c817"
     },
     {
       "language": "python",
@@ -423,7 +423,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/_impl/rmcm/__init__.py",
-      "sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a"
+      "sha256": "97666884b3037b3c095ffb814fe5e7ed6ca0a898131f6d47042d314fb4e7a6ef"
     },
     {
       "language": "python",
@@ -448,7 +448,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/_impl/rmcm/core.py",
-      "sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4"
+      "sha256": "fc176a10aff17430cb19bd8ab828f54e65fc293a1d275c662595028c57e1f4c0"
     },
     {
       "language": "python",
@@ -509,7 +509,7 @@
     },
     {
       "path": "javascript/README.md",
-      "sha256": "41f454e919dbf4709a266492f6577b828ec432662b6b100a16f9aaa63e31ca32"
+      "sha256": "69c2855563a2e4e5fcd4a04b7c4f29c6ee4fb08760345852f1f514df132da21d"
     },
     {
       "path": "javascript/SOM.md",
@@ -517,11 +517,11 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "3a3dde1a943b9b2e0a934f2217c9fb91bfc1cfa07b70d1eae598d988a7c29b23"
+      "sha256": "149832febc45051f2cd6c9c05f1dc8607a1c085dc4e06d6c2a23593c9ce01ec4"
     },
     {
       "path": "javascript/package.json",
-      "sha256": "964a9d1c81509ec7a2eda2b443cc07336572b133015e954f0e97c53091a4a31e"
+      "sha256": "76d3e8e35ce514f013b96f55d867eac3fea628a0a6946fc114c4497035769fb9"
     },
     {
       "path": "javascript/src/clustering.js",
@@ -597,7 +597,7 @@
     },
     {
       "path": "javascript/src/session-validation.js",
-      "sha256": "4296647e57a507dc79f40a8fde75d478b932068f94bab41cc73d4ac7ebeac9f5"
+      "sha256": "63c6ec6092ff2ac488d5896302526f049470719d1bb99d66658b32cf86185ff8"
     },
     {
       "path": "javascript/src/session.js",
@@ -673,7 +673,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "0a259576f10f6ff08c5c8724ecf4de019032ae7e04e6becde0b9096fd818b1b4"
+      "sha256": "4b6115d45064b2b80d4ae16670cb5d7c2027d0fd808ae1e33a3b3729da2b277a"
     },
     {
       "path": "python/SOM.md",
@@ -681,7 +681,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "82dd1aa66d9c93928508966f2618e356a9eae1fbd4286517b9fd2e32225d0d52"
+      "sha256": "252d0f8fe4866ad6facd818dcc514c633a9ab6581c257902b2a8265f37d92989"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -689,11 +689,11 @@
     },
     {
       "path": "python/pyproject.toml",
-      "sha256": "f5db758fa3e8353f7d0eb8b0f3446a939d0bf12f6adce888c0b17c3cec7034ab"
+      "sha256": "b16e6d81312fcfb51c0c37b5c759a3cf6c35f26b861789da5497405893f63caf"
     },
     {
       "path": "python/src/ubukit/__init__.py",
-      "sha256": "b8a6ff9f174161ed77f8f14185dd22de0e6412dcacc4eaccfdd3f00e63ce30dd"
+      "sha256": "84bffddd91d330ea8be956035adce6e5efd2b2b2b76829399bb6269538bffd92"
     },
     {
       "path": "python/src/ubukit/_impl/__init__.py",
@@ -717,7 +717,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/fcm/__init__.py",
-      "sha256": "eec08edbfcbe2413773f926caadb8677ddd9201def00025bf27b161606549cda"
+      "sha256": "707082026be50c7be5d1cc721111ea57a0fb025086d8825faccacdfa8b2a2fc0"
     },
     {
       "path": "python/src/ubukit/_impl/fcm/_numba.py",
@@ -733,7 +733,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/fcm/core.py",
-      "sha256": "041336afe4e5958c795a7cca3666b46e084f09cb0f6eec5b3f7c245af214d346"
+      "sha256": "7c5a7a8c55ae1b28b179d65b1d15d1ef5a7ee70be667148dd4a85eb9eda1c817"
     },
     {
       "path": "python/src/ubukit/_impl/fcm/log_membership.py",
@@ -913,7 +913,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/rmcm/__init__.py",
-      "sha256": "6b1ee56583a17bf2031c90d7b38ad37536c451c89235b5fbaa69ee38b539e44a"
+      "sha256": "97666884b3037b3c095ffb814fe5e7ed6ca0a898131f6d47042d314fb4e7a6ef"
     },
     {
       "path": "python/src/ubukit/_impl/rmcm/_graph.py",
@@ -933,7 +933,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/rmcm/core.py",
-      "sha256": "5b60d04dfea419b64c0ca3e8f5c9030d128936c4e42ecc2045d47bcacf85a3b4"
+      "sha256": "fc176a10aff17430cb19bd8ab828f54e65fc293a1d275c662595028c57e1f4c0"
     },
     {
       "path": "python/src/ubukit/_impl/rough_cmeans.py",

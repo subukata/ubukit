@@ -15,7 +15,12 @@ export function cloneOwned(value, seen = new Map()) {
   // AbortSignal remains a live cancellation control, not numerical state.
   if (typeof value.addEventListener === 'function' && 'aborted' in value) return value;
   const copy = Array.isArray(value) ? [] : {}; seen.set(value, copy);
-  for (const key of Object.keys(value)) copy[key] = cloneOwned(value[key], seen);
+  for (const key of Object.keys(value)) {
+    // Defining own data avoids inherited setters such as Object.prototype.__proto__.
+    Object.defineProperty(copy, key, {
+      value: cloneOwned(value[key], seen), enumerable: true, writable: true, configurable: true,
+    });
+  }
   return copy;
 }
 export function sameArray(a, b) {
