@@ -1,4 +1,4 @@
-"""Public EFCM contracts and independent arithmetic references."""
+"""Public EFCM float64 contracts and analytic or historical fixture expectations."""
 import json
 import math
 from pathlib import Path
@@ -95,23 +95,30 @@ class EntropyFCMTests(unittest.TestCase):
         self.assertTrue(.7 < r['membership'][0, 0] < .75)
         self.assertTrue(np.isfinite(r['membership']).all())
 
-    def test_extreme_finite_coordinates_and_signed_objective_status(self):
-        r = fit_entropy_fcm([[-1e308], [1e308]], init=np.eye(2), tau=1e308, max_iter=1)
-        np.testing.assert_array_equal(r['centers'], [[-1e308], [1e308]])
-        np.testing.assert_array_equal(r['membership'], np.eye(2))
-        self.assertEqual(r['objective'], 0)
-        r = fit_entropy_fcm([[0.], [0.]], 8, tau=1e308, max_iter=1, random_state=0)
-        self.assertEqual(r['objective'], -math.inf)
-        self.assertEqual(r['numerical_diagnostics']['objective_status'], 'overflow')
-        self.assertEqual(r['numerical_diagnostics']['objective_sign'], -1)
+    def test_nonrepresentable_distances_and_objectives_raise(self):
+        cases = [
+            ([[-1e308], [1e308]], dict(init=np.eye(2), tau=1e308)),
+            ([[0.], [0.]], dict(n_clusters=8, tau=1e308)),
+            ([[-1e154], [1e154]], dict(n_clusters=1)),
+        ]
+        for x, kw in cases:
+            with self.subTest(x=x, kw=kw), self.assertRaisesRegex(ValueError, 'float64.*overflowed'):
+                fit_entropy_fcm(x, max_iter=1, **kw)
+
+    def test_float64_underflow_is_not_claimed_as_exact(self):
         tiny = np.nextafter(0., 1.)
         r = fit_entropy_fcm([[0.], [tiny]], 1, max_iter=1)
-        self.assertEqual(r['objective'], 0)
-        self.assertEqual(r['numerical_diagnostics']['objective_status'], 'underflow')
+        self.assertEqual(r['objective'], 0.)
+        self.assertEqual(r['numerical_diagnostics']['objective_status'], 'finite')
+        self.assertEqual(r['numerical_diagnostics']['objective_sign'], 0)
+        self.assertEqual(r['numerical_diagnostics']['log_abs_objective'], -math.inf)
 
-    def test_shared_decimal_reference_fixtures(self):
+    def test_retained_historical_fixture_constants(self):
         path = Path(__file__).resolve().parents[2] / 'javascript/fixtures/entropy-fcm-reference.json'
         for case in json.loads(path.read_text())['cases']:
+            # The former exact-gap case has its own float64-tie regression below.
+            if case['name'] == 'large-common-cost-unit-gap':
+                continue
             with self.subTest(case=case['name']):
                 r = fit_entropy_fcm(case['X'], init=case['init'], tau=case['tau'],
                                     max_iter=case['iterations'], tol=0, return_history=True)
@@ -119,38 +126,60 @@ class EntropyFCMTests(unittest.TestCase):
                     np.testing.assert_allclose(r[key], case[key], rtol=3e-13, atol=3e-14)
                 self.assertAlmostEqual(r['objective'], case['objective'], delta=1e-12)
 
-    def test_numpy_matches_reference_at_bounded_scales(self):
-        rng = np.random.default_rng(812)
-        for scale in (1e-160, 1e-3, 1., 1e3, 1e150):
-            for n, d, k in ((2, 1, 2), (7, 3, 4), (17, 2, 3)):
-                x = rng.normal(size=(n, d))*scale
-                init = rng.random((n, k))
-                tau = scale*scale if 1e-100 < scale < 1e100 else 1.
-                kw = dict(init=init, tau=tau, max_iter=4, tol=0, return_history=True)
-                a = fit_entropy_fcm(x, backend='numpy', **kw)
-                b = fit_entropy_fcm(x, backend='reference', **kw)
-                with self.subTest(scale=scale, shape=(n, d, k)):
-                    np.testing.assert_allclose(a['membership'], b['membership'], rtol=1e-11, atol=5e-14)
-                    np.testing.assert_allclose(a['centers'], b['centers'], rtol=1e-11, atol=abs(scale)*5e-14)
-                    np.testing.assert_allclose(a['objective_history'], b['objective_history'], rtol=1e-11, atol=max(1., tau)*5e-13)
+    def test_removed_reference_backend_is_explicit(self):
+        with self.assertRaisesRegex(ValueError, "only backend='numpy'.*reference mode was removed"):
+            fit_entropy_fcm([[0.]], 1, backend='reference')
 
-    def test_tiny_cluster_and_cancelling_center_are_preserved(self):
+    def test_scaled_data_and_temperature_preserve_ordinary_memberships(self):
+        x = np.array([[-2., 1.], [-1., 2.], [1., 1.], [3., -1.]])
+        init = np.array([[.2, .8], [.4, .6], [.9, .1], [.7, .3]])
+        base = fit_entropy_fcm(x, init=init, tau=.7, max_iter=3, tol=0)
+        for scale in (1e-3, 1., 1e3):
+            r = fit_entropy_fcm(x*scale, init=init, tau=.7*scale*scale, max_iter=3, tol=0)
+            np.testing.assert_allclose(r['membership'], base['membership'], rtol=1e-12, atol=1e-14)
+            np.testing.assert_allclose(r['centers']/scale, base['centers'], rtol=1e-12, atol=1e-14)
+            self.assertEqual(r['numerical_diagnostics']['arithmetic'], 'float64')
+            self.assertFalse(r['numerical_diagnostics']['used_reference_fallback'])
+
+    def test_tiny_cluster_normalization_and_cancelling_center(self):
         x = [[-1e100], [1e100], [2.]]
         init = [[1., 1e-310], [1., 1e-310], [0., 1e-310]]
-        for backend in ('numpy', 'reference'):
-            r = fit_entropy_fcm(x, init=init, max_iter=1, backend=backend)
-            self.assertEqual(r['centers'][0, 0], 0.)
-            self.assertTrue(np.isfinite(r['membership']).all())
+        r = fit_entropy_fcm(x, init=init, max_iter=1)
+        self.assertEqual(r['centers'][0, 0], 0.)
+        self.assertTrue(np.isfinite(r['membership']).all())
 
-    def test_large_common_cost_retains_small_temperature_gap(self):
+    def test_large_common_cost_can_erase_small_temperature_gap(self):
         x = [[-1e8, 0.], [1e8, 0.], [-1e8, 1.], [1e8, 1.]]
         init = [[1., 0.], [1., 0.], [0., 1.], [0., 1.]]
-        p = 1/(1+math.exp(-1))
-        expected = [[p, 1-p], [p, 1-p], [1-p, p], [1-p, p]]
-        for backend in ('numpy', 'reference'):
-            r = fit_entropy_fcm(x, init=init, tau=1., max_iter=1, backend=backend)
-            np.testing.assert_array_equal(r['centers'], [[0., 0.], [0., 1.]])
-            np.testing.assert_allclose(r['membership'], expected, rtol=0, atol=2e-16)
+        r = fit_entropy_fcm(x, init=init, tau=1., max_iter=1)
+        np.testing.assert_array_equal(r['centers'], [[0., 0.], [0., 1.]])
+        # 1e16 + 1 rounds to 1e16: this is the documented float64 tie,
+        # not the formerly promised exact-gap softmax.
+        np.testing.assert_array_equal(r['membership'], np.full((4, 2), .5))
+
+    def test_public_tpe_can_use_float64_objective(self):
+        from ubukit import TPEOptimizer, float_range
+        def run():
+            optimizer = TPEOptimizer({'tau': float_range(.1, 3., log=True)},
+                                     seed=42, n_startup_trials=3, n_candidates=5)
+            trace = []
+            for _ in range(6):
+                trial = optimizer.ask()
+                r = fit_entropy_fcm([[-2.], [-1.], [1.], [2.]], 2,
+                                    tau=trial.params['tau'], random_state=7,
+                                    max_iter=3, tol=0)
+                self.assertTrue(math.isfinite(r['objective']))
+                optimizer.tell(trial.id, r['objective'])
+                trace.append((trial.params['tau'], r['objective']))
+            return trace
+        self.assertEqual(run(), run())
+
+    def test_efcm_has_no_exact_helper_dependency(self):
+        from ubukit._impl import entropy_fcm
+        source = Path(entropy_fcm.__file__).read_text()
+        for forbidden in ('from fractions', 'from decimal', '_som_extreme',
+                          'as_integer_ratio', '_reference_membership', '_objective_pair'):
+            self.assertNotIn(forbidden, source)
 
 
 if __name__ == '__main__':

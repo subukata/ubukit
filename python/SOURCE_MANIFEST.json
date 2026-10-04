@@ -1,7 +1,7 @@
 {
   "version": "0.1.0a3",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "Isolated local alpha3 cleanup candidate; unchanged public version; not published or release-qualified",
+  "purpose": "Local EFCM float64-only policy candidate; deliberate numerical contract change; not published or release-qualified",
   "files": [
     {
       "path": "src/ubukit/__init__.py",
@@ -40,11 +40,12 @@
     },
     {
       "path": "src/ubukit/_impl/entropy_fcm.py",
-      "sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163",
-      "change": "new_entropy_regularized_fcm",
+      "sha256": "d9de9cffa692c9476f0d01fa827ccb5c91590ad30b1a27caf3c0e5f07cc78fbe",
+      "change": "efcm_float64_only_remove_exact_arithmetic",
       "numerical_ast_equal": false,
       "pre_cleanup_sha256": "9cf392946a7d33406703851ae92dcbe22fb73ddd147347132bfb173559b0d56b",
-      "cleanup_change": "reviewed local invariant/redundant work removal; public API retained"
+      "cleanup_change": "reviewed local invariant/redundant work removal; public API retained",
+      "pre_float64_policy_sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163"
     },
     {
       "path": "src/ubukit/_impl/external_metrics.py",
@@ -558,5 +559,11 @@
     ],
     "pr33_incorporated": false,
     "performance_benchmark_run": false
+  },
+  "efcm_float64_policy": {
+    "higher_precision_fallback": false,
+    "nonfinite_intermediates": "raise error",
+    "reference_mode": "removed",
+    "previous_exact_qualification_applies": false
   }
 }

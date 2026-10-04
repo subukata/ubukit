@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Focused cleanup regression against an installed candidate; no downloads/benchmarks."""
+raise RuntimeError("Historical exact-EFCM cleanup qualification is superseded by the float64-only policy; use the focused EFCM tests instead.")
 from pathlib import Path
 import argparse,hashlib,io,json,shutil,subprocess,sys,tarfile
 HOME=Path(__file__).resolve().parent

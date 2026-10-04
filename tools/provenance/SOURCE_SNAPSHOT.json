@@ -18,7 +18,7 @@
     {
       "language": "javascript",
       "path": "javascript/src/entropy-fcm.js",
-      "sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a"
+      "sha256": "e54c7a87128592f2aa05f203c769ac5e1cf67c1bb86972ed5978ec05c2abf050"
     },
     {
       "language": "javascript",
@@ -168,7 +168,7 @@
     {
       "language": "python",
       "path": "python/src/ubukit/_impl/entropy_fcm.py",
-      "sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163"
+      "sha256": "d9de9cffa692c9476f0d01fa827ccb5c91590ad30b1a27caf3c0e5f07cc78fbe"
     },
     {
       "language": "python",
@@ -469,7 +469,7 @@
   "package_files": [
     {
       "path": "javascript/ENTROPY_FCM.md",
-      "sha256": "c7cf6173cf8226721592b85c1eee97a85ed93c6b3b4296a078d73afb144cd04f"
+      "sha256": "8ee9ef5c7304ced12dc7b19a373491ba04416255029956ac56a940042ea10944"
     },
     {
       "path": "javascript/EXTERNAL_METRICS.md",
@@ -517,7 +517,7 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "e0f72258baf9da63d856c4a78a2b1cebb04621c03caca3cb9b43e0ea6a26b9d0"
+      "sha256": "e67d196f9ddfd0f050052e874a2024eaeaa63435a6d36edc745050c956a4b890"
     },
     {
       "path": "javascript/package.json",
@@ -533,7 +533,7 @@
     },
     {
       "path": "javascript/src/entropy-fcm.js",
-      "sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a"
+      "sha256": "e54c7a87128592f2aa05f203c769ac5e1cf67c1bb86972ed5978ec05c2abf050"
     },
     {
       "path": "javascript/src/external-metrics.js",
@@ -673,7 +673,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "e96ee3d0d13183893750958e34ffcb0c221ed92606f79993bc63f66826b9cd19"
+      "sha256": "150be8b08de7def2b4f5446bb95a578cbdcc88f3b7da37507079813b035dadb9"
     },
     {
       "path": "python/SOM.md",
@@ -681,7 +681,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "ad6999c3ef4349ea4d6f18bd983fa2d240659b0b2c21787d67432c414572d30f"
+      "sha256": "6b9c934e38509fc909008cff2e113c59f219c7490fd261a92301d134c01f68e6"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -709,7 +709,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/entropy_fcm.py",
-      "sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163"
+      "sha256": "d9de9cffa692c9476f0d01fa827ccb5c91590ad30b1a27caf3c0e5f07cc78fbe"
     },
     {
       "path": "python/src/ubukit/_impl/external_metrics.py",

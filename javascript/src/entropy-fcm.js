@@ -4,65 +4,44 @@
  */
 import { normalizeInput, positiveInteger, finiteNumber, assertFinite, seededRandom,
   checkCancelled, progress, labelsFromMembership } from './core.js';
-import { somStableMean } from './som-numerics.js';
 
-// Exact dyadic sums/products extend the exponent range without rounding away
-// cancellation. Only log/exp and final binary64 conversions are inexact.
-// These are scalar arithmetic helpers, not SOM costs or update rules.
-const view = new DataView(new ArrayBuffer(8));
-function binary(value) {
-  view.setFloat64(0, value, false);
-  const hi = view.getUint32(0, false), lo = view.getUint32(4, false);
-  const field = (hi >>> 20) & 2047;
-  let integer = (BigInt(hi & 0xfffff) << 32n) | BigInt(lo);
-  if (field) integer |= 1n << 52n;
-  if (hi >>> 31) integer = -integer;
-  return { integer, exponent: field ? field - 1075 : -1074 };
+// All updates use ordinary float64 arithmetic. Reject arithmetic overflow
+// instead of switching to exact arithmetic or returning extended-range values.
+function finiteIntermediate(value, operation) {
+  if (!Number.isFinite(value))
+    throw new RangeError(`entropy-fcm ${operation} is nonfinite in float64; rescale input or tau`);
+  return value;
 }
-function add(sum, term) {
-  if (term.integer === 0n) return sum;
-  if (sum.integer === 0n) { sum.integer = term.integer; sum.exponent = term.exponent; }
-  else if (term.exponent < sum.exponent) {
-    sum.integer = (sum.integer << BigInt(sum.exponent - term.exponent)) + term.integer;
-    sum.exponent = term.exponent;
-  } else sum.integer += term.integer << BigInt(term.exponent - sum.exponent);
-  return sum;
+function weightedMean(data, feature, d, n, mass, maximum, lower, upper, membership, cluster, k) {
+  // A constant feature has a known mean; no summation is needed.
+  if (lower === upper) return lower;
+  let sum = 0;
+  for (let i = 0; i < n; ++i) {
+    // Normalize first to avoid avoidable overflow in an unnormalized numerator.
+    const term = membership
+      ? (membership[i * k + cluster] / maximum / mass) * data[i * d + feature]
+      : data[i * d + feature] / n;
+    finiteIntermediate(term, 'center product');
+    sum = finiteIntermediate(sum + term, 'center sum');
+  }
+  // Roundoff can move a convex mean just outside the observed feature range.
+  return Math.max(lower, Math.min(upper, sum));
 }
-function multiply(a, b) { return { integer: a.integer * b.integer, exponent: a.exponent + b.exponent }; }
-function subtract(a, b) { return add({ ...a }, { integer: -b.integer, exponent: b.exponent }); }
-function zero() { return { integer: 0n, exponent: 0 }; }
+
 function squaredCost(data, offset, centers, centerOffset, d) {
-  const sum = zero();
+  let sum = 0;
   for (let f = 0; f < d; ++f) {
-    const difference = subtract(binary(data[offset + f]), binary(centers[centerOffset + f]));
-    add(sum, multiply(difference, difference));
+    const difference = finiteIntermediate(data[offset + f] - centers[centerOffset + f], 'coordinate difference');
+    const square = finiteIntermediate(difference * difference, 'squared distance');
+    sum = finiteIntermediate(sum + square, 'squared distance sum');
   }
   return sum;
 }
-/** Correctly round an exact positive dyadic ratio, including subnormal output. */
-function positiveRatio(integer, exponent, denominator = 1n) {
-  if (integer === 0n) return 0;
-  let power = integer.toString(2).length - denominator.toString(2).length;
-  if (power >= 0 ? integer < (denominator << BigInt(power)) : (integer << BigInt(-power)) < denominator) --power;
-  const magnitude = power + exponent;
-  if (magnitude > 1023) return Infinity;
-  if (magnitude < -1075) return 0;
-  const unit = Math.max(-1074, magnitude - 52), shift = exponent - unit;
-  const numerator = shift >= 0 ? integer << BigInt(shift) : integer;
-  const divisor = shift >= 0 ? denominator : denominator << BigInt(-shift);
-  let quotient = numerator / divisor;
-  const remainder = numerator % divisor;
-  if (2n * remainder > divisor || (2n * remainder === divisor && (quotient & 1n))) ++quotient;
-  return Number(quotient) * 2 ** unit;
-}
-function objectiveResult(sum) {
-  const sign = sum.integer < 0n ? -1 : sum.integer > 0n ? 1 : 0;
-  const magnitude = sign < 0 ? -sum.integer : sum.integer;
-  const objective = sign * positiveRatio(magnitude, sum.exponent);
-  const bits = magnitude.toString(2).length, shift = Math.max(0, bits - 53);
-  const objectiveLogAbs = sign ? Math.log(Number(magnitude >> BigInt(shift))) + (sum.exponent + shift) * Math.LN2 : -Infinity;
-  const objectiveRepresentation = !Number.isFinite(objective) ? 'overflow' : objective === 0 && sign ? 'underflow' : 'finite';
-  return { objective, objectiveRepresentation, objectiveSign: sign, objectiveLogAbs };
+function objectiveResult(objective) {
+  finiteIntermediate(objective, 'objective');
+  const objectiveSign = objective < 0 ? -1 : objective > 0 ? 1 : 0;
+  return { objective, objectiveRepresentation: 'finite', objectiveSign,
+    objectiveLogAbs: objectiveSign ? Math.log(Math.abs(objective)) : -Infinity };
 }
 
 function typedArray(value, length, name) {
@@ -71,6 +50,8 @@ function typedArray(value, length, name) {
   assertFinite(value, name);
 }
 function parameters(input, options) {
+  if (options.backend !== undefined && options.backend !== 'javascript-float64')
+    throw new RangeError('entropy-fcm backend must be javascript-float64; exact/reference backends are not supported');
   if (options.initMembership != null && options.initCenters != null)
     throw new RangeError('choose either initMembership or initCenters, not both');
   const x = normalizeInput(input), n = x.nSamples, d = x.nFeatures;
@@ -85,8 +66,8 @@ function parameters(input, options) {
   const tolerance = finiteNumber(options.tolerance ?? 1e-5, 'tolerance', 0);
   const maxMemoryBytes = finiteNumber(options.maxMemoryBytes ?? 512 * 1024 ** 2, 'maxMemoryBytes', 1);
   // Includes input copy/conversion allowance, two U arrays, centers/labels,
-  // history, and conservative per-cluster dyadic workspace. Not a JS heap cap.
-  const estimatedBytes = 16 * n * d + 16 * n * k + 16 * k * d + 4 * n + 2048 * k +
+  // history, and conservative per-cluster float64 workspace. Not a JS heap cap.
+  const estimatedBytes = 16 * n * d + 16 * n * k + 16 * k * d + 4 * n + 16 * k + 16 * d +
     (options.returnHistory ? 16 * maxIterations : 0) + 8192;
   if (!Number.isSafeInteger(estimatedBytes) || estimatedBytes > maxMemoryBytes)
     throw new RangeError(`estimated primary arrays/workspace ${estimatedBytes} bytes exceed maxMemoryBytes=${maxMemoryBytes}`);
@@ -104,33 +85,37 @@ function normalizeMembership(u, n, k) {
     for (let c = 0; c < k; ++c) u[offset + c] /= sum;
   }
 }
-function membershipRow(data, centers, row, d, k, temperature, u, costs) {
-  let minimum = 0;
+function membershipRow(data, centers, row, d, k, tau, u, costs) {
+  let minimum = Infinity;
   for (let c = 0; c < k; ++c) {
     costs[c] = squaredCost(data, row * d, centers, c * d, d);
-    if (c && subtract(costs[c], costs[minimum]).integer < 0n) minimum = c;
+    minimum = Math.min(minimum, costs[c]);
   }
-  let units = 0, tail = 0, correction = 0;
+  let total = 0;
   for (let c = 0; c < k; ++c) {
-    const difference = subtract(costs[c], costs[minimum]);
-    const ratio = positiveRatio(difference.integer, difference.exponent - temperature.exponent, temperature.integer);
-    const value = Math.exp(-ratio); u[row * k + c] = value;
-    if (value === 1) ++units;
-    else { const next = tail + value; correction += Math.abs(tail) >= Math.abs(value) ? (tail - next) + value : (value - next) + tail; tail = next; }
+    // Costs are finite and nonnegative. Subtract before division so a tiny
+    // temperature does not cause Infinity - Infinity. A positive ratio may
+    // overflow and exp(-ratio) may underflow; both correctly give zero weight.
+    const ratio = (costs[c] - minimum) / tau;
+    const value = Math.exp(-ratio);
+    u[row * k + c] = value;
+    total += value;
   }
-  const total = units + (tail + correction);
+  // At least one minimum has exp(0) = 1, so the finite sum is always positive.
   for (let c = 0; c < k; ++c) u[row * k + c] /= total;
 }
-function objectiveRow(u, row, k, temperature, sum, costs) {
+function objectiveRow(u, row, k, tau, sum, costs) {
   for (let c = 0; c < k; ++c) {
     const member = u[row * k + c];
-    if (member === 0) continue; // 0 log 0 = 0, including huge squared costs.
-    const weight = binary(member);
+    if (member === 0) continue; // 0 log 0 = 0.
     // costs belongs to the immediately preceding membershipRow call. There is
     // no yield or callback between producing and consuming this one-row cache.
-    add(sum, multiply(weight, costs[c]));
-    add(sum, multiply(temperature, multiply(weight, binary(Math.log(member)))));
+    const distortion = finiteIntermediate(member * costs[c], 'objective distance product');
+    const entropy = finiteIntermediate(tau * member * Math.log(member), 'objective entropy product');
+    const term = finiteIntermediate(distortion + entropy, 'objective term');
+    sum = finiteIntermediate(sum + term, 'objective sum');
   }
+  return sum;
 }
 
 export function entropyFcm(input, options = {}) {
@@ -141,14 +126,19 @@ export function entropyFcm(input, options = {}) {
 /** Cooperative row blocks; no stateful/session integration in this release. */
 export function* entropyFcmSteps(input, options = {}) {
   const { x, n, d, k, tau, maxIterations, blockRows, tolerance } = parameters(input, options);
-  const data = new Float64Array(x.data), centers = new Float64Array(k * d), temperature = binary(tau);
+  const data = new Float64Array(x.data), centers = new Float64Array(k * d);
   let u = new Float64Array(n * k), nextU = new Float64Array(n * k);
-  const costs = new Array(k), history = [];
-  // somStableMean only supplies a scalar robust convex mean. The objective
-  // and every clustering update here are independent of SOM/SOM-OLP.
+  const costs = new Float64Array(k), minima = new Float64Array(d), maxima = new Float64Array(d), history = [];
+  // Empty columns retain the previous center, initially the float64 data mean.
   for (let f = 0; f < d; ++f) {
     checkCancelled(options);
-    const mean = somStableMean(data, f, d, n);
+    let lower = data[f], upper = data[f];
+    for (let i = 1; i < n; ++i) {
+      lower = Math.min(lower, data[i * d + f]);
+      upper = Math.max(upper, data[i * d + f]);
+    }
+    minima[f] = lower; maxima[f] = upper;
+    const mean = weightedMean(data, f, d, n, n, 1, lower, upper);
     for (let c = 0; c < k; ++c) centers[c * d + f] = mean;
   }
   if (options.initMembership != null) { u.set(options.initMembership); normalizeMembership(u, n, k); }
@@ -157,7 +147,7 @@ export function* entropyFcmSteps(input, options = {}) {
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
       const end = Math.min(n, start + blockRows);
-      for (let i = start; i < end; ++i) membershipRow(data, initialCenters, i, d, k, temperature, u, costs);
+      for (let i = start; i < end; ++i) membershipRow(data, initialCenters, i, d, k, tau, u, costs);
       yield { phase: 'initialize', completedRows: end, totalRows: n };
     }
   } else {
@@ -169,20 +159,26 @@ export function* entropyFcmSteps(input, options = {}) {
   for (iterations = 1; iterations <= maxIterations; ++iterations) {
     for (let c = 0; c < k; ++c) {
       checkCancelled(options);
-      let positive = false;
-      for (let i = 0; i < n && !positive; ++i) positive = u[i * k + c] > 0;
-      if (positive) for (let f = 0; f < d; ++f) centers[c * d + f] = somStableMean(data, f, d, n, u, c, k);
+      let maximum = 0;
+      for (let i = 0; i < n; ++i) maximum = Math.max(maximum, u[i * k + c]);
+      if (maximum > 0) {
+        let mass = 0;
+        for (let i = 0; i < n; ++i) mass += u[i * k + c] / maximum;
+        finiteIntermediate(mass, 'center weight sum');
+        for (let f = 0; f < d; ++f)
+          centers[c * d + f] = weightedMean(data, f, d, n, mass, maximum, minima[f], maxima[f], u, c, k);
+      }
       yield { phase: 'centers', iteration: iterations, completedRows: c + 1, totalRows: k };
     }
     delta = 0;
-    const objectiveSum = zero();
+    let objectiveSum = 0;
     for (let start = 0; start < n; start += blockRows) {
       checkCancelled(options);
       const end = Math.min(n, start + blockRows);
       for (let i = start; i < end; ++i) {
-        membershipRow(data, centers, i, d, k, temperature, nextU, costs);
+        membershipRow(data, centers, i, d, k, tau, nextU, costs);
         for (let c = 0; c < k; ++c) delta = Math.hypot(delta, nextU[i * k + c] - u[i * k + c]);
-        objectiveRow(nextU, i, k, temperature, objectiveSum, costs);
+        objectiveSum = objectiveRow(nextU, i, k, tau, objectiveSum, costs);
       }
       yield { phase: 'membership', iteration: iterations, completedRows: end, totalRows: n };
     }
@@ -199,6 +195,6 @@ export function* entropyFcmSteps(input, options = {}) {
   return { algorithm: 'entropy-fcm', centers, membership: u, membershipLayout: 'samples-clusters',
     labels: labelsFromMembership(u, n, k), ...obj, fpc: fpc / n, tau, delta,
     iterations: Math.min(iterations, maxIterations), converged, nSamples: n, nFeatures: d, nClusters: k,
-    backend: 'javascript-float64', numericalMode: 'exact-binary-reference', stoppingRule: 'membership-frobenius',
+    backend: 'javascript-float64', numericalMode: 'float64', stoppingRule: 'membership-frobenius',
     ...(options.returnHistory ? { objectiveHistory: Float64Array.from(history) } : {}) };
 }

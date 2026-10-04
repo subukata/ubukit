@@ -63,7 +63,7 @@
     },
     {
       "path": "javascript/ENTROPY_FCM.md",
-      "sha256": "c7cf6173cf8226721592b85c1eee97a85ed93c6b3b4296a078d73afb144cd04f"
+      "sha256": "8ee9ef5c7304ced12dc7b19a373491ba04416255029956ac56a940042ea10944"
     },
     {
       "path": "javascript/EXTERNAL_METRICS.md",
@@ -111,7 +111,7 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "e0f72258baf9da63d856c4a78a2b1cebb04621c03caca3cb9b43e0ea6a26b9d0"
+      "sha256": "e67d196f9ddfd0f050052e874a2024eaeaa63435a6d36edc745050c956a4b890"
     },
     {
       "path": "javascript/audit/audit-numerics.mjs",
@@ -207,7 +207,7 @@
     },
     {
       "path": "javascript/src/entropy-fcm.js",
-      "sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a"
+      "sha256": "e54c7a87128592f2aa05f203c769ac5e1cf67c1bb86972ed5978ec05c2abf050"
     },
     {
       "path": "javascript/src/external-metrics.js",
@@ -327,7 +327,7 @@
     },
     {
       "path": "javascript/tests/entropy-fcm.test.mjs",
-      "sha256": "b892bbf895c0be4183ab0898c916d3b8a4701f4788e375aac921d976a5459093"
+      "sha256": "c2581d05e972ac3e6fef1f47dd9ed6fde3fe5eefc5f9e199ca057e137fc9304b"
     },
     {
       "path": "javascript/tests/external-metrics.test.mjs",
@@ -1371,7 +1371,7 @@
     },
     {
       "path": "python/README.md",
-      "sha256": "e96ee3d0d13183893750958e34ffcb0c221ed92606f79993bc63f66826b9cd19"
+      "sha256": "150be8b08de7def2b4f5446bb95a578cbdcc88f3b7da37507079813b035dadb9"
     },
     {
       "path": "python/SOM.md",
@@ -1379,7 +1379,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "ad6999c3ef4349ea4d6f18bd983fa2d240659b0b2c21787d67432c414572d30f"
+      "sha256": "6b9c934e38509fc909008cff2e113c59f219c7490fd261a92301d134c01f68e6"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -1431,7 +1431,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/entropy_fcm.py",
-      "sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163"
+      "sha256": "d9de9cffa692c9476f0d01fa827ccb5c91590ad30b1a27caf3c0e5f07cc78fbe"
     },
     {
       "path": "python/src/ubukit/_impl/external_metrics.py",
@@ -1683,7 +1683,7 @@
     },
     {
       "path": "python/tests/test_entropy_fcm.py",
-      "sha256": "095218382f26ff4a32ac117a9895b1db4bf80118843e2e1894f6f48d620a88a7"
+      "sha256": "62ea6b54618329a338b9cce17f97eb9bc86d5185d3fdcab347de096a69d1aa8e"
     },
     {
       "path": "python/tests/test_external_metrics_presorted.py",
@@ -2335,7 +2335,7 @@
     },
     {
       "path": "tools/cleanup/README.md",
-      "sha256": "b6cefe716d8614c26d2a4c483a983d67ad059d2625efd32166f8506db3bcff18"
+      "sha256": "69949313d2be0a43b5f9461ba8bcd18abbd9605ab460c5c977a91004544ca3de"
     },
     {
       "path": "tools/cleanup/contract.json",
@@ -2351,15 +2351,15 @@
     },
     {
       "path": "tools/cleanup/run.py",
-      "sha256": "5e9222e643ce92c5dacbf78895eb0a7f2a46cfbffc5e60fcda440451fb64a39c"
+      "sha256": "170de348ecbc7ffddf69c2b75d92c5072a3a1439e5f61420c682d1f9c89b11cd"
     },
     {
       "path": "tools/cleanup/tests/test_combined_integration.py",
-      "sha256": "1915df73cfcadf3e71aab0edc807ba9af35ce5c2048f31a079916da065ab90f8"
+      "sha256": "72757b75ad4bbe005f35e982cf9a62539c1df190d124e3c75955e11068f5843b"
     },
     {
       "path": "tools/cleanup/tests/test_redundancy.py",
-      "sha256": "295b5add1495dad5798a7fb64ba0f832086a87de49e9113eacd1cde4962f17c9"
+      "sha256": "9b9f21110608bd7a848bf2d28ee14b6abc23dd71e8c121367cd9f309288fef8d"
     },
     {
       "path": "tools/cleanup/tests/test_tpe_invariant_cleanup.py",
@@ -2379,7 +2379,7 @@
     },
     {
       "path": "tools/provenance/SOURCE_SNAPSHOT.json",
-      "sha256": "5822fa343d1bbe2bfc4caf3b9d6b4516ed4750a62ca5db3e344b08c0044651a3"
+      "sha256": "b2d05336c936a26c69139c0f19e6bd10ad0d184a98d13bc8286569b5629a9d62"
     },
     {
       "path": "tools/provenance/refresh.py",

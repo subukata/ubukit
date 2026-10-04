@@ -183,12 +183,13 @@ positive after float64 conversion; larger values produce softer memberships.
 it is normalized on an owned copy and can supply `K` when `n_clusters` is omitted.
 Otherwise `random_state` initializes memberships with NumPy's generator.
 `max_iter=300`, `tol=1e-5`, `backend="numpy"`, and `return_history=False` are defaults.
-`backend="reference"` selects the range-preserving scalar reference.
-Both backends use float64; the guarded NumPy path uses the reference arithmetic
-for exceptional scales and cancellation. They need not be bit-identical.
-Distance gaps are retained before division by `tau`; a large common distance
-must not erase a smaller difference that changes membership. The NumPy route
-falls back when its distance-rounding bound is significant relative to `tau`.
+Only `backend="numpy"` is supported. The previous `backend="reference"` now
+raises `ValueError`. EFCM uses ordinary float64 arithmetic throughout, with no
+arbitrary-integer, higher-precision, or exact-reference fallback. Distances are
+rounded before minimum subtraction: a small gap on top of a large common cost
+can be lost, producing a tie. Weighted-mean and objective cancellation can lose
+small residuals, and subnormal terms can underflow. Rescale data and temperature
+when appropriate; scaling cannot restore information already rounded away.
 
 The result contains owned `centers (K,D)`, `membership (N,K)`, `labels (N,)`,
 `objective`, `fpc`, `n_iter`, `converged`, `delta`, `tau`, `backend`, and
@@ -198,9 +199,12 @@ from the returned centers. The objective evaluates that returned pair.
 Empty clusters retain their previous center, initially the data mean.
 Convergence means the absolute Frobenius membership change is below `tol`;
 `tol=0` runs exactly `max_iter`, and membership convergence alone does not certify
-stationary centers. A signed objective outside float64 range is reported as
-infinity or zero with `objective_status`, `objective_sign`, and
-`log_abs_objective` diagnostics. The membership update is a softmax of
+stationary centers. Nonfinite center, distance, or objective intermediates raise
+`ValueError` instead of returning an invented or extended-range result. Successful
+results report `arithmetic="float64"`, `used_reference_fallback=False`, and
+`objective_status="finite"`; sign and log diagnostics describe only the rounded
+float64 objective. They do not distinguish exact zero from underflow or
+cancellation to zero. The membership update is a softmax of
 negative squared distance divided by `tau`, with the minimum distance subtracted
 before division. If coordinates scale by `s`, scale `tau` by `s**2` to preserve
 the mathematical memberships. Positive `tau` does not force hard assignments at

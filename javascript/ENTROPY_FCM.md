@@ -28,7 +28,7 @@ u_{ic}=\frac{\exp(-(d_{ic}-a_i)/\tau)}
 \]
 
 Subtracting the minimum **before** dividing by `tau` is essential for very small
-temperatures and extreme coordinates. Coinciding with a center does not force a
+temperatures, provided squared distances remain representable. Coinciding with a center does not force a
 hard assignment. Larger `tau` generally produces softer memberships; `tau` is
 in squared-coordinate units. No standardization is performed automatically.
 
@@ -74,7 +74,7 @@ comparisons must supply explicit memberships. JavaScript also supports
 
 Each iteration first updates centers from the old memberships, then updates
 memberships from those centers. An empty column retains its previous center;
-the initial fallback for every column is the robust data mean. `initCenters`
+the initial fallback for every column is the float64 data mean. `initCenters`
 only seeds memberships and does not change this empty-column fallback.
 Memberships that round to zero have zero weight on later iterations; no hidden
 positive weights or probability floors are introduced.
@@ -93,28 +93,31 @@ The result contains owned flat Float64Arrays `centers` (`K*D`) and `membership`
 `backend: 'javascript-float64'`. Optional history evaluates the center/membership
 pair returned at each completed iteration; its last value equals `objective`.
 
-Finite coordinate differences, squared costs and signed objective products use
-exact binary integer accumulation with extended exponent range. Softmax uses
-ordinary binary64 `Math.exp`; entropy uses `Math.log` of the actual returned
-membership. The scalar `somStableMean` helper supplies robust convex means;
-no SOM model update is reused. This does not make the whole solver an
-arbitrary-precision optimizer.
+All center updates, squared distances, softmax and objective accumulation use
+ordinary float64 (`Number`) arithmetic. There is no BigInt, exact-reference,
+higher-precision, or SOM mean fallback. `numericalMode: 'float64'` records this
+contract. Supplying a backend other than `'javascript-float64'` is rejected.
 
-Unrepresentable objectives are reported without NaN or clipping:
+Minimum subtraction stabilizes softmax normalization, but it cannot restore a
+distance gap already lost when squared costs were rounded. For example, costs
+`1e16` and `1e16 + 1` both round to `1e16`, yielding equal memberships. Weighted
+means and objectives can lose cancellation residuals. Subnormal terms and tiny
+memberships may underflow to zero; no hidden probability floor is introduced.
 
-- `objectiveRepresentation`: `'finite'`, `'overflow'`, or `'underflow'`
-- `objectiveSign`: `-1`, `0`, or `1`, including the sign of an underflowed value
-- `objectiveLogAbs`: log of the absolute extended-range objective, or `-Infinity`
-  for exact zero
-- `objective`: a finite Number, signed infinity on overflow, or signed zero on
-  underflow
+Nonfinite center, squared-distance, or objective intermediates raise `RangeError`.
+This includes cases where extended-range arithmetic formerly returned a result.
+Positive softmax ratios may overflow to infinity, yielding valid zero weights.
+No overflowed cost is silently treated as a valid distance or clipped result.
+Rescale coordinates and temperature together where appropriate.
 
-`numericalMode: 'exact-binary-reference'` describes the scalar arithmetic even
-when the one-row cost cache is used. The cache only reuses the squared costs
-just computed for that same membership row, before any yield or callback. It
-does not change summation order or introduce a distance matrix. Memory is
-`O(ND + NK + KD + K)` plus optional iteration history; each iteration is
-`O(NKD)`, with additional integer-arithmetic cost for wide exponent ranges.
+On success, `objectiveRepresentation` is `'finite'`; `objectiveSign` is `-1`, `0`,
+or `1`, and `objectiveLogAbs` is the log of the rounded absolute objective or
+`-Infinity` for rounded zero. These diagnostics no longer distinguish exact zero
+from underflow or cancellation to zero. The former extended-range status and
+exact-gap guarantees have been removed.
+
+Memory is `O(ND + NK + KD + K)` plus optional iteration history; each iteration
+is `O(NKD)` with ordinary float64 arithmetic.
 
 ## Execution scope
 
@@ -126,6 +129,7 @@ mean or row is synchronous, so cancellation latency can grow with its size.
 
 Stateful `createSession` and the realtime Worker are **not supported** for
 `entropy-fcm` in this first release. No browser, GPU, or cross-platform speed
-claim is made by the Node correctness tests. The shared 80-digit Decimal
-fixtures use explicit memberships and cover linear weights, coincident
-centers, asymmetric multidimensional data, and an initially empty cluster.
+claim is made by the Node correctness tests. Tests use analytic known outputs and float64 tolerances. Retained historical
+fixture constants are read without executing or regenerating a higher-precision
+oracle. They cover linear weights, coincident centers, asymmetric
+multidimensional data, and an initially empty cluster.

@@ -1,3 +1,5 @@
+> Historical qualification only. Its EFCM exact-baseline runner and tests are disabled under the float64-only policy. Use `python/tests/test_entropy_fcm.py` and `javascript/tests/entropy-fcm.test.mjs` for the current EFCM contract; previous exact-identity evidence does not qualify this numerical change.
+
 # Focused cleanup regression
 
 Run the reviewed EFCM/TPE/JS cleanup checks against a freshly installed candidate

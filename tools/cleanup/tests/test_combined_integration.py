@@ -1,4 +1,6 @@
 """Public TPE driving public EFCM in one installed artifact, against alpha3."""
+import unittest
+raise unittest.SkipTest("Historical exact-EFCM cleanup qualification is superseded by the float64-only policy; use the focused EFCM tests instead.")
 from pathlib import Path
 import importlib.util, json, struct, sys, unittest
 import numpy as np
