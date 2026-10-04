@@ -37,8 +37,12 @@ multiply `tau` by `s²` to preserve the mathematical memberships. Standardizing
 features changes the distance metric and should be a deliberate modeling choice.
 For fixed centers, smaller temperatures approach nearest-center assignments
 with equal sharing of exact ties; larger temperatures approach uniform membership.
-Finite float64 results can underflow tiny memberships to zero. Extreme input
-ranges use range-preserving arithmetic and explicit objective diagnostics.
+EFCM uses ordinary float64 arithmetic only. Tiny terms can underflow to zero,
+cancellation can erase residuals, and large common squared costs can erase
+small distance gaps before minimum subtraction. No exact or higher-precision
+fallback repairs these losses. Nonfinite center, squared-distance, or objective
+intermediates raise an error; rescale coordinates and `tau` where appropriate.
+Python accepts only `backend="numpy"`; its former `reference` mode is removed.
 
 Each iteration updates centers from old memberships, then memberships from those
 centers. The reported objective evaluates the returned pair and can be negative.
@@ -48,8 +52,7 @@ use their existing, different random generators. Use explicit initial membership
 for cross-language comparisons.
 
 EFCM and SOM-OLP share entropy regularization and a softmax assignment step, but
-their losses, variables, and center/map updates differ. UbuKit shares numerical
-arithmetic where appropriate; it does not substitute SOM-OLP training for EFCM.
+their losses, variables, and center/map updates differ. EFCM does not use SOM-OLP numerical fallback arithmetic or training.
 
 Background: Miyamoto, Umayahara and Mukaidono (1998),
 [Fuzzy Classification Functions in the Methods of Fuzzy c-Means and Regularization by Entropy](https://doi.org/10.3156/jfuzzy.10.3_548).

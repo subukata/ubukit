@@ -1,4 +1,6 @@
 """Bitwise comparisons against immutable installed-alpha3 source; no benchmarks."""
+import unittest
+raise unittest.SkipTest("Historical exact-EFCM cleanup qualification is superseded by the float64-only policy; use the focused EFCM tests instead.")
 import ast
 import importlib.util
 import importlib

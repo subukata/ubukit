@@ -1,6 +1,6 @@
 {
   "schema_version": 5,
-  "purpose": "Isolated, unpublished unused-work cleanup candidate based on the exact alpha.3 consumer baseline; original baseline and prior frozen archives remain unchanged",
+  "purpose": "Local EFCM float64-only policy candidate; deliberate numerical contract change; not published or release-qualified",
   "version": "0.1.0-alpha.3",
   "runtime_files": {
     "src/clustering.js": {
@@ -17,9 +17,11 @@
       "pre_efficiency_dev5_sha256": "e456e49740a1ccfe446c4cf7247509bbfae16b3b1a4171458c337c0999eaaea4"
     },
     "src/entropy-fcm.js": {
-      "sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a",
+      "sha256": "e54c7a87128592f2aa05f203c769ac5e1cf67c1bb86972ed5978ec05c2abf050",
       "baseline_sha256": null,
-      "change": "new_entropy_regularized_fcm"
+      "change": "efcm_float64_only_remove_exact_arithmetic",
+      "pre_float64_policy_sha256": "4c2c7bf560333598c8529d4229d3999b890bfd52cbcf4e0b92bd151ddcee165a",
+      "numerical_ast_equal": false
     },
     "src/external-metrics.js": {
       "baseline_sha256": null,
@@ -228,5 +230,11 @@
       "src/som-olp.js"
     ],
     "no_numerical_algorithm_change": true
+  },
+  "efcm_float64_policy": {
+    "higher_precision_fallback": false,
+    "nonfinite_intermediates": "raise error",
+    "reference_mode": "removed",
+    "previous_exact_qualification_applies": false
   }
 }
