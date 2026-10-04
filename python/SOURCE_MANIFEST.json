@@ -1,7 +1,7 @@
 {
   "version": "0.1.0a3",
   "baseline_version": "0.0.0.dev5",
-  "purpose": "New security-boundary alpha.3 package source; prior alpha.2 source and frozen archives remain unchanged",
+  "purpose": "Isolated local alpha3 cleanup candidate; unchanged public version; not published or release-qualified",
   "files": [
     {
       "path": "src/ubukit/__init__.py",
@@ -40,9 +40,11 @@
     },
     {
       "path": "src/ubukit/_impl/entropy_fcm.py",
-      "sha256": "9cf392946a7d33406703851ae92dcbe22fb73ddd147347132bfb173559b0d56b",
+      "sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163",
       "change": "new_entropy_regularized_fcm",
-      "numerical_ast_equal": false
+      "numerical_ast_equal": false,
+      "pre_cleanup_sha256": "9cf392946a7d33406703851ae92dcbe22fb73ddd147347132bfb173559b0d56b",
+      "cleanup_change": "reviewed local invariant/redundant work removal; public API retained"
     },
     {
       "path": "src/ubukit/_impl/external_metrics.py",
@@ -527,11 +529,13 @@
     {
       "path": "src/ubukit/optimization.py",
       "baseline_path": "src/ubukit/optimization.py",
-      "sha256": "225e395f8c677679c417489898e70d2631c348f626548c6dba92419010690df9",
+      "sha256": "ee1c231d07116a7c405a5fdcecadd44fcd19fbb501936ce46c342f5882b4f3b4",
       "baseline_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429",
       "change": "imported_observation_capture_once",
       "numerical_ast_equal": false,
-      "pre_import_capture_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429"
+      "pre_import_capture_sha256": "d39fb3a36f7ddcb14f24ecd990ea1040463b1a524de1158ae690530af7a99429",
+      "pre_cleanup_sha256": "225e395f8c677679c417489898e70d2631c348f626548c6dba92419010690df9",
+      "cleanup_change": "reviewed local invariant/redundant work removal; public API retained"
     }
   ],
   "safety_candidate": {
@@ -546,5 +550,13 @@
     "change": "The NumPy EMI dispatcher reuses the existing producer pair order; unsorted direct internal calls still sort by default",
     "numerical_contract": "Same recurrence, normalizers, fallbacks and Numba path; no cross-call cache or public API change",
     "performance": "Existing small fixture-specific gains on a noisy host; not a general speedup guarantee"
+  },
+  "cleanup_candidate": {
+    "runtime_changed_files": [
+      "src/ubukit/_impl/entropy_fcm.py",
+      "src/ubukit/optimization.py"
+    ],
+    "pr33_incorporated": false,
+    "performance_benchmark_run": false
   }
 }

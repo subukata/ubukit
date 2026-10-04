@@ -21,9 +21,11 @@ function pump() {
   try {
     session.step(current.iterationsPerSlice, { timeBudgetMs: current.timeBudgetMs, maxChunks: current.maxChunks });
     if (session.status.done) { postSnapshot('result', current); job = null; return; }
-    const now = performance.now();
-    if (session.status.iteration > current.lastIteration && now - current.lastProgress >= current.progressIntervalMs) {
-      postSnapshot('progress', current); current.lastProgress = now; current.lastIteration = session.status.iteration;
+    if (current.reportProgress) {
+      const now = performance.now();
+      if (session.status.iteration > current.lastIteration && now - current.lastProgress >= current.progressIntervalMs) {
+        postSnapshot('progress', current); current.lastProgress = now; current.lastIteration = session.status.iteration;
+      }
     }
     timer = setTimeout(pump, 0);
   } catch (error) {
@@ -49,7 +51,8 @@ listen(message => {
     if (typeof warmStart !== 'boolean') throw new TypeError('warmStart must be boolean');
     if (session && algorithm === message.algorithm) session.configure(input, options, { warmStart });
     else { const next = createSession(message.algorithm, input, options); session?.dispose(); session = next; algorithm = message.algorithm; }
-    job = { id, timeBudgetMs, maxChunks, iterationsPerSlice, progressIntervalMs, lastProgress: -Infinity, lastIteration: 0 };
+    // Older direct worker clients omit the flag and retain progress by default.
+    job = { id, reportProgress: message.reportProgress !== false, timeBudgetMs, maxChunks, iterationsPerSlice, progressIntervalMs, lastProgress: -Infinity, lastIteration: 0 };
     if (timer != null) clearTimeout(timer); timer = setTimeout(pump, 0);
   } catch (error) { send({ id, type: 'error', error: { name: error.name, message: error.message } }); }
 });

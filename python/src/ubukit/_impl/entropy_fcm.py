@@ -33,22 +33,44 @@ def _reference_centers(x, u, old):
     return centers
 
 
-def _reference_membership(x, centers, tau):
+def _memberships_from_exact_costs(costs, temperature):
     # Keep every binary cost bit until AFTER minimum subtraction. Rounding
     # costs such as 1e16 and 1e16+1 first would erase a meaningful tau=1 gap.
+    minimum = costs[0]
+    for cost in costs[1:]:
+        if _subtract(cost, minimum)[0] < 0:
+            minimum = cost
+    weights = [math.exp(-_ratio(_subtract(cost, minimum), temperature)) for cost in costs]
+    total = math.fsum(weights)
+    return [weight / total for weight in weights]
+
+
+def _reference_membership(x, centers, tau):
     out = np.empty((len(x), len(centers)))
     temperature = _dyadic(tau)
     for i, row in enumerate(x):
         costs = [_exact_cost(row, center) for center in centers]
-        minimum = costs[0]
-        for cost in costs[1:]:
-            if _subtract(cost, minimum)[0] < 0:
-                minimum = cost
-        weights = [math.exp(-_ratio(_subtract(cost, minimum), temperature)) for cost in costs]
-        total = math.fsum(weights)
-        for c, weight in enumerate(weights):
-            out[i, c] = weight / total
+        out[i] = _memberships_from_exact_costs(costs, temperature)
     return out
+
+
+def _reference_memberships_objective(x, centers, tau):
+    # Reuse one row's exact costs, not an N-by-K cache of arbitrary-size ints.
+    # Yield objective terms in precisely the same order as _objective_pair.
+    out = np.empty((len(x), len(centers)))
+    temperature = _dyadic(tau)
+    def terms():
+        for i, row in enumerate(x):
+            costs = [_exact_cost(row, center) for center in centers]
+            out[i] = _memberships_from_exact_costs(costs, temperature)
+            for cost, member in zip(costs, out[i]):
+                if member > 0:
+                    weight = _dyadic(member)
+                    yield _multiply(weight, cost)
+                    entropy = _multiply(weight, _dyadic(math.log(member)))
+                    yield _multiply(temperature, entropy)
+    pair = _sum_exact(terms())
+    return out, pair
 
 
 def _dyadic(value):
@@ -117,7 +139,7 @@ def _ordinary_range(x, tau):
             and not np.any((absolute > 0) & (absolute < 1e-140)))
 
 
-def _numpy_centers(x, u, old):
+def _numpy_centers(x, u, old, feature_bounds=None):
     # Column scaling preserves the mean even when an entire cluster is tiny.
     maxima = u.max(axis=0)
     active = maxima > 0
@@ -135,7 +157,9 @@ def _numpy_centers(x, u, old):
             if absolute_sum[row, f] > 0:
                 centers[c, f] = _wide._weighted_mean(x[:, f], u[:, c])
                 fallback = True
-    np.clip(centers, x.min(axis=0), x.max(axis=0), out=centers)
+    if feature_bounds is None:
+        feature_bounds = (x.min(axis=0), x.max(axis=0))
+    np.clip(centers, feature_bounds[0], feature_bounds[1], out=centers)
     return centers, fallback
 
 
@@ -155,8 +179,7 @@ def _numpy_memberships_objective(x, centers, tau):
         # to temperature. Absolute distances alone cannot justify softmax.
         sensitive_gap = np.any(8*d*np.spacing(costs.max(axis=1)) > tau*1e-12)
         if sensitive_gap or np.any((absolute > 0) & (absolute < 1e-140)):
-            membership = _reference_membership(block, centers, tau)
-            pair = _objective_pair(block, centers, membership, tau)
+            membership, pair = _reference_memberships_objective(block, centers, tau)
             fallback = True
         else:
             with np.errstate(over='ignore', under='ignore', divide='ignore', invalid='raise'):
@@ -213,17 +236,18 @@ def fit_entropy_fcm(X, n_clusters=None, *, init=None, tau=1.0,
     centers = np.tile([_wide._weighted_mean(x[:, f]) for f in range(x.shape[1])], (u.shape[1], 1))
     history = []
     ordinary = backend == "numpy" and _ordinary_range(x, tau)
+    # x is owned and unchanged; retain only O(D) feature bounds.
+    feature_bounds = (x.min(axis=0), x.max(axis=0)) if ordinary else None
     fallback = not ordinary
     converged = False
     for iteration in range(1, int(max_iter) + 1):
         if ordinary:
-            centers, center_fallback = _numpy_centers(x, u, centers)
+            centers, center_fallback = _numpy_centers(x, u, centers, feature_bounds)
             next_u, pair, used_fallback = _numpy_memberships_objective(x, centers, tau)
             fallback |= used_fallback or center_fallback
         else:
             centers = _reference_centers(x, u, centers)
-            next_u = _reference_membership(x, centers, tau)
-            pair = _objective_pair(x, centers, next_u, tau)
+            next_u, pair = _reference_memberships_objective(x, centers, tau)
         delta = 0.0
         for old, new in zip(u.flat, next_u.flat):
             delta = math.hypot(delta, float(new) - float(old))

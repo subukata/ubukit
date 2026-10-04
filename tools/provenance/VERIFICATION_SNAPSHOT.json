@@ -111,7 +111,7 @@
     },
     {
       "path": "javascript/SOURCE_MANIFEST.json",
-      "sha256": "8aae7859ea27a3ba6141d635f75dc03cd36ffe2de7a3af3794afa1812728e1ef"
+      "sha256": "e0f72258baf9da63d856c4a78a2b1cebb04621c03caca3cb9b43e0ea6a26b9d0"
     },
     {
       "path": "javascript/audit/audit-numerics.mjs",
@@ -199,7 +199,7 @@
     },
     {
       "path": "javascript/src/clustering.js",
-      "sha256": "b2c75c49e7567a25ccb51ae41adaaed770fc059c0536c19533cfd262ac9a2532"
+      "sha256": "e9719082e36afb00ff847df345910ebd0119a89913a8b7dc8ccd69b3b54484cd"
     },
     {
       "path": "javascript/src/core.js",
@@ -215,7 +215,7 @@
     },
     {
       "path": "javascript/src/fcm-stable.js",
-      "sha256": "1680ac7961c75b8c968fb46bc1800f68d4305bdb8567ae3738ad99f674dad674"
+      "sha256": "e472fe1c08d7620ac33e54c20b56c9c9f83c8b2032417f460bcde08a01a8bea2"
     },
     {
       "path": "javascript/src/index.js",
@@ -247,11 +247,11 @@
     },
     {
       "path": "javascript/src/realtime-worker-client.js",
-      "sha256": "33085de840a7d401cc8ccd364f9b66e30dd7b0e3e78237966b30ec470b9a3018"
+      "sha256": "030fdb40f9fc5267c72ba127f6c6903fceff0068a66fc10eedf093d05e67b6a6"
     },
     {
       "path": "javascript/src/realtime-worker.js",
-      "sha256": "c1c0427eaf24156fe0eb191e1558e813adf92dfb894a0b7fc3a9b887e42c5850"
+      "sha256": "240b7a9e448a561154a66aad07178fbbe81c85360a6213c327d5d548f89b23a6"
     },
     {
       "path": "javascript/src/rmcm-grid.js",
@@ -287,7 +287,7 @@
     },
     {
       "path": "javascript/src/som-olp.js",
-      "sha256": "d8c8a6c40e743d0d8932047f7ebf62b555f2f7130ba3c820a5d8edf236569ea2"
+      "sha256": "5c41303d959de3b2139e282ad00148c65c717d8dc096ce5525ce891d5437f756"
     },
     {
       "path": "javascript/src/som-pca-wasm.js",
@@ -1379,7 +1379,7 @@
     },
     {
       "path": "python/SOURCE_MANIFEST.json",
-      "sha256": "22c0b895711d52d23f62e98289bb8b55b59c696bc8c34d73e68e08d881377499"
+      "sha256": "ad6999c3ef4349ea4d6f18bd983fa2d240659b0b2c21787d67432c414572d30f"
     },
     {
       "path": "python/THIRD_PARTY_LICENSES.txt",
@@ -1431,7 +1431,7 @@
     },
     {
       "path": "python/src/ubukit/_impl/entropy_fcm.py",
-      "sha256": "9cf392946a7d33406703851ae92dcbe22fb73ddd147347132bfb173559b0d56b"
+      "sha256": "3833cba45e2234369c9df4246ec972496686b6a82fbfb1da5f08e87698875163"
     },
     {
       "path": "python/src/ubukit/_impl/external_metrics.py",
@@ -1667,7 +1667,7 @@
     },
     {
       "path": "python/src/ubukit/optimization.py",
-      "sha256": "225e395f8c677679c417489898e70d2631c348f626548c6dba92419010690df9"
+      "sha256": "ee1c231d07116a7c405a5fdcecadd44fcd19fbb501936ce46c342f5882b4f3b4"
     },
     {
       "path": "python/tests/conftest.py",
@@ -2334,12 +2334,52 @@
       "sha256": "5903e70c1be31bc7990f082e8030b80ddd6c506fa207a87da156321b7365f62d"
     },
     {
+      "path": "tools/cleanup/README.md",
+      "sha256": "b6cefe716d8614c26d2a4c483a983d67ad059d2625efd32166f8506db3bcff18"
+    },
+    {
+      "path": "tools/cleanup/contract.json",
+      "sha256": "35c81e5bc36d0c61cdca259a6ba121f456d136ec2126fa70aabcd96edc08912a"
+    },
+    {
+      "path": "tools/cleanup/controls/run_bounded.py",
+      "sha256": "f26f0d1d3ca712d30397079d061962581063da53dc476e6b7990a17d3f6b86b5"
+    },
+    {
+      "path": "tools/cleanup/controls/run_python_suite.py",
+      "sha256": "099108ce08822bb94e3b1a1dd34f127b4f07248534cd65bb30db29d9d942cf23"
+    },
+    {
+      "path": "tools/cleanup/run.py",
+      "sha256": "5e9222e643ce92c5dacbf78895eb0a7f2a46cfbffc5e60fcda440451fb64a39c"
+    },
+    {
+      "path": "tools/cleanup/tests/test_combined_integration.py",
+      "sha256": "1915df73cfcadf3e71aab0edc807ba9af35ce5c2048f31a079916da065ab90f8"
+    },
+    {
+      "path": "tools/cleanup/tests/test_redundancy.py",
+      "sha256": "295b5add1495dad5798a7fb64ba0f832086a87de49e9113eacd1cde4962f17c9"
+    },
+    {
+      "path": "tools/cleanup/tests/test_tpe_invariant_cleanup.py",
+      "sha256": "18a29a326190069079cb076d9828fefe429eeb13af99050978bdb098a487fdd8"
+    },
+    {
+      "path": "tools/cleanup/tests/unused-work-regression.test.mjs",
+      "sha256": "a3ba072b5339b3dc503fc615b2354391ceff7e8f778a684314d3593a934c2965"
+    },
+    {
+      "path": "tools/cleanup/tests/verify-public-api.mjs",
+      "sha256": "abb18cf9a7b2bdb81c3ac893ac243bd490e946935e67a3e966cb469d04b251f4"
+    },
+    {
       "path": "tools/provenance/PRODUCT_CONTRACT.json",
       "sha256": "b09daa9022dfd1f635685bee9b7efa987be0feafe35dded3ca1ec495ad90eb8c"
     },
     {
       "path": "tools/provenance/SOURCE_SNAPSHOT.json",
-      "sha256": "f9d59ec51c81cbe46ad4361ed088e8e122cb04c9e80818b154c79147572d34a6"
+      "sha256": "5822fa343d1bbe2bfc4caf3b9d6b4516ed4750a62ca5db3e344b08c0044651a3"
     },
     {
       "path": "tools/provenance/refresh.py",

@@ -62,7 +62,7 @@ export function createRealtimeWorkerClient({ workerFactory, workerUrl = new URL(
         if (typeof current.addEventListener !== 'function') removers.push(subscribe(current, 'exit', code => { if (worker === current) destroy(new Error(`Realtime Worker exited (${code})`)); }));
       }
       const request = active;
-      worker.postMessage({ type: 'run', id: request.id, algorithm: request.algorithm, input: request.input, options: request.options, controls: request.controls });
+      worker.postMessage({ type: 'run', id: request.id, algorithm: request.algorithm, input: request.input, options: request.options, controls: request.controls, reportProgress: request.onProgress != null });
       // postMessage cloned the payload; do not keep an extra active input copy.
       request.input = null; request.options = null;
     } catch (error) { destroy(error); }
