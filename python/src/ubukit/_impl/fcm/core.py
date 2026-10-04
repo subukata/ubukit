@@ -272,7 +272,8 @@ def _distance(x, centers, backend, xnorm=None, out=None):
         return out
     if backend == "numpy":
         difference = x[:, None, :] - centers[None, :, :]
-        return np.sum(difference * difference, axis=2)
+        np.multiply(difference, difference, out=difference)
+        return np.sum(difference, axis=2)
     if backend == "scipy":
         from scipy.spatial.distance import cdist
         return cdist(x, centers, metric="sqeuclidean", out=out)
