@@ -171,7 +171,13 @@ export function* fcmSteps(input, options = {}) {
     const cfg = parameters(input, options, true);
     const retry = { ...options,
       onProgress: event => { if (event.iteration > completed) progress(options, event); },
-      [SESSION_CHECKPOINT]: (state, origin) => { if (state.iterations > completed) checkpoint(options, state, origin); }
+      // Read the live hook after each yield, including late additions/removals.
+      get [SESSION_CHECKPOINT]() {
+        const hook = options[SESSION_CHECKPOINT];
+        return hook == null ? undefined : (state, origin) => {
+          if (state.iterations > completed) Reflect.apply(hook, options, [state, origin]);
+        };
+      }
     };
     const iterator = stableFCMSteps(cfg.x, retry, cfg);
     for (;;) {
@@ -264,7 +270,9 @@ function* fcmFastSteps(input, options = {}) {
     }
     [u, unew] = [unew, u]; objective = accum.objective + logObjectiveValue(objectiveState); delta = membershipDelta(accum); converged = delta < tolerance;
     if (options.returnHistory) history.push(objective);
-    checkpoint(options, { algorithm: 'fcm', centers, membership: u, membershipLayout: 'samples-clusters', iterations, converged, nSamples: n, nFeatures: d, nClusters: k, m, objective, delta, ...(options.returnHistory ? { objectiveHistory: Float64Array.from(history) } : {}) }, shifted.origin);
+    // The history belongs to the final result; only copy it mid-fit for a live hook.
+    const checkpointHook = options[SESSION_CHECKPOINT];
+    if (checkpointHook != null) Reflect.apply(checkpointHook, options, [{ algorithm: 'fcm', centers, membership: u, membershipLayout: 'samples-clusters', iterations, converged, nSamples: n, nFeatures: d, nClusters: k, m, objective, delta, ...(options.returnHistory ? { objectiveHistory: Float64Array.from(history) } : {}) }, shifted.origin]);
     const event = { algorithm: 'fcm', iteration: iterations, maxIterations, objective, delta, converged };
     progress(options, event); yield event;
     if (converged) break;

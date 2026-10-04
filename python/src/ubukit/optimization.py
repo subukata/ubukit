@@ -325,6 +325,7 @@ class _KDE:
         self.log_weights = [math.log(w) if w > 0 else _NEG_INF for w in self.weights]
         self.centers = [[d.encode(row[d.name]) for row in rows] for d in domains]
         self.sigmas, self.norms, self.cdf_lows = [], [], []
+        self.log_normalizers = []
         self.cat_alpha = 1.0/(self.n+1.0)
         floor = max(min_bandwidth, 1.0/(self.n+1.0)**2)
         for d, centers in zip(domains, self.centers):
@@ -332,6 +333,7 @@ class _KDE:
                 self.sigmas.append(None)
                 self.norms.append(None)
                 self.cdf_lows.append(None)
+                self.log_normalizers.append(None)
                 continue
             # Include uniform prior's midpoint as a bandwidth neighbor only.
             ordered = sorted([(x, i) for i, x in enumerate(centers)] + [(0.5, self.n)])
@@ -347,6 +349,10 @@ class _KDE:
             self.sigmas.append(sigmas)
             self.cdf_lows.append(lows)
             self.norms.append(norms)
+            # Cache the continuous scoring expression without reassociation.
+            self.log_normalizers.append(
+                None if d.kind == "int" else
+                [math.log(sigma*_SQRT2PI*norm) for sigma, norm in zip(sigmas, norms)])
 
     def _component(self, rng):
         u = rng.random()
@@ -405,8 +411,8 @@ class _KDE:
                 logs.append(math.log(mass/norm) if mass > 0 else _NEG_INF)
             return logs + [d.prior_log(value)]
         x = d.encode(value)
-        return [-0.5*((x-mu)/sigma)**2-math.log(sigma*_SQRT2PI*norm)
-                for mu, sigma, norm in zip(self.centers[j], self.sigmas[j], self.norms[j])] + [0.0]
+        return [-0.5*((x-mu)/sigma)**2-log_norm
+                for mu, sigma, log_norm in zip(self.centers[j], self.sigmas[j], self.log_normalizers[j])] + [0.0]
 
     def logpdf(self, params):
         if self.multivariate:
@@ -542,8 +548,9 @@ class TPEOptimizer:
         model_ready = len(self._completed) >= self.n_startup_trials
         if model_ready and self.sampler == "tpe":
             # With no signal, do not impose arbitrary tied ranks on KDEs.
-            first = self._completed[0].value
-            if any(t.value != first for t in self._completed[1:]):
+            completed = iter(self._completed)
+            first = next(completed).value
+            if any(t.value != first for t in completed):
                 good, bad = self._fit()
                 best, best_score = None, _NEG_INF
                 for _ in range(self.n_candidates):

@@ -2,7 +2,7 @@ import { somNeedsStableRange, somNeedsStableGamma, somStableCost, somRepairProto
 import { somTrainingWorkspace, normalizeInitialCosts, normalizeMembershipCosts } from './som-training-wasm.js';
 import { pcaRotationWorkspace } from './som-pca-wasm.js';
 import { somPrototypeBlock, somMembershipBlock, somPrototype2dBlock, somMembership2dBlock, somPrototypeGroupedBlock, somMembershipGroupedBlock } from './iteration-kernels.js';
-import { checkpoint } from './session-hooks.js';
+import { SESSION_CHECKPOINT } from './session-hooks.js';
 /** SOM-OLP, ported from Seiki Ubukata's MIT-licensed implementation.
  * Upstream commit 4361175b776987d65c348d0132b31d43505e1069.
  * Preserves old-P -> V/W -> new-P -> objective -> stopping order.
@@ -305,7 +305,9 @@ export function* somOlpSteps(input, options = {}) {
         : Math.abs(objective / denominator - previous / denominator);
       converged = relative <= tolerance;
     }
-    checkpoint(options, { algorithm: 'som-olp', prototypes: w, centers: w, W: w, memberships: p, membership: p, P: p, embedding: v, V: v, history: Float64Array.from(history), objective, iterations: iteration + 1, nIter: iteration + 1, converged, nSamples: n, nFeatures: d, nUnits: m, nClusters: m, nComponents: q, initialization });
+    // Keep history for convergence/final output, but do not snapshot it unused.
+    const checkpointHook = options[SESSION_CHECKPOINT];
+    if (checkpointHook != null) Reflect.apply(checkpointHook, options, [{ algorithm: 'som-olp', prototypes: w, centers: w, W: w, memberships: p, membership: p, P: p, embedding: v, V: v, history: Float64Array.from(history), objective, iterations: iteration + 1, nIter: iteration + 1, converged, nSamples: n, nFeatures: d, nUnits: m, nClusters: m, nComponents: q, initialization }, null]);
     yield* emit(options, { algorithm: 'som-olp', phase: 'iteration', iteration: iteration + 1, objective, maxIterations });
     if (converged) break;
   }

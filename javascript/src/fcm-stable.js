@@ -1,7 +1,7 @@
 import { trackWeakMembershipDelta, membershipDelta } from './iteration-kernels.js';
 /** Guarded finite-m FCM arithmetic. This is not the m=infinity approximation. */
 import { assertFinite, checkCancelled, finiteNumber, labelsFromMembership, progress, seededRandom, restoreCenters } from './core.js';
-import { checkpoint, SESSION_WARM_CENTERS, SESSION_FCM_STATE } from './session-hooks.js';
+import { SESSION_CHECKPOINT, SESSION_WARM_CENTERS, SESSION_FCM_STATE } from './session-hooks.js';
 const MIN_NORMAL = 2.2250738585072014e-308;
 
 export function needsStableFCM(x, options, m) {
@@ -283,9 +283,15 @@ export function* stableFCMSteps(x, options, cfg) {
     membershipResolutionLostRows=0;
     for(let i=0;i<n;++i){let same=true,different=false;for(let c=1;c<k;++c){same&&=u[i*k+c]===u[i*k];different||=state.scores[i*k+c]!==state.scores[i*k];}if(same&&different)++membershipResolutionLostRows;}
     obj=trueMembershipObjective(data,centers,u,n,d,k,m,blockRows,options);if(options.returnHistory)history.push(obj.objective);
-    const result={algorithm:'fcm',centers,membership:u,membershipLayout:'samples-clusters',iterations,converged,nSamples:n,nFeatures:d,nClusters:k,m,...obj,delta,centerRelativeDelta,membershipConvergenceOnly:converged&&centerRelativeDelta>tolerance,numericalMode:'log-domain',membershipResolutionLostRows,...(options.returnHistory?{objectiveHistory:Float64Array.from(history)}:{})};
-    result[SESSION_FCM_STATE]=state;checkpoint(options,result,shifted.origin);
-    const event={algorithm:'fcm',iteration:iterations,maxIterations,...obj,delta,centerRelativeDelta,converged,membershipConvergenceOnly:result.membershipConvergenceOnly};progress(options,event);yield event;
+    let membershipConvergenceOnly=converged&&centerRelativeDelta>tolerance;
+    const checkpointHook=options[SESSION_CHECKPOINT];
+    if(checkpointHook!=null){
+      const result={algorithm:'fcm',centers,membership:u,membershipLayout:'samples-clusters',iterations,converged,nSamples:n,nFeatures:d,nClusters:k,m,...obj,delta,centerRelativeDelta,membershipConvergenceOnly:converged&&centerRelativeDelta>tolerance,numericalMode:'log-domain',membershipResolutionLostRows,...(options.returnHistory?{objectiveHistory:Float64Array.from(history)}:{})};
+      result[SESSION_FCM_STATE]=state;Reflect.apply(checkpointHook,options,[result,shifted.origin]);
+      // A hook may change this event diagnostic; preserve that existing behavior.
+      membershipConvergenceOnly=result.membershipConvergenceOnly;
+    }
+    const event={algorithm:'fcm',iteration:iterations,maxIterations,...obj,delta,centerRelativeDelta,converged,membershipConvergenceOnly};progress(options,event);yield event;
     if(converged)break;
   }
   iterations=Math.min(iterations,maxIterations);restoreCenters(centers,shifted.origin);
