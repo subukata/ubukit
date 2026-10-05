@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, argminRows, center, checkInt, checkNumber, iterate, labelSums, lloyd, matrix,
+  argmaxRows, argminRows, center, checkInt, checkNumber, iterate, labelSums, lloyd, mapMatrix, matrix,
   random, shift, softmaxRows, sqdist, weightedMean,
 } from './core.js';
 
@@ -121,14 +121,21 @@ export function* somOlp(X, grid = [10, 10], options) {
   const assign = (D, P) => {
     cost = D;
     if (P) {
-      const extra = sqdist(multiply(P, s.R), s.R);
-      cost = { ...D, data: D.data.map((v, i) => v + gamma * extra.data[i]) };
+      const extra = sqdist(multiply(P, s.R), s.R).data;
+      cost = mapMatrix(D, (v, i) => v + gamma * extra[i]);
     }
-    return softmaxRows({ ...cost, data: cost.data.map(v => -v / lam) });
+    return softmaxRows(mapMatrix(cost, v => -v / lam));
   };
   const step = lloyd(s.X, {
     assign, update: (P, W) => weightedMean(s.X, P, W),
-    objective: (D, P) => P.data.reduce((sum, p, i) => sum + p * cost.data[i] + (p > 0 ? lam * p * Math.log(p) : 0), 0),
+    objective: (D, P) => {
+      let J = 0;
+      for (let i = 0; i < P.data.length; i++) {
+        const p = P.data[i];
+        J = J + p * cost.data[i] + (p > 0 ? lam * p * Math.log(p) : 0);
+      }
+      return J;
+    },
   });
   const out = yield* iterate(s.X, s.W, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
   const P = out.state;
