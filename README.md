@@ -66,5 +66,6 @@ const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
 
 ## Development
 
-See [DESIGN.md](DESIGN.md) for the principles and commands and
-[CHANGELOG.md](CHANGELOG.md) for changes. Licensed under [MIT](LICENSE).
+[DESIGN.md](DESIGN.md) explains what UbuKit is and why,
+[CONTRIBUTING.md](CONTRIBUTING.md) how to change it, and
+[CHANGELOG.md](CHANGELOG.md) what changed. Licensed under [MIT](LICENSE).

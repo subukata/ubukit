@@ -1,0 +1,106 @@
+# Decisions
+
+Why UbuKit is the way it is, newest first. Each entry gives the decision, the
+reason and what was rejected, with the pull requests that carried it. Add an
+entry when a pull request makes or changes a design decision.
+
+## 2026-10-05 Documents by role
+
+`DESIGN.md` says what and why, `CONTRIBUTING.md` how, `AGENTS.md` only what
+is specific to agents, and this file the reasons; `CLAUDE.md` just includes
+`AGENTS.md`. *Why:* the same rules lived in `DESIGN.md` and `AGENTS.md`, and
+three of six pull requests had to edit both; principles named functions and
+current state, so refactors rewrote them; and the reasons existed only in
+pull request descriptions. *Rejected:* a separate file per agent tool, which
+would duplicate the rules again.
+
+## 2026-10-05 JavaScript distances stay direct differences (#45)
+
+Plain loops replaced TypedArray callbacks on the hot paths (FCM 1.4x faster,
+bitwise-identical results). *Rejected after measuring:* the Gram identity
+(4.19 to 4.76 ms, no gain in V8, less accurate) and four-accumulator loops (at
+most 1.14x at D = 64, slower at small D). The remaining gap to Python is
+scalar loops versus BLAS.
+
+## 2026-10-05 Windowed expected mutual information (#44)
+
+AMI sums the hypergeometric expectation only within sqrt(35 min(a, b)) of its
+mean; by Hoeffding's inequality the omitted mass is below 2 exp(-70), so the
+value equals the full sum to rounding (differences at most 1e-18), 10-12x
+faster at N = 1e6. *Rejected:* keeping the full sum for exactness that
+rounding already erases.
+
+## 2026-10-05 One loop, many steps (#43)
+
+The engine owns the control (stopping, limits, history, progress) and methods
+supply a step; the standard step is `lloyd`, and the online SOM's step is an
+epoch. *Why:* exact accelerations such as Hamerly's k-means and optional
+compiled kernels replace the step, not the loop, and the online SOM had a
+loop of its own in each language. *Rejected:* letting accelerated methods own
+their loops (principle 1), and a distance hook only (too narrow for bounds
+and epochs).
+
+## 2026-10-05 Benchmark, fixture format and change rules (#42)
+
+`bench/run.py` defines each case once and times and scores it in both
+languages; fixtures have one case per line; speed-only changes may touch one
+language and must leave the fixtures unchanged, so an unchanged fixture file
+means a pure speedup. *Why:* "justify with a measurement" had no measurement,
+quality regressions had no number, and the one-line fixture file made diffs
+unreadable.
+
+## 2026-10-05 Numba as an optional, explicit kernel (#42)
+
+A Numba kernel may replace a hot step if it is installed as an extra, chosen
+per call (`engine="numba"`), reproduces the reference iterates, passes the
+same tests and shows a large benchmark gain. None exists yet. *Why:*
+sequential, branching steps (online SOM updates, bound checks in accelerated
+k-means) do not vectorize, and the maintainer wants that speed. *Rejected:*
+using Numba automatically when installed (results would depend on the
+environment) and a Numba backend for everything (a second implementation of
+every algorithm).
+
+## 2026-10-05 PCA initialization (#40, #41)
+
+Python eigendecomposes the smaller of XᵀX and XXᵀ; JavaScript uses
+Rayleigh-Ritz on a Krylov basis of at most 64 vectors (exact for D <= 64);
+each axis is oriented by its first clearly nonzero component. *Why:* the D x D
+eigendecomposition took 5.9 s at D = 4000 in Python and 25 s at D = 784 in
+JavaScript (now 14 ms and 0.18 s), and orienting by the largest
+component mirrored the map on standardized 2-D data, whose axes tie in
+magnitude (59 of 200 row reorderings). *Rejected:* subspace iteration
+(fragile near ties) and Householder plus QL in JavaScript (much longer code).
+
+## 2026-10-05 Input scale contract (#40, #41)
+
+Rows must have norms below 1e150 and, unless all rows are equal, some feature
+must span at least 1e-150. *Why:* data at 1e200 gave NaN memberships and
+merged clusters, and data at 1e-170 gave ARI 0 marked "converged" and
+trustworthiness 1.0, all without an error. *Rejected:* rescaling internally,
+a rescue path that principle 3 rules out.
+
+## 2026-10-05 Release path (#38, #39, #40)
+
+Trusted publishing to PyPI and npm from `release.yml`: a credential-free job
+tests and builds both packages, and publishing jobs only upload those files.
+The first npm release uses a short-lived token because npm can only trust an
+existing package. Dependabot does not manage the Python requirements, which
+are deliberate lower bounds. *Why:* no third-party code may run where a
+publishing token can be minted. *Rejected:* long-lived tokens and the
+previous hand-made provenance and archive checks.
+
+## 2026-10-05 Rebuild around one engine (#36)
+
+The library was rewritten as one alternating loop on NumPy/SciPy and plain
+JavaScript. *Why:* the previous code had accumulated alternative paths and
+machinery (subnormal recovery in FCM, warm-memory and metric fast paths,
+session storage, exact-identity release pinning and archive verification;
+#15-#35) that made it slow to change and hard to verify. *Rejected:*
+cleaning it up path by path; the maintainer chose to replace it.
+
+## 2026-10-05 Agreement across languages by equations, not bits (#36)
+
+Python and JavaScript share names, parameters and equations, each uses its
+own random generator, and fixtures check that JavaScript reproduces Python to
+~1e-9 when the initialization is given. *Rejected:* bit-identical results,
+which would need a shared random generator and no BLAS.
