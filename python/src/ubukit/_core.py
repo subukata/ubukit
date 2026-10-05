@@ -1,11 +1,14 @@
-"""Shared numerics: validation, distances, initialization and the alternating engine.
+"""Shared numerics: validation, distances, initialization and the engine.
 
-Every partitional method in UbuKit is one loop,
+Every iterative method in UbuKit runs in one loop, ``iterate``, which repeats
+a step until the prototypes stop moving. Nearly all of them use the standard
+step ``lloyd``,
 
     D = ||x_i - v_c||^2  ->  U = assign(D)  ->  V = update(U),
 
-and differs only in ``assign`` (and, for SOMs, ``update``). Data are centered
-once before fitting, which keeps the Gram-identity distances accurate.
+and differ only in ``assign`` (and, for SOMs, ``update``); a method whose
+iteration has another shape (the online SOM) supplies its own step. Data are
+centered once before fitting, which keeps the Gram-identity distances accurate.
 """
 
 from __future__ import annotations
@@ -13,6 +16,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from numbers import Integral, Real
+from typing import Any
 
 import numpy as np
 from scipy import sparse
@@ -177,40 +181,48 @@ def prepare(X, k, init, seed):
     return Xc, mean, V
 
 
+# A step maps (prototypes, state, t) to (new prototypes, new state, objective
+# value or None); the state starts as None and is whatever the method carries.
+Step = Callable[[np.ndarray, Any, int], tuple[np.ndarray, Any, float | None]]
 Assign = Callable[[np.ndarray, np.ndarray | None, int], np.ndarray]
 Update = Callable[[np.ndarray, np.ndarray, int], np.ndarray]
 Objective = Callable[[np.ndarray, np.ndarray], float]
 
 
-def alternate(
-    X: np.ndarray,
-    V: np.ndarray,
-    assign: Assign,
-    update: Update,
-    *,
-    max_iter: int,
-    tol: float | None,
-    objective: Objective | None = None,
-):
-    """Iterate D -> U -> V until the prototypes stop moving, or max_iter.
+def iterate(X: np.ndarray, V: np.ndarray, step: Step, *, max_iter: int, tol: float | None):
+    """The one loop: repeat ``step`` until the prototypes stop moving, or max_iter.
 
-    ``assign(D, U_prev, t)`` returns integer labels or float memberships,
-    ``update(U, V_prev, t)`` the new prototypes, and the optional
-    ``objective(D, U)`` one history value. The loop stops when no
-    prototype coordinate moves more than ``tol`` times the RMS radius of X;
-    ``tol=0`` therefore means an exact fixed point and ``tol=None`` runs a
-    fixed schedule. Returns (V, U, n_iter, converged, history).
+    The loop stops when no prototype coordinate moves more than ``tol`` times
+    the RMS radius of X; ``tol=0`` therefore means an exact fixed point and
+    ``tol=None`` runs a fixed schedule. Returns (V, state, n_iter, converged,
+    history).
     """
-    xx = sq_norms(X)
-    step = None if tol is None else tol * float(np.sqrt(xx.mean()))
-    U = None
+    limit = None if tol is None else tol * float(np.sqrt(sq_norms(X).mean()))
+    state = None
     history: list[float] = []
     for t in range(max_iter):
+        V_prev = V
+        V, state, value = step(V, state, t)
+        if value is not None:
+            history.append(value)
+        if limit is not None and float(np.max(np.abs(V - V_prev))) <= limit:
+            return V, state, t + 1, True, np.asarray(history, dtype=float)
+    return V, state, max_iter, False, np.asarray(history, dtype=float)
+
+
+def lloyd(
+    X: np.ndarray, assign: Assign, update: Update, objective: Objective | None = None
+) -> Step:
+    """The standard step, D = ||x - v||^2 -> U = assign(D, U_prev, t) -> V = update(U, V, t).
+
+    ``assign`` returns integer labels or float memberships, which are the
+    step's state; the optional ``objective(D, U)`` gives one history value.
+    """
+    xx = sq_norms(X)
+
+    def step(V, U, t):
         D = sqdist(X, V, xx)
         U = assign(D, U, t)
-        if objective is not None:
-            history.append(objective(D, U))
-        V, V_prev = update(U, V, t), V
-        if step is not None and float(np.max(np.abs(V - V_prev))) <= step:
-            return V, U, t + 1, True, np.asarray(history, dtype=float)
-    return V, U, max_iter, False, np.asarray(history, dtype=float)
+        return update(U, V, t), U, None if objective is None else objective(D, U)
+
+    return step

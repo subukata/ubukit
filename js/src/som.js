@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  alternate, argmaxRows, argminRows, center, checkInt, checkNumber, labelSums, matrix,
+  argmaxRows, argminRows, center, checkInt, checkNumber, iterate, labelSums, lloyd, matrix,
   random, shift, softmaxRows, sqdist, weightedMean,
 } from './core.js';
 
@@ -30,17 +30,18 @@ export function* som(X, grid = [10, 10], {
   checkNumber(lr, 'lr', 0, true);
   checkNumber(lrEnd, 'lrEnd', 0, true);
   if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
-  const { rows: n, cols: d, data: x } = s.X, w = s.W.data, R = s.R, k = R.rows, q = R.cols;
+  const { rows: n, cols: d, data: x } = s.X, R = s.R, k = R.rows, q = R.cols;
   const rand = random(seed), order = Int32Array.from({ length: n }, (_, i) => i);
   const steps = epochs * n, diff = new Float64Array(k * d);
-  let t = 0;
-  for (let e = 0; e < epochs; e++) {
+  const epoch = (W, _, e) => {
+    const w = W.data.slice();
     if (shuffle) for (let i = n - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
     }
-    for (const i of order) {
-      const f = steps > 1 ? t / (steps - 1) : 0, sg = s0 * (s1 / s0) ** f, eta = lr * (lrEnd / lr) ** f;
+    for (let r = 0; r < n; r++) {
+      const i = order[r], f = steps > 1 ? (e * n + r) / (steps - 1) : 0;
+      const sg = s0 * (s1 / s0) ** f, eta = lr * (lrEnd / lr) ** f;
       let bmu = 0, best = Infinity;
       for (let j = 0; j < k; j++) {
         let dist = 0;
@@ -53,11 +54,11 @@ export function* som(X, grid = [10, 10], {
         const h = eta * Math.exp(g * (-0.5 / (sg * sg)));
         for (let c = 0; c < d; c++) w[j * d + c] += h * diff[j * d + c];
       }
-      t++;
     }
-    yield { iteration: e + 1 };
-  }
-  return finish(s, epochs);
+    return { V: { data: w, rows: k, cols: d }, state: null, value: null };
+  };
+  const out = yield* iterate(s.X, s.W, epoch, { maxIter: epochs, tol: null });
+  return finish({ ...s, W: out.V }, epochs);
 }
 
 /**
@@ -99,7 +100,7 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     }
     return { data: out, rows: k, cols: d };
   };
-  const out = yield* alternate(s.X, s.W, { assign: argminRows, update, maxIter: epochs, tol: null });
+  const out = yield* iterate(s.X, s.W, lloyd(s.X, { assign: argminRows, update }), { maxIter: epochs, tol: null });
   return finish({ ...s, W: out.V }, epochs);
 }
 
@@ -125,14 +126,15 @@ export function* somOlp(X, grid = [10, 10], options) {
     }
     return softmaxRows({ ...cost, data: cost.data.map(v => -v / lam) });
   };
-  const out = yield* alternate(s.X, s.W, {
+  const step = lloyd(s.X, {
     assign, update: (P, W) => weightedMean(s.X, P, W),
     objective: (D, P) => P.data.reduce((sum, p, i) => sum + p * cost.data[i] + (p > 0 ? lam * p * Math.log(p) : 0), 0),
-    maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0),
   });
+  const out = yield* iterate(s.X, s.W, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
+  const P = out.state;
   return {
-    centers: shift(out.V, s.mean), labels: argmaxRows(out.U), membership: out.U, nIter: out.nIter,
-    converged: out.converged, history: out.history, embedding: multiply(out.U, s.R),
+    centers: shift(out.V, s.mean), labels: argmaxRows(P), membership: P, nIter: out.nIter,
+    converged: out.converged, history: out.history, embedding: multiply(P, s.R),
   };
 }
 

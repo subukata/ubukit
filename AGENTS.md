@@ -2,8 +2,10 @@
 
 Read `DESIGN.md` before changing code. In short:
 
-- Keep the library small. A new clustering method is an `assign` function on
-  the shared engine (`python/src/ubukit/_core.py`, `js/src/core.js`).
+- Keep the library small. Every iterative method runs in the one loop,
+  `iterate` (`python/src/ubukit/_core.py`, `js/src/core.js`); a new clustering
+  method is an `assign` function for the standard step `lloyd`, and only an
+  iteration of another shape gets a step of its own.
 - Never add alternative backends, version- or CPU-specific branches,
   extended-range rescue paths, or new runtime dependencies. Optional Numba
   kernels follow DESIGN.md principle 2.

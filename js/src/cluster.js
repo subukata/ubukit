@@ -1,10 +1,10 @@
 /**
- * Partitional clustering on the shared alternating engine. Each method only
- * defines how memberships follow from squared distances; see docs/algorithms.md.
+ * Partitional clustering on the shared engine. Each method only defines how
+ * memberships follow from squared distances; see docs/algorithms.md.
  * Every function here is a generator: use run()/runAsync() or the wrappers in index.js.
  */
 import {
-  alternate, argmaxRows, argminRows, checkInt, checkNumber, labelMean, mapMatrix,
+  argmaxRows, argminRows, checkInt, checkNumber, iterate, labelMean, lloyd, mapMatrix,
   prepare, shift, softmaxRows, TINY, weightedMean,
 } from './core.js';
 
@@ -14,7 +14,7 @@ import {
 /** @typedef {{ init?: 'k-means++' | MatrixLike, maxIter?: number, seed?: number }} Common */
 
 /** @returns {import('./core.js').Result} */
-function result(V, mean, U, { nIter, converged, history }, hard = false) {
+function result(mean, { V, state: U, nIter, converged, history }, hard = false) {
   return {
     centers: shift(V, mean), labels: hard ? U : argmaxRows(U), membership: hard ? null : U,
     nIter, converged, history, embedding: null,
@@ -28,13 +28,13 @@ function result(V, mean, U, { nIter, converged, history }, hard = false) {
  */
 export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
   const p = prepare(X, k, init, seed);
-  const out = yield* alternate(p.X, p.V, {
+  const step = lloyd(p.X, {
     assign: D => argminRows(D),
     update: (labels, V) => labelMean(p.X, labels, V),
     objective: (D, labels) => labels.reduce((s, c, i) => s + D.data[i * D.cols + c], 0),
-    maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0,
   });
-  return result(out.V, p.mean, out.U, out, true);
+  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
+  return result(p.mean, out, true);
 }
 
 /**
@@ -45,7 +45,7 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) 
 export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
   checkNumber(m, 'm', 1, true);
   const p = prepare(X, k, init, seed);
-  const out = yield* alternate(p.X, p.V, {
+  const step = lloyd(p.X, {
     assign: D => softmaxRows(mapMatrix(D, d => Math.log(Math.max(d, TINY)) / (1 - m))),
     update: (U, V) => {
       // Scaling each column by its maximum leaves the means unchanged and
@@ -55,9 +55,9 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
       return weightedMean(p.X, mapMatrix(U, (u, i) => (u / top[i % k]) ** m), V);
     },
     objective: (D, U) => U.data.reduce((s, u, i) => s + u ** m * D.data[i], 0),
-    maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0),
   });
-  return result(out.V, p.mean, out.U, out);
+  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
+  return result(p.mean, out);
 }
 
 /**
@@ -68,13 +68,13 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
 export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
   checkNumber(tau, 'tau', 0, true);
   const p = prepare(X, k, init, seed);
-  const out = yield* alternate(p.X, p.V, {
+  const step = lloyd(p.X, {
     assign: D => softmaxRows(mapMatrix(D, d => -d / tau)),
     update: (U, V) => weightedMean(p.X, U, V),
     objective: (D, U) => U.data.reduce((s, u, i) => s + u * D.data[i] + (u > 0 ? tau * u * Math.log(u) : 0), 0),
-    maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0),
   });
-  return result(out.V, p.mean, out.U, out);
+  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
+  return result(p.mean, out);
 }
 
 /**
@@ -101,10 +101,9 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
     }
     return U;
   };
-  const out = yield* alternate(prep.X, prep.V, {
-    assign, update: (U, V) => weightedMean(prep.X, U, V), maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0,
-  });
-  return result(out.V, prep.mean, out.U, out);
+  const step = lloyd(prep.X, { assign, update: (U, V) => weightedMean(prep.X, U, V) });
+  const out = yield* iterate(prep.X, prep.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
+  return result(prep.mean, out);
 }
 
 /**
@@ -125,10 +124,9 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
     }
     return R;
   };
-  const out = yield* alternate(p.X, p.V, {
-    assign, update: (U, V) => weightedMean(p.X, U, V), maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0,
-  });
-  return result(out.V, p.mean, out.U, out);
+  const step = lloyd(p.X, { assign, update: (U, V) => weightedMean(p.X, U, V) });
+  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
+  return result(p.mean, out);
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */

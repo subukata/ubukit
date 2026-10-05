@@ -5,9 +5,14 @@ one need a reason written in the pull request.
 
 ## Principles
 
-1. **One engine.** Every partitional method is the loop in `_core.alternate`
-   (`core.js` in JavaScript): distances, then `assign`, then a weighted mean.
-   A new method should be an `assign` function, not a new loop.
+1. **One engine.** Every iterative method runs in `_core.iterate` (`core.js`
+   in JavaScript), which owns the control: the stopping rule, the iteration
+   limit, the objective history and, in JavaScript, progress and
+   cancellation. Methods supply the step. Nearly all use the standard step
+   `lloyd`: distances, then `assign`, then a weighted mean. A new method
+   should be an `assign` function; a step of its own is for iterations of
+   another shape (the online SOM's epoch, an exact accelerated k-means), and
+   no method gets a loop of its own.
 2. **One definition per algorithm, at most one accelerated kernel.**
    Vectorized NumPy/SciPy is the reference in Python, plain loops in
    JavaScript. An optional Numba kernel (installed with `ubukit[numba]`,
