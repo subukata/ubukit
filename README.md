@@ -4,6 +4,8 @@
 
 # UbuKit
 
+[![CI](https://github.com/subukata/ubukit/actions/workflows/ci.yml/badge.svg)](https://github.com/subukata/ubukit/actions/workflows/ci.yml)
+
 Fuzzy, rough and classical clustering, self-organizing maps, evaluation metrics
 and TPE search, for Python and JavaScript.
 
