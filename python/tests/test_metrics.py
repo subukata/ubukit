@@ -6,7 +6,11 @@ from sklearn.manifold import trustworthiness as sk_trustworthiness
 import ubukit as ub
 
 
-@pytest.mark.parametrize(("n", "ka", "kb"), [(10, 2, 3), (200, 5, 7), (1000, 40, 3), (300, 300, 4)])
+@pytest.mark.parametrize(
+    ("n", "ka", "kb"),
+    # The last case has clusters large enough that the expected-MI sums are windowed.
+    [(10, 2, 3), (200, 5, 7), (1000, 40, 3), (300, 300, 4), (20000, 3, 4)],
+)
 def test_ari_ami_match_sklearn(n, ka, kb):
     rng = np.random.default_rng(n + ka)
     a, b = rng.integers(0, ka, n), rng.integers(0, kb, n)

@@ -95,6 +95,9 @@ with $\sigma_t$ decaying geometrically from `sigma` (half the grid extent) to
 - `ari`: adjusted Rand index (Hubert & Arabie, 1985), from exact integer pair counts.
 - `ami`: adjusted mutual information (Vinh, Epps & Bailey, 2010) with the exact
   hypergeometric expectation; `average` selects the entropy normalization.
+  Each expectation sum runs over $n_{ij}$ within $\sqrt{35\min(a_i, b_j)}$ of
+  its mean $a_i b_j / N$; by Hoeffding's inequality the omitted probability
+  mass is below $2e^{-70}$, so the value equals the full sum to rounding.
 - `trustworthiness(X, Y, k)` (Venna & Kaski, 2001):
   $1 - \frac{2}{Nk(2N-3k-1)} \sum_i \sum_{j \in U_k(i)} (r_{ij} - k)$, where
   $U_k(i)$ are the $k$ nearest neighbors of $i$ in $Y$ that are not among its

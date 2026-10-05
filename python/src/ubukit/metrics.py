@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 from scipy.spatial.distance import cdist
 from scipy.special import gammaln
@@ -113,14 +115,22 @@ def _entropy(counts: np.ndarray, n: int) -> float:
 
 
 def _expected_mutual_information(n: int, a: np.ndarray, b: np.ndarray) -> float:
-    """E[MI] under the hypergeometric model, grouped by distinct marginal sizes."""
+    """E[MI] under the hypergeometric model, grouped by distinct marginal sizes.
+
+    Each sum runs over n_ij within sqrt(35 min(x, y)) of its mean x y / n;
+    by Hoeffding's inequality the hypergeometric mass outside is below
+    2 exp(-70), so the result equals the full sum to rounding.
+    """
     av, ac = np.unique(a, return_counts=True)
     bv, bc = np.unique(b, return_counts=True)
     lg_n = gammaln(n + 1)
     emi = 0.0
     for x, cx in zip(av.tolist(), ac.tolist(), strict=True):
         for y, cy in zip(bv.tolist(), bc.tolist(), strict=True):
-            nij = np.arange(max(1, x + y - n), min(x, y) + 1, dtype=np.float64)
+            mean, width = x * y / n, math.sqrt(35 * min(x, y))
+            low = max(1, x + y - n, math.ceil(mean - width))
+            high = min(x, y, math.floor(mean + width))
+            nij = np.arange(low, high + 1, dtype=np.float64)
             if not len(nij):
                 continue
             log_p = (

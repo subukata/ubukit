@@ -37,6 +37,9 @@ def _datasets() -> dict:
         "standard": (correlated - correlated.mean(axis=0)) / correlated.std(axis=0),
         "labels_a": labels.integers(0, 4, 50),
         "labels_b": labels.integers(0, 3, 50),
+        # Clusters large enough that the expected-MI sums are windowed.
+        "labels_c": labels.integers(0, 2, 400),
+        "labels_d": labels.integers(0, 3, 400),
     }
 
 
@@ -63,6 +66,7 @@ METRICS = [
         ("ami", ["labels_a", "labels_b"], {"average": a})
         for a in ("arithmetic", "geometric", "min", "max")
     ],
+    ("ami", ["labels_c", "labels_d"], {}),
     ("trustworthiness", ["high", "low", 5], {}),
     ("continuity", ["high", "low", 5], {}),
 ]
