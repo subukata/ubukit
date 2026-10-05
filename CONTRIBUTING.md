@@ -14,8 +14,9 @@ cd ../js && npm ci --ignore-scripts && npm test && npm run check
 cd .. && python bench/run.py --size smoke --check
 ```
 
-CI runs the same checks on Linux, Windows and macOS. ruff is pinned to one
-minor series; bump it in a pull request of its own.
+Run them before every pull request: CI does not run on pushes or pull
+requests (see "CI and releases"). ruff is pinned to one minor series; bump it
+in a pull request of its own.
 
 ## Kinds of change
 
@@ -70,6 +71,11 @@ closes the pull requests that target it.
 
 ## CI and releases
 
+- CI (`.github/workflows/ci.yml`) runs only when the maintainer starts it
+  (Actions > CI > Run workflow), on one operating system per run, typically
+  once per system before a release. Actions minutes are limited while the
+  repository is private (macOS counts 10x and Windows 2x), and the local
+  checks cover each change.
 - A new action is pinned to a full commit SHA with the version in a comment,
   gets only the permissions it needs, and checks out with
   `persist-credentials: false`.
