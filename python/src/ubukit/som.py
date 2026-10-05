@@ -6,12 +6,17 @@ Units sit on a rectangular grid; unit j = row * cols + col has coordinates
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.linalg import eigh
 from scipy.special import xlogy
 
 from ._core import (
     TINY,
+    Grid,
+    MapInit,
     Result,
     Steps,
     as_matrix,
@@ -30,17 +35,17 @@ from ._core import (
 
 @stepwise
 def som(
-    X,
-    grid=(10, 10),
+    X: ArrayLike,
+    grid: Grid = (10, 10),
     *,
-    epochs=10,
-    sigma=None,
-    sigma_end=0.5,
-    lr=0.5,
-    lr_end=0.01,
-    init="pca",
-    shuffle=True,
-    seed=None,
+    epochs: int = 10,
+    sigma: float | None = None,
+    sigma_end: float = 0.5,
+    lr: float = 0.5,
+    lr_end: float = 0.01,
+    init: MapInit = "pca",
+    shuffle: bool = True,
+    seed: int | None = None,
 ) -> Steps:
     """Online (sequential) SOM.
 
@@ -78,7 +83,15 @@ def som(
 
 
 @stepwise
-def batch_som(X, grid=(10, 10), *, epochs=50, sigma=None, sigma_end=0.5, init="pca") -> Steps:
+def batch_som(
+    X: ArrayLike,
+    grid: tuple[int, int] = (10, 10),
+    *,
+    epochs: int = 50,
+    sigma: float | None = None,
+    sigma_end: float = 0.5,
+    init: MapInit = "pca",
+) -> Steps:
     """Batch SOM: w_j = sum_i h(bmu_i, j) x_i / sum_i h(bmu_i, j).
 
     ``grid`` is (rows, cols). The Gaussian neighborhood is separable on the
@@ -110,7 +123,15 @@ def batch_som(X, grid=(10, 10), *, epochs=50, sigma=None, sigma_end=0.5, init="p
 
 @stepwise
 def som_olp(
-    X, grid=(10, 10), *, lam, gamma, init="pca", pca_scale=2.0, max_iter=100, tol=1e-6
+    X: ArrayLike,
+    grid: Grid = (10, 10),
+    *,
+    lam: float,
+    gamma: float,
+    init: MapInit = "pca",
+    pca_scale: float = 2.0,
+    max_iter: int = 100,
+    tol: float = 1e-6,
 ) -> Steps:
     """SOM with optimized latent positions (SOM-OLP, Ubukata).
 
@@ -145,17 +166,17 @@ def som_olp(
         P = loop.state
         return Result(loop.V + mean, P.argmax(axis=1), P, *loop[2:], P @ R)
 
-    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": check_float(tol, "tol", 0.0)}
-    return (yield from iterate(X, W, step, **limits, view=view))
+    max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
+    return (yield from iterate(X, W, step, max_iter=max_iter, tol=tol, view=view))
 
 
-def _shape(grid) -> tuple[int, int]:
+def _shape(grid: Any) -> tuple[int, int]:
     if np.ndim(grid) != 1 or len(grid) != 2:
         raise ValueError("grid must be (rows, cols)")
     return check_int(grid[0], "rows", 1), check_int(grid[1], "cols", 1)
 
 
-def _grid(grid) -> np.ndarray:
+def _grid(grid: Grid) -> np.ndarray:
     """Unit coordinates: (rows, cols) -> rectangular grid, or an explicit (K, Q) array."""
     if np.ndim(grid) == 2:
         return as_matrix(grid, "grid")
@@ -164,7 +185,9 @@ def _grid(grid) -> np.ndarray:
     return np.column_stack((r, c)).astype(np.float64)
 
 
-def _setup(X, grid, init, pca_scale=2.0):
+def _setup(
+    X: ArrayLike, grid: Grid, init: MapInit, pca_scale: float = 2.0
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     X = as_matrix(X)
     mean = X.mean(axis=0)
     X = X - mean

@@ -10,9 +10,10 @@ Numeric dimensions live on [0, 1]; categorical ones use smoothed one-hot kernels
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from numbers import Real
+from typing import Any
 
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
@@ -31,18 +32,13 @@ class _Numeric:
         lo, hi = (self.low - 0.5, self.high + 0.5) if self.integer else (self.low, self.high)
         return (math.log(lo), math.log(hi)) if self.log else (lo, hi)
 
-    def encode(self, x) -> float:
-        if (
-            isinstance(x, bool)
-            or not isinstance(x, Real)
-            or not self.low <= x <= self.high
-            or (self.integer and x != round(x))
-        ):
+    def encode(self, x: Any) -> float:
+        v = float(x) if isinstance(x, Real) and not isinstance(x, bool) else math.nan
+        if not self.low <= v <= self.high or (self.integer and v != round(v)):
             kind = "an integer" if self.integer else "a number"
             raise ValueError(f"{x!r} is not {kind} in [{self.low}, {self.high}]")
         lo, hi = self._bounds()
-        v = math.log(x) if self.log else float(x)
-        return (v - lo) / (hi - lo)
+        return ((math.log(v) if self.log else v) - lo) / (hi - lo)
 
     def decode(self, u: float):
         lo, hi = self._bounds()
@@ -66,23 +62,23 @@ class _Choice:
         return self.options[int(u)]
 
 
-def uniform(low, high) -> _Numeric:
+def uniform(low: float, high: float) -> _Numeric:
     """Real values in [low, high]."""
     return _numeric(low, high, log=False, integer=False)
 
 
-def loguniform(low, high) -> _Numeric:
+def loguniform(low: float, high: float) -> _Numeric:
     """Positive real values in [low, high], searched on a log scale."""
     return _numeric(low, high, log=True, integer=False)
 
 
-def integer(low, high, *, log=False) -> _Numeric:
+def integer(low: int, high: int, *, log: bool = False) -> _Numeric:
     """Integers in [low, high], optionally searched on a log scale."""
     low = check_int(low, "low", -MAX_INT, MAX_INT)
     return _numeric(low, check_int(high, "high", low, MAX_INT), log, True)
 
 
-def choice(*options) -> _Choice:
+def choice(*options: Any) -> _Choice:
     """One of the given options (compared with ``==``)."""
     if not options:
         raise ValueError("choice needs at least one option")
@@ -97,13 +93,17 @@ def _numeric(low, high, log, integer) -> _Numeric:
     return _Numeric(low, high, log, integer)
 
 
+# A search space: names mapped to uniform, loguniform, integer or choice.
+type Space = dict[str, _Numeric | _Choice]
+
+
 @dataclass(frozen=True, slots=True, eq=False)
 class TPEResult:
     """Best trial and the full history, in evaluation order."""
 
-    best_params: dict
+    best_params: dict[str, Any]
     best_value: float
-    params: list[dict]
+    params: list[dict[str, Any]]
     values: np.ndarray
 
 
@@ -118,7 +118,15 @@ class TPE:
         gamma: fraction of trials treated as good.
     """
 
-    def __init__(self, space, *, seed=None, n_startup=10, n_candidates=24, gamma=0.15):
+    def __init__(
+        self,
+        space: Space,
+        *,
+        seed: int | None = None,
+        n_startup: int = 10,
+        n_candidates: int = 24,
+        gamma: float = 0.15,
+    ) -> None:
         if not isinstance(space, dict) or not space:
             raise ValueError("space must be a non-empty dict")
         for name, dim in space.items():
@@ -137,18 +145,20 @@ class TPE:
         self._params: list[dict] = []
         self._values: list[float] = []
 
-    def ask(self) -> dict:
+    def ask(self) -> dict[str, Any]:
         """Propose parameters to evaluate next."""
         if len(self._values) < self.n_startup:
             u = [
-                self._rng.integers(len(d.options)) if isinstance(d, _Choice) else self._rng.random()
+                float(self._rng.integers(len(d.options)))
+                if isinstance(d, _Choice)
+                else self._rng.random()
                 for d in self._dims
             ]
         else:
-            u = self._propose()
+            u = self._propose().tolist()
         return {name: dim.decode(x) for (name, dim), x in zip(self._space.items(), u, strict=True)}
 
-    def tell(self, params: dict, value: float) -> None:
+    def tell(self, params: Mapping[str, Any], value: float) -> None:
         """Record the objective value of ``params`` (lower is better)."""
         if set(params) != set(self._space):
             raise ValueError("params must have exactly the keys of the space")
@@ -182,7 +192,14 @@ class TPE:
         return candidates[np.argmax(good.logpdf(candidates) - bad.logpdf(candidates))]
 
 
-def minimize(f: Callable[[dict], float], space, n_trials=100, *, seed=None, **options) -> TPEResult:
+def minimize(
+    f: Callable[[dict[str, Any]], float],
+    space: Space,
+    n_trials: int = 100,
+    *,
+    seed: int | None = None,
+    **options: Any,
+) -> TPEResult:
     """Minimize ``f(params)`` over ``space`` with TPE; negate ``f`` to maximize."""
     tpe = TPE(space, seed=seed, **options)
     for _ in range(check_int(n_trials, "n_trials", 1)):
