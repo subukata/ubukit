@@ -21,12 +21,17 @@ from ._core import (
     lloyd,
     prepare,
     softmax_rows,
+    sq_norms,
+    sqdist,
     weighted_mean,
 )
 
 
 def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Result:
     """Lloyd's k-means; distance ties go to the lowest center index.
+
+    Iterates with Hamerly's (2010) bounds, which skip only distance
+    computations that cannot change a label, so the iterates are Lloyd's.
 
     Args:
         X: (N, D) data.
@@ -36,16 +41,51 @@ def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Result:
         seed: seed for k-means++.
     """
     X, mean, V = prepare(X, k, init, seed)
-    step = lloyd(
-        X,
-        assign=lambda D, _, t: D.argmin(axis=1),
-        update=lambda labels, V, t: label_mean(X, labels, V),
-        objective=lambda D, labels: float(D[np.arange(len(D)), labels].sum()),
-    )
-    V, labels, n_iter, converged, history = iterate(
-        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
+    V, (labels, _), n_iter, converged, history = iterate(
+        X, V, _hamerly(X), max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
     )
     return Result(V + mean, labels, None, n_iter, converged, history)
+
+
+def _hamerly(X: np.ndarray):
+    """Lloyd's step with Hamerly's bounds; the state is (labels, lower bounds).
+
+    A point keeps its label without computing its other distances when its
+    exact distance to its center is below both half the distance from that
+    center to the nearest other one (which proves the center nearest, for any
+    labeling) and a lower bound on its distance to every other center: the
+    second-nearest distance when last computed, minus how far the other
+    centers have moved since. Points within 1e-9 of a bound are recomputed,
+    so rounding never decides a label.
+    """
+    xx = sq_norms(X)
+
+    def step(V, state, t):
+        n, k = len(X), len(V)
+        labels, lower = state if state else (np.zeros(n, dtype=np.intp), np.zeros(n))
+        vv = sq_norms(V)
+        # Exact squared distances to the assigned centers: the objective, and
+        # the quantity the bounds are compared with.
+        own = xx + vv[labels] - 2.0 * np.einsum("ij,ij->i", X, V[labels])
+        np.maximum(own, 0.0, out=own)
+        C = sqdist(V, V, vv, vv)
+        np.fill_diagonal(C, np.inf)
+        bound = np.maximum(0.5 * np.sqrt(C.min(axis=1))[labels], lower)
+        far = np.flatnonzero(own >= (bound * (1.0 - 1e-9)) ** 2)
+        if len(far):
+            D = sqdist(X[far], V, xx[far], vv)
+            nearest, rows = D.argmin(axis=1), np.arange(len(far))
+            labels[far], own[far] = nearest, D[rows, nearest]
+            D[rows, nearest] = np.inf  # the second-nearest distance is what remains
+            lower[far] = np.sqrt(D.min(axis=1))
+        V_new = label_mean(X, labels, V)
+        if k > 1:
+            moved = np.sqrt(sq_norms(V_new - V))
+            top = int(moved.argmax())
+            lower = lower - np.where(labels == top, np.partition(moved, -2)[-2], moved[top])
+        return V_new, (labels, lower), float(own.sum())
+
+    return step
 
 
 def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Result:

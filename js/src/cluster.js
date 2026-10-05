@@ -22,23 +22,78 @@ function result(mean, { V, state: U, nIter, converged, history }, hard = false) 
 }
 
 /**
- * Lloyd's k-means; distance ties go to the lowest center index.
+ * Lloyd's k-means; distance ties go to the lowest center index. Iterates with
+ * Hamerly's (2010) bounds, which skip only distance computations that cannot
+ * change a label, so the iterates are Lloyd's.
  * @param {MatrixLike} X @param {number} k @param {Common} [options]
  * @returns {Generator<Progress, Result>}
  */
 export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
   const p = prepare(X, k, init, seed);
-  const step = lloyd(p.X, {
-    assign: D => argminRows(D),
-    update: (labels, V) => labelMean(p.X, labels, V),
-    objective: (D, labels) => {
-      let J = 0;
-      for (let i = 0; i < labels.length; i++) J += D.data[i * D.cols + labels[i]];
-      return J;
-    },
-  });
-  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
-  return result(p.mean, out, true);
+  const out = yield* iterate(p.X, p.V, hamerly(p.X), { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
+  return result(p.mean, { ...out, state: out.state.labels }, true);
+}
+
+/**
+ * Lloyd's step with Hamerly's bounds; the state is { labels, lower }. A point
+ * keeps its label without computing its other distances when its exact
+ * distance to its center is below both half the distance from that center to
+ * the nearest other one (which proves the center nearest, for any labeling)
+ * and a lower bound on its distance to every other center: the second-nearest
+ * distance when last computed, minus how far the other centers have moved
+ * since. Points within 1e-9 of a bound are recomputed, so rounding never
+ * decides a label.
+ * @returns {import('./core.js').Step}
+ */
+function hamerly(X) {
+  const { rows: n, cols: d, data: x } = X;
+  return (V, state) => {
+    const k = V.rows, v = V.data;
+    const labels = state?.labels ?? new Int32Array(n), lower = state?.lower ?? new Float64Array(n);
+    const dist = (i, j) => {
+      let s = 0;
+      for (let f = 0, a = i * d, b = j * d; f < d; f++) {
+        const t = x[a + f] - v[b + f];
+        s += t * t;
+      }
+      return s;
+    };
+    const half = new Float64Array(k).fill(Infinity);
+    for (let a = 0; a < k; a++) for (let b = a + 1; b < k; b++) {
+      let s = 0;
+      for (let f = 0; f < d; f++) s += (v[a * d + f] - v[b * d + f]) ** 2;
+      half[a] = Math.min(half[a], Math.sqrt(s) / 2);
+      half[b] = Math.min(half[b], Math.sqrt(s) / 2);
+    }
+    let objective = 0;
+    for (let i = 0; i < n; i++) {
+      let own = dist(i, labels[i]);
+      if (Math.sqrt(own) >= Math.max(half[labels[i]], lower[i]) * (1 - 1e-9)) {
+        let best = Infinity, second = Infinity, nearest = 0;
+        for (let j = 0; j < k; j++) {
+          const s = dist(i, j);
+          if (s < best) second = best, best = s, nearest = j;
+          else if (s < second) second = s;
+        }
+        labels[i] = nearest, own = best, lower[i] = Math.sqrt(second);
+      }
+      objective += own;
+    }
+    const W = labelMean(X, labels, V);
+    if (k > 1) {
+      // Moving the centers loosens each lower bound by the largest move of another center.
+      let first = 0, second = 0, top = 0;
+      for (let j = 0; j < k; j++) {
+        let s = 0;
+        for (let f = 0; f < d; f++) s += (W.data[j * d + f] - v[j * d + f]) ** 2;
+        const m = Math.sqrt(s);
+        if (m > first) second = first, first = m, top = j;
+        else if (m > second) second = m;
+      }
+      for (let i = 0; i < n; i++) lower[i] -= labels[i] === top ? second : first;
+    }
+    return { V: W, state: { labels, lower }, value: objective };
+  };
 }
 
 /**

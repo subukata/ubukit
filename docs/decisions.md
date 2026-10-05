@@ -4,6 +4,23 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-05 Hamerly's bounds for k-means
+
+k-means runs Lloyd's iterations as a step with Hamerly's (2010) bounds: a
+point keeps its label without computing its other distances when its exact
+distance to its center is below half the distance from that center to the
+nearest other one and below a lower bound on its distance to every other
+center. Points within 1e-9 of a bound are recomputed, so the iterates are
+Lloyd's (bitwise in JavaScript; fixtures unchanged). *Why:* `bench/run.py
+--compare` showed Python 1.6x faster on separated blobs, 1.45x on uniform
+noise and 3.2x with K = 100 (scikit-learn's gap there fell from 16x to about
+4x), and JavaScript 1.9-4.5x faster on every case. *Rejected after
+measuring:* the second-nearest distance from `np.partition` (15% slower than
+Lloyd on overlapping clusters, where most points are recomputed; masking the
+nearest and taking the minimum is not), keeping only the half-distance test
+(slower than Lloyd), and Elkan's K lower bounds per point (K times the
+memory for a gain that matters only at large K).
+
 ## 2026-10-05 A benchmark that can tell differences apart (#47)
 
 The benchmark now compares two git trees in alternating ABBA order and calls
