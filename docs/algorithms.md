@@ -19,9 +19,12 @@ neither overflow nor all vanish; other inputs raise an error, so standardize
 data first. A prototype with no mass keeps its previous position. The loop
 stops when no prototype coordinate moves more than `tol` times the RMS radius
 of the centered data (`tol = 0` means an exact fixed point), or after
-`max_iter` iterations. The default initialization is k-means++ seeding
-followed by one assignment step, so a prototype starts on a data point only
-when its seed's cell holds that point alone.
+`max_iter` iterations. The default initialization is greedy k-means++
+seeding (each seed is the best, by the resulting sum of squared distances,
+of $2 + \lfloor \ln K \rfloor$ points drawn in proportion to the squared
+distance to the nearest seed) followed by one assignment step, so a
+prototype starts on a data point only when its seed's cell holds that point
+alone.
 
 | Method | `assign(D)` | weight $w(u)$ |
 |---|---|---|
