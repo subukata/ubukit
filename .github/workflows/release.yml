@@ -1,11 +1,12 @@
 # Publishes both packages when a v* tag is pushed. The build job tests and
 # packs both without credentials; the publish jobs only upload those files
 # with trusted publishing (OIDC), so no dependency code runs where a
-# publishing token can be minted. Configure the "pypi" and "npm" environments
-# and the trusted publishers on PyPI and npm once.
-# npm can only trust a package that already exists, so the very first npm
-# release reads a short-lived NPM_TOKEN secret from the "npm" environment;
-# delete that secret once the trusted publisher is configured.
+# publishing token can be minted. The one-time setup is listed under
+# "Releasing" in CONTRIBUTING.md: the repository must be public (npm does not
+# generate provenance in private repositories), and npm can only trust a
+# package that already exists, so the very first npm release reads a
+# short-lived NPM_TOKEN secret from the "npm" environment; delete that secret
+# once the trusted publisher is configured.
 name: Release
 
 on:
