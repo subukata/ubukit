@@ -1,8 +1,9 @@
 # Changelog
 
-While UbuKit is 0.x, minor versions may change numerical results; every such
-change is listed under "Changed results". Patch versions change results only
-to fix bugs, and say so.
+While UbuKit is 0.x, minor versions may change numerical results and the API;
+every such change is listed under "Changed results" or "Changed API". Patch
+versions keep the API and change results only to fix bugs, listed under
+"Fixed".
 
 ## 0.1.0 (unreleased)
 

@@ -1,29 +1,26 @@
 # Agent instructions
 
-Read `DESIGN.md` before changing code. In short:
+Before changing anything, read `DESIGN.md` (what UbuKit is and why) and
+`CONTRIBUTING.md` (how to change it, the checks, and when a change is done).
+This file adds only what is specific to agents.
 
-- Keep the library small. Every iterative method runs in the one loop,
-  `iterate` (`python/src/ubukit/_core.py`, `js/src/core.js`); a new clustering
-  method is an `assign` function for the standard step `lloyd`, and only an
-  iteration of another shape gets a step of its own.
-- Never add alternative backends, version- or CPU-specific branches,
-  extended-range rescue paths, or new runtime dependencies. Optional Numba
-  kernels follow DESIGN.md principle 2.
-- Changes to math, defaults or API go into Python, JavaScript and
-  `docs/algorithms.md` together; regenerate the fixtures with
-  `python fixtures/generate.py` and list changed results in `CHANGELOG.md`.
-  Speed-only changes may touch one language and must leave the fixtures
-  unchanged.
-- Justify performance work with `python bench/run.py` (before and after), and
-  keep the simpler version unless the gain is large.
+## Boundaries
 
-## Commands
+Unless the maintainer asks for it:
 
-From the repository root:
+- do not push tags, publish packages, merge pull requests, or change
+  repository settings, environments or secrets;
+- do not add dependencies or CI actions.
 
-```sh
-cd python && pip install -e . --group dev
-ruff check . ../fixtures ../bench && ruff format --check . ../fixtures ../bench && pytest
-cd ../js && npm ci --ignore-scripts && npm test && npm run check
-cd .. && python bench/run.py --smoke
-```
+Never:
+
+- relax a test, a tolerance or the fixtures to make a change pass;
+- add network, file or process access to the library;
+- work around a principle in `DESIGN.md` instead of proposing to change it.
+
+## Working
+
+- Reviews cover every file in scope, or a scope agreed first, and say what
+  was read. Confirm a suspicion by running code before reporting it.
+- Keep the repository in English: code, comments, documents and commit
+  messages.
