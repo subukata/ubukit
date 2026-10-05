@@ -4,6 +4,22 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Release files built apart from the tests; PyPI before npm
+
+`release.yml` runs the tests in one job and builds the packages in another
+that installs only the build tools (`build`, and TypeScript for the type
+declarations); the npm upload waits for the PyPI upload. *Why:* the build
+job also installed the development group (about 20 unpinned packages such
+as pytest, scikit-learn, mypy and ruff) and ran the tests in the workspace
+it then packed, so one compromised test dependency could have changed the
+published files, which would still carry valid provenance. The two uploads
+ran in parallel, so a failure in one could leave a version on one registry
+only; a version can never be uploaded again, and npm is the upload more
+likely to need a fix (its first release uses a token). *Rejected:* pinning
+the development group by hash (more maintenance for a job that need not
+install it) and keeping the tests out of the release workflow (the tag's
+exact commit would go untested on the release platform).
+
 ## 2026-10-06 One release checklist; Dependabot batched and delayed
 
 The release steps, including the one-time setup, are one checklist under

@@ -120,9 +120,11 @@ Every release:
    and `js/package.json`, and replace "(unreleased)" in `CHANGELOG.md` with
    the date.
 3. After merging it, tag the merge and push the tag
-   (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` checks that
-   the tag matches both versions, tests and builds both packages without
-   credentials, and publishes them once the environments are approved.
+   (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` tests both
+   packages, builds them in a separate job with only the build tools after
+   checking that the tag matches both versions, and, once the environments
+   are approved, publishes them to PyPI and then to npm. If the npm upload
+   fails, fix the cause and re-run that job; PyPI already has the version.
 4. Install the published versions in a clean environment
    (`pip install ubukit==0.1.0`, `npm install ubukit@0.1.0`) and fit one
    example.
