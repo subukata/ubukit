@@ -66,4 +66,5 @@ const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
 
 ## Development
 
-See [DESIGN.md](DESIGN.md) for the principles and commands. Licensed under [MIT](LICENSE).
+See [DESIGN.md](DESIGN.md) for the principles and commands and
+[CHANGELOG.md](CHANGELOG.md) for changes. Licensed under [MIT](LICENSE).
