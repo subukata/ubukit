@@ -113,7 +113,7 @@ def som_olp(
     """
     lam = check_float(lam, "lam", 0.0, strict=True)
     gamma = check_float(gamma, "gamma", 0.0)
-    X, mean, R, W = _setup(X, grid, init, check_float(pca_scale, "pca_scale"))
+    X, mean, R, W = _setup(X, grid, init, check_float(pca_scale, "pca_scale", 0.0, strict=True))
     rr = sq_norms(R)
     cost = None
 
@@ -181,7 +181,12 @@ def _pca_init(X: np.ndarray, R: np.ndarray, scale: float) -> np.ndarray:
     if dual:
         vec = X.T @ vec / np.sqrt(np.maximum(n * eigval, TINY))
     axes = vec.T
-    axes *= np.sign(axes[np.arange(q), np.abs(axes).argmax(axis=1)])[:, None]
+    # Make the first clearly nonzero component of each axis positive. (The
+    # largest component would be ambiguous: standardized 2-D data have axes
+    # (1, +-1)/sqrt(2), and rounding would decide the orientation of the map.)
+    mags = np.abs(axes)
+    lead = (mags > 1e-6 * mags.max(axis=1, keepdims=True)).argmax(axis=1)
+    axes *= np.sign(axes[np.arange(q), lead])[:, None]
     G = R[:, :q] - R[:, :q].mean(axis=0)
     G /= np.maximum(np.abs(G).max(axis=0), 1e-12)
     return (G * (scale * np.sqrt(np.maximum(eigval, 0.0)))) @ axes

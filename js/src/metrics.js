@@ -82,7 +82,11 @@ export function trustworthiness(X, Y, k = 5) {
   return 1 - (2 * penalty) / (n * k * (2 * n - 3 * k - 1));
 }
 
-/** Continuity of embedding Y of X: trustworthiness with the roles swapped. */
+/**
+ * Continuity of embedding Y of X: trustworthiness with the roles swapped.
+ * @param {import('./core.js').MatrixLike} X
+ * @param {import('./core.js').MatrixLike} Y
+ */
 export function continuity(X, Y, k = 5) {
   return trustworthiness(Y, X, k);
 }

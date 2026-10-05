@@ -43,7 +43,7 @@ jobs:
       - name: Test and pack the npm package
         working-directory: js
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm test
           mkdir -p ../dist/npm
           npm pack --pack-destination ../dist/npm

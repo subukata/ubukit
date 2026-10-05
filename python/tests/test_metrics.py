@@ -75,6 +75,9 @@ def test_invalid_arguments():
         ub.trustworthiness(X, X[:9], 2)
     with pytest.raises(ValueError, match="scale"):
         ub.trustworthiness(X + 1e200, X, 2)
+    Z = np.random.default_rng(0).normal(size=(10, 2))
+    with pytest.raises(ValueError, match="scale"):
+        ub.trustworthiness(Z, Z * 1e-170, 2)
     with pytest.raises(ValueError):
         ub.ari([0, 1], [0])
     with pytest.raises(ValueError):

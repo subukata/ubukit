@@ -11,13 +11,15 @@ U = \mathrm{assign}(D)
 v_c = \frac{\sum_i w(u_{ic})\, x_i}{\sum_i w(u_{ic})}
 $$
 
-Inputs must be finite with row norms below $10^{150}$, so that no squared
-distance can overflow; standardize data first. A prototype with no mass keeps
-its previous position. The loop stops when no
-prototype coordinate moves more than `tol` times the RMS radius of the centered
-data (`tol = 0` means an exact fixed point), or after `max_iter` iterations.
-The default initialization is k-means++ seeding followed by one assignment step,
-so no prototype starts exactly on a data point.
+Inputs must be finite with row norms below $10^{150}$ and, unless all rows are
+equal, some feature spanning at least $10^{-150}$, so that squared distances
+neither overflow nor all vanish; other inputs raise an error, so standardize
+data first. A prototype with no mass keeps its previous position. The loop
+stops when no prototype coordinate moves more than `tol` times the RMS radius
+of the centered data (`tol = 0` means an exact fixed point), or after
+`max_iter` iterations. The default initialization is k-means++ seeding
+followed by one assignment step, so a prototype starts on a data point only
+when its seed's cell holds that point alone.
 
 | Method | `assign(D)` | weight $w(u)$ |
 |---|---|---|
@@ -68,8 +70,11 @@ $R = P H$, the fraction of each point's neighborhood assigned to each cluster.
 
 Units $j$ sit at grid coordinates $r_j$ (unit $j$ = `row * cols + col` at
 `(row, col)`). Unless `init` is given, prototypes start on the plane of the two
-leading principal axes, spread over $\pm$`pca_scale` standard deviations.
-Python takes the axes from the smaller of $X^\top X$ and $X X^\top$;
+leading principal axes (grid rows along the first), spread over
+$\pm$`pca_scale` standard deviations (2 for `som` and `batch_som`). Each axis
+is oriented so that its first clearly nonzero component is positive, which
+stays well defined when components tie in magnitude, as for standardized
+2-D data. Python takes the axes from the smaller of $X^\top X$ and $X X^\top$;
 JavaScript uses Rayleigh–Ritz on a Krylov basis of at most 64 vectors, which
 is exact for $D \le 64$ and never forms the $D \times D$ covariance.
 The neighborhood is $h_t(b, j) = \exp(-\lVert r_b - r_j \rVert^2 / 2\sigma_t^2)$

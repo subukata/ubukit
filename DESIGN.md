@@ -12,7 +12,8 @@ one need a reason written in the pull request.
    plain loops in JavaScript. No alternative backends, no Numba, no WASM, and
    no code paths selected by library versions, CPU models or data ranges.
 3. **One numerical contract.** Inputs are finite float64 data of ordinary
-   scale (standardize first). Stability comes from the formulation
+   scale (standardize first; the exact bounds are in `docs/algorithms.md`
+   and enforced by `as_matrix`/`matrix`). Stability comes from the formulation
    (centering, log-domain softmax, scaled radii), not from rescue paths.
    Anything outside the contract raises a clear `ValueError`/`RangeError`.
 4. **Same API, same math, not the same bits.** Python and JavaScript share

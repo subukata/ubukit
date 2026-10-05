@@ -135,13 +135,18 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
 function neighborhood(X, delta, maxEdges) {
   const { rows: n, cols: d, data } = X, lists = Array.from({ length: n }, (_, i) => [i]);
   const r2 = delta * delta;
-  let edges = n;
+  let edges = 0;
+  // Directed edges, self loops included, as counted in Python.
+  const add = count => {
+    if ((edges += count) > maxEdges) throw new RangeError(`delta=${delta} gives more than maxEdges=${maxEdges} edges`);
+  };
+  add(n);
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       let s = 0;
       for (let f = 0; f < d && s <= r2; f++) s += (data[i * d + f] - data[j * d + f]) ** 2;
       if (s <= r2) {
-        if ((edges += 2) > maxEdges) throw new RangeError(`delta=${delta} gives more than maxEdges=${maxEdges} edges`);
+        add(2);
         lists[i].push(j);
         lists[j].push(i);
       }

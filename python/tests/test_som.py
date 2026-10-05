@@ -84,6 +84,19 @@ def test_pca_init_spans_principal_axes():
     np.testing.assert_allclose(W.mean(axis=0), 0, atol=1e-12)
 
 
+def test_pca_init_orientation_does_not_depend_on_rounding():
+    # Standardized 2-D data have axes (1, +-1)/sqrt(2) whose components tie in
+    # magnitude; reordering the rows changes only the rounding.
+    R = _grid((3, 4))
+    for seed in range(30):
+        rng = np.random.default_rng(seed)
+        Z = rng.normal(size=(200, 2)) @ [[1.0, 0.0], [0.6, 0.8]]
+        X = (Z - Z.mean(axis=0)) / Z.std(axis=0)
+        W = _pca_init(X - X.mean(axis=0), R, 2.0)
+        P = X[rng.permutation(200)]
+        np.testing.assert_allclose(_pca_init(P - P.mean(axis=0), R, 2.0), W, atol=1e-9)
+
+
 def test_pca_init_agrees_between_gram_matrices():
     # 20 x 50 data use X X^T; three stacked copies (60 x 50) have the same
     # covariance and use X^T X.
@@ -111,6 +124,7 @@ def test_tiny_values_take_the_ordinary_path():
         lambda X: ub.som(X, (3, 3), sigma=0),
         lambda X: ub.som_olp(X, (3, 3), lam=0, gamma=1),
         lambda X: ub.som_olp(X, (3, 3), lam=1, gamma=-1),
+        lambda X: ub.som_olp(X, (3, 3), lam=1, gamma=1, pca_scale=0.0),
         lambda X: ub.batch_som(X, (3, 3), init=np.zeros((4, 2))),
     ],
 )
