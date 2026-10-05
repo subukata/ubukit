@@ -1,0 +1,249 @@
+/**
+ * Self-organizing maps: online SOM, batch SOM and SOM-OLP (generators).
+ * Unit j = row * cols + col sits at (row, col); prototypes start on the
+ * leading principal plane unless given.
+ */
+import {
+  alternate, argmaxRows, argminRows, center, checkInt, checkNumber, labelSums, matrix,
+  random, shift, softmaxRows, sqdist, weightedMean,
+} from './core.js';
+
+/** @typedef {import('./core.js').MatrixLike} MatrixLike */
+/** @typedef {import('./core.js').Result} Result */
+/** @typedef {import('./core.js').Progress} Progress */
+/** @typedef {number[] | MatrixLike} Grid [rows, cols] or a (K, Q) matrix of unit coordinates. */
+/** @typedef {{ init?: 'pca' | MatrixLike }} MapInit */
+
+/**
+ * Online (sequential) SOM: w_j += lr_t h_t(j, bmu) (x - w_j); sigma and lr
+ * decay geometrically over all epochs * N updates.
+ * @param {MatrixLike} X @param {Grid} [grid]
+ * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number, lr?: number, lrEnd?: number, shuffle?: boolean, seed?: number }} [options]
+ * @returns {Generator<Progress, Result>}
+ */
+export function* som(X, grid = [10, 10], {
+  epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed,
+} = {}) {
+  const s = setup(X, grid, init);
+  checkInt(epochs, 'epochs', 1);
+  const [s0, s1] = sigmas(sigma, sigmaEnd, s.R);
+  checkNumber(lr, 'lr', 0, true);
+  checkNumber(lrEnd, 'lrEnd', 0, true);
+  if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
+  const { rows: n, cols: d, data: x } = s.X, w = s.W.data, R = s.R, k = R.rows, q = R.cols;
+  const rand = random(seed), order = Int32Array.from({ length: n }, (_, i) => i);
+  const steps = epochs * n, diff = new Float64Array(k * d);
+  let t = 0;
+  for (let e = 0; e < epochs; e++) {
+    if (shuffle) for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    for (const i of order) {
+      const f = steps > 1 ? t / (steps - 1) : 0, sg = s0 * (s1 / s0) ** f, eta = lr * (lrEnd / lr) ** f;
+      let bmu = 0, best = Infinity;
+      for (let j = 0; j < k; j++) {
+        let dist = 0;
+        for (let c = 0; c < d; c++) dist += (diff[j * d + c] = x[i * d + c] - w[j * d + c]) ** 2;
+        if (dist < best) best = dist, bmu = j;
+      }
+      for (let j = 0; j < k; j++) {
+        let g = 0;
+        for (let c = 0; c < q; c++) g += (R.data[j * q + c] - R.data[bmu * q + c]) ** 2;
+        const h = eta * Math.exp(g * (-0.5 / (sg * sg)));
+        for (let c = 0; c < d; c++) w[j * d + c] += h * diff[j * d + c];
+      }
+      t++;
+    }
+    yield { iteration: e + 1 };
+  }
+  return finish(s, epochs);
+}
+
+/**
+ * Batch SOM: w_j = sum_i h(bmu_i, j) x_i / sum_i h(bmu_i, j), separable kernel.
+ * @param {MatrixLike} X @param {number[]} [grid] [rows, cols]
+ * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number }} [options]
+ * @returns {Generator<Progress, Result>}
+ */
+export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca' } = {}) {
+  const [rows, cols] = shape(grid);
+  const s = setup(X, grid, init);
+  checkInt(epochs, 'epochs', 1);
+  const [s0, s1] = sigmas(sigma, sigmaEnd, s.R);
+  const d = s.X.cols, k = rows * cols;
+  const kernel = (size, sg) => Float64Array.from({ length: size * size }, (_, i) => {
+    const a = Math.floor(i / size) - (i % size);
+    return Math.exp(-(a * a) / (2 * sg * sg));
+  });
+  const update = (labels, W, t) => {
+    const sg = epochs > 1 ? s0 * (s1 / s0) ** (t / (epochs - 1)) : s0;
+    const Kr = kernel(rows, sg), Kc = kernel(cols, sg);
+    const { sums, counts } = labelSums(s.X, labels, k);
+    // Smooth (sums | counts) along rows, then along columns.
+    const width = d + 1, a = new Float64Array(k * width), b = new Float64Array(k * width);
+    for (let j = 0; j < k; j++) { a.set(sums.subarray(j * d, (j + 1) * d), j * width); a[j * width + d] = counts[j]; }
+    for (let r = 0; r < rows; r++) for (let r2 = 0; r2 < rows; r2++) {
+      const h = Kr[r * rows + r2];
+      for (let c = 0; c < cols; c++) for (let f = 0; f < width; f++) b[(r * cols + c) * width + f] += h * a[(r2 * cols + c) * width + f];
+    }
+    a.fill(0);
+    for (let c = 0; c < cols; c++) for (let c2 = 0; c2 < cols; c2++) {
+      const h = Kc[c * cols + c2];
+      for (let r = 0; r < rows; r++) for (let f = 0; f < width; f++) a[(r * cols + c) * width + f] += h * b[(r * cols + c2) * width + f];
+    }
+    const out = W.data.slice();
+    for (let j = 0; j < k; j++) {
+      const den = a[j * width + d];
+      if (den > 0) for (let f = 0; f < d; f++) out[j * d + f] = a[j * width + f] / den;
+    }
+    return { data: out, rows: k, cols: d };
+  };
+  const out = yield* alternate(s.X, s.W, { assign: argminRows, update, maxIter: epochs, tol: null });
+  return finish({ ...s, W: out.V }, epochs);
+}
+
+/**
+ * SOM with optimized latent positions (SOM-OLP, Ubukata): minimizes
+ * sum p (||x - w||^2 + gamma ||v - r||^2) + lam sum p log p with v_i = sum_j p_ij r_j.
+ * grid is [rows, cols] or a (K, Q) matrix of unit coordinates.
+ * @param {MatrixLike} X @param {Grid} grid
+ * @param {MapInit & { lam: number, gamma: number, pcaScale?: number, maxIter?: number, tol?: number }} options
+ * @returns {Generator<Progress, Result>}
+ */
+export function* somOlp(X, grid, { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = /** @type {any} */ ({})) {
+  checkNumber(lam, 'lam', 0, true);
+  checkNumber(gamma, 'gamma', 0);
+  const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale'));
+  let cost = null;
+  const assign = (D, P) => {
+    cost = D;
+    if (P) {
+      const extra = sqdist(multiply(P, s.R), s.R);
+      cost = { ...D, data: D.data.map((v, i) => v + gamma * extra.data[i]) };
+    }
+    return softmaxRows({ ...cost, data: cost.data.map(v => -v / lam) });
+  };
+  const out = yield* alternate(s.X, s.W, {
+    assign, update: (P, W) => weightedMean(s.X, P, W),
+    objective: (D, P) => P.data.reduce((sum, p, i) => sum + p * cost.data[i] + (p > 0 ? lam * p * Math.log(p) : 0), 0),
+    maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0),
+  });
+  return {
+    centers: shift(out.V, s.mean), labels: argmaxRows(out.U), membership: out.U, nIter: out.nIter,
+    converged: out.converged, history: out.history, embedding: multiply(out.U, s.R),
+  };
+}
+
+function multiply(A, B) {
+  const out = new Float64Array(A.rows * B.cols);
+  for (let i = 0; i < A.rows; i++) for (let j = 0; j < A.cols; j++) {
+    const a = A.data[i * A.cols + j];
+    if (a !== 0) for (let c = 0; c < B.cols; c++) out[i * B.cols + c] += a * B.data[j * B.cols + c];
+  }
+  return { data: out, rows: A.rows, cols: B.cols };
+}
+
+function shape(grid) {
+  if (!Array.isArray(grid) || grid.length !== 2 || Array.isArray(grid[0])) throw new RangeError('grid must be [rows, cols]');
+  return [checkInt(grid[0], 'rows', 1), checkInt(grid[1], 'cols', 1)];
+}
+
+function gridCoordinates(grid) {
+  if (!Array.isArray(grid) || Array.isArray(grid[0])) return matrix(grid, 'grid');
+  const [rows, cols] = shape(grid);
+  const data = new Float64Array(rows * cols * 2);
+  for (let j = 0; j < rows * cols; j++) data[2 * j] = Math.floor(j / cols), data[2 * j + 1] = j % cols;
+  return { data, rows: rows * cols, cols: 2 };
+}
+
+function setup(X, grid, init, pcaScale = 2) {
+  const { X: Xc, mean } = center(matrix(X));
+  const R = gridCoordinates(grid);
+  let W;
+  if (init === 'pca') W = pcaInit(Xc, R, pcaScale);
+  else if (typeof init === 'string') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
+  else {
+    W = matrix(init, 'init');
+    if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
+    W = shift(W, mean.map(v => -v));
+  }
+  return { X: Xc, mean, R, W };
+}
+
+function sigmas(sigma, sigmaEnd, R) {
+  if (sigma === undefined) {
+    let extent = 0;
+    for (let c = 0; c < R.cols; c++) {
+      let lo = Infinity, hi = -Infinity;
+      for (let j = 0; j < R.rows; j++) lo = Math.min(lo, R.data[j * R.cols + c]), hi = Math.max(hi, R.data[j * R.cols + c]);
+      extent = Math.max(extent, hi - lo);
+    }
+    sigma = extent / 2 || 1;
+  }
+  return [checkNumber(sigma, 'sigma', 0, true), checkNumber(sigmaEnd, 'sigmaEnd', 0, true)];
+}
+
+function finish(s, epochs) {
+  const labels = argminRows(sqdist(s.X, s.W)), q = s.R.cols, emb = new Float64Array(labels.length * q);
+  labels.forEach((j, i) => emb.set(s.R.data.subarray(j * q, (j + 1) * q), i * q));
+  return {
+    centers: shift(s.W, s.mean), labels, membership: null, nIter: epochs, converged: true,
+    history: new Float64Array(0), embedding: { data: emb, rows: labels.length, cols: q },
+  };
+}
+
+/** Spread the normalized grid over the leading principal axes of centered X. */
+function pcaInit(X, R, scale) {
+  const { rows: n, cols: d, data } = X, cov = new Float64Array(d * d);
+  for (let i = 0; i < n; i++) for (let a = 0; a < d; a++) for (let b = a; b < d; b++) cov[a * d + b] += data[i * d + a] * data[i * d + b];
+  for (let a = 0; a < d; a++) for (let b = a; b < d; b++) cov[b * d + a] = cov[a * d + b] /= n;
+  const { values, vectors } = symmetricEigen(cov, d);
+  const q = Math.min(R.cols, d), order = Array.from(values.keys()).sort((a, b) => values[b] - values[a]).slice(0, q);
+  const W = new Float64Array(R.rows * d);
+  order.forEach((e, h) => {
+    const axis = Array.from({ length: d }, (_, f) => vectors[f * d + e]);
+    const lead = axis.reduce((best, v) => (Math.abs(v) > Math.abs(best) ? v : best), 0);
+    const sign = Math.sign(lead), spread = scale * Math.sqrt(Math.max(values[e], 0));
+    let mean = 0, extent = 0;
+    for (let j = 0; j < R.rows; j++) mean += R.data[j * R.cols + h] / R.rows;
+    for (let j = 0; j < R.rows; j++) extent = Math.max(extent, Math.abs(R.data[j * R.cols + h] - mean));
+    extent = Math.max(extent, 1e-12);
+    for (let j = 0; j < R.rows; j++) {
+      const g = (R.data[j * R.cols + h] - mean) / extent * spread * sign;
+      for (let f = 0; f < d; f++) W[j * d + f] += g * axis[f];
+    }
+  });
+  return { data: W, rows: R.rows, cols: d };
+}
+
+/** Cyclic Jacobi eigendecomposition of a symmetric matrix; vectors are columns. */
+function symmetricEigen(S, n) {
+  const a = S.slice(), v = new Float64Array(n * n);
+  for (let i = 0; i < n; i++) v[i * n + i] = 1;
+  for (let sweep = 0; sweep < 100; sweep++) {
+    let off = 0, total = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) (i === j ? (total += a[i * n + j] ** 2) : (off += a[i * n + j] ** 2));
+    if (off <= 1e-30 * (total + off) || off === 0) break;
+    for (let p = 0; p < n - 1; p++) for (let r = p + 1; r < n; r++) {
+      const apr = a[p * n + r];
+      if (apr === 0) continue;
+      const theta = (a[r * n + r] - a[p * n + p]) / (2 * apr);
+      const t = Math.sign(theta || 1) / (Math.abs(theta) + Math.hypot(theta, 1));
+      const c = 1 / Math.hypot(t, 1), s = t * c;
+      for (let i = 0; i < n; i++) {
+        const x = a[i * n + p], y = a[i * n + r];
+        a[i * n + p] = c * x - s * y; a[i * n + r] = s * x + c * y;
+      }
+      for (let i = 0; i < n; i++) {
+        const x = a[p * n + i], y = a[r * n + i];
+        a[p * n + i] = c * x - s * y; a[r * n + i] = s * x + c * y;
+      }
+      for (let i = 0; i < n; i++) {
+        const x = v[i * n + p], y = v[i * n + r];
+        v[i * n + p] = c * x - s * y; v[i * n + r] = s * x + c * y;
+      }
+    }
+  }
+  return { values: Array.from({ length: n }, (_, i) => a[i * n + i]), vectors: v };
+}

@@ -1,42 +1,9 @@
-# Local environments, caches and generated build output
-.venv/
-.venv-*/
-venv/
 __pycache__/
-*.py[cod]
-*.nbc
-*.nbi
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
 *.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
 build/
-/dist/
-*.so
-*.o
-*.dylib
-*.dll
-
-# Local secrets and editor/OS files
-.env
-.env.*
-.DS_Store
-.idea/
-.vscode/
-
-# Local builds and validation output
+dist/
 node_modules/
-.npm-cache/
-python/artifacts/
-python/environments/
-python/wheelhouse/
-python/verification/**/results/
-javascript/artifacts/
-javascript/consumer/package-lock.json
-javascript/wasm/.generated/
-javascript/wasm/verification/
-**/results/
-**/numba_cache/
-**/numba-cache/
-**/benchmark_replay_reports/
-validation-output/
+js/types/

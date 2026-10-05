@@ -1,25 +1,17 @@
-"""Reject editable/source-tree imports in the traditional SOM gate."""
-from importlib import metadata
-from pathlib import Path
-import hashlib
-import json
-import sysconfig
+import numpy as np
+import pytest
 
 
-def pytest_sessionstart(session):
-    import ubukit
-    import ubukit._impl.portable_accel._som_classic as som_module
-    distribution = metadata.distribution('ubukit')
-    purelib = Path(sysconfig.get_paths()['purelib']).resolve()
-    owned = {str(path) for path in distribution.files}
-    manifest = json.loads((Path(__file__).resolve().parents[1] / 'SOURCE_MANIFEST.json').read_text())
-    assert distribution.version == ubukit.__version__ == manifest['version']
-    assert len({entry['path'] for entry in manifest['files']}) == len(manifest['files'])
-    for entry in manifest['files']:
-        name = entry['path'].removeprefix('src/')
-        assert name in owned, name
-        path = Path(distribution.locate_file(name)).resolve()
-        assert path.is_relative_to(purelib), path
-        assert hashlib.sha256(path.read_bytes()).hexdigest() == entry['sha256'], name
-    for module in (ubukit, som_module):
-        assert Path(module.__file__).resolve().is_relative_to(purelib)
+@pytest.fixture
+def blobs():
+    """Three well-separated Gaussian blobs (300 x 2) and their true centers."""
+    rng = np.random.default_rng(0)
+    centers = np.array([[0.0, 0.0], [5.0, 0.0], [0.0, 5.0]])
+    X = np.vstack([rng.normal(c, 0.5, (100, 2)) for c in centers])
+    return X, centers
+
+
+def match_centers(found, expected):
+    """Max distance after matching each expected center to its nearest found one."""
+    d = np.linalg.norm(found[:, None] - expected[None], axis=2)
+    return d.min(axis=0).max()

@@ -1,0 +1,26 @@
+{
+  "name": "ubukit",
+  "version": "0.1.0",
+  "description": "Fuzzy, rough and classical clustering, self-organizing maps, evaluation metrics and TPE search",
+  "keywords": ["clustering", "fuzzy c-means", "rough clustering", "self-organizing map", "som-olp", "tpe"],
+  "license": "MIT",
+  "author": "Seiki Ubukata",
+  "homepage": "https://github.com/subukata/ubukit",
+  "repository": { "type": "git", "url": "git+https://github.com/subukata/ubukit.git", "directory": "js" },
+  "bugs": "https://github.com/subukata/ubukit/issues",
+  "type": "module",
+  "exports": { ".": { "types": "./types/index.d.ts", "default": "./src/index.js" } },
+  "types": "./types/index.d.ts",
+  "files": ["src", "types"],
+  "sideEffects": false,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test",
+    "check": "tsc -p .",
+    "build:types": "tsc -p . --noEmit false --declaration --emitDeclarationOnly --outDir types",
+    "prepack": "npm run build:types"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}
