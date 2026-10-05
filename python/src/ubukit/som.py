@@ -13,6 +13,7 @@ from scipy.special import xlogy
 from ._core import (
     TINY,
     Result,
+    Steps,
     as_matrix,
     check_float,
     check_int,
@@ -22,10 +23,12 @@ from ._core import (
     softmax_rows,
     sq_norms,
     sqdist,
+    stepwise,
     weighted_mean,
 )
 
 
+@stepwise
 def som(
     X,
     grid=(10, 10),
@@ -38,7 +41,7 @@ def som(
     init="pca",
     shuffle=True,
     seed=None,
-) -> Result:
+) -> Steps:
     """Online (sequential) SOM.
 
     Each sample moves every prototype by lr_t * h_t(j, bmu) * (x - w_j) with a
@@ -69,11 +72,13 @@ def som(
             W += (eta * h)[:, None] * diff
         return W, None, None
 
-    W, *_ = iterate(X, W, epoch, max_iter=epochs, tol=None)
-    return _finish(X, mean, R, W, epochs)
+    return (
+        yield from iterate(X, W, epoch, max_iter=epochs, tol=None, view=_map(X, mean, R, epochs))
+    )
 
 
-def batch_som(X, grid=(10, 10), *, epochs=50, sigma=None, sigma_end=0.5, init="pca") -> Result:
+@stepwise
+def batch_som(X, grid=(10, 10), *, epochs=50, sigma=None, sigma_end=0.5, init="pca") -> Steps:
     """Batch SOM: w_j = sum_i h(bmu_i, j) x_i / sum_i h(bmu_i, j).
 
     ``grid`` is (rows, cols). The Gaussian neighborhood is separable on the
@@ -98,13 +103,15 @@ def batch_som(X, grid=(10, 10), *, epochs=50, sigma=None, sigma_end=0.5, init="p
         return out
 
     step = lloyd(X, lambda D, _, t: D.argmin(axis=1), update)
-    W, *_ = iterate(X, W, step, max_iter=epochs, tol=None)
-    return _finish(X, mean, R, W, epochs)
+    return (
+        yield from iterate(X, W, step, max_iter=epochs, tol=None, view=_map(X, mean, R, epochs))
+    )
 
 
+@stepwise
 def som_olp(
     X, grid=(10, 10), *, lam, gamma, init="pca", pca_scale=2.0, max_iter=100, tol=1e-6
-) -> Result:
+) -> Steps:
     """SOM with optimized latent positions (SOM-OLP, Ubukata).
 
     Minimizes sum p_ij (||x_i - w_j||^2 + gamma ||v_i - r_j||^2) + lam sum p log p
@@ -133,10 +140,13 @@ def som_olp(
         update=lambda P, W, t: weighted_mean(X, P, W),
         objective=lambda D, P: float(np.sum(P * cost) + lam * np.sum(xlogy(P, P))),
     )
-    W, P, n_iter, converged, history = iterate(
-        X, W, step, max_iter=check_int(max_iter, "max_iter", 1), tol=check_float(tol, "tol", 0.0)
-    )
-    return Result(W + mean, P.argmax(axis=1), P, n_iter, converged, history, P @ R)
+
+    def view(loop):
+        P = loop.state
+        return Result(loop.V + mean, P.argmax(axis=1), P, *loop[2:], P @ R)
+
+    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": check_float(tol, "tol", 0.0)}
+    return (yield from iterate(X, W, step, **limits, view=view))
 
 
 def _shape(grid) -> tuple[int, int]:
@@ -207,6 +217,13 @@ def _sigmas(sigma, sigma_end, R):
     )
 
 
-def _finish(X, mean, R, W, epochs) -> Result:
-    labels = sqdist(X, W).argmin(axis=1)
-    return Result(W + mean, labels, None, epochs, True, np.empty(0), R[labels])
+def _map(X, mean, R, epochs):
+    """The view of a map: best-matching units of the prototypes reached; the schedule
+    is complete after ``epochs``."""
+
+    def view(loop):
+        labels = sqdist(X, loop.V).argmin(axis=1)
+        done = loop.n_iter == epochs
+        return Result(loop.V + mean, labels, None, loop.n_iter, done, np.empty(0), R[labels])
+
+    return view

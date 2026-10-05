@@ -4,6 +4,20 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 One engine shape in both languages
+
+Python's `iterate` is now a generator that takes the method's `view`, like
+JavaScript's, and each fitting function is written once as a generator;
+`stepwise` turns it into the plain function and lists it in `ubukit.steps`,
+whose iterations offer `result()` as in JavaScript. *Why:* after the
+JavaScript-only changes the engines had drifted apart (Python returned a
+tuple that four methods each turned into a Result, its k-means modified its
+state in place, and `DESIGN.md` described only JavaScript), and plotting the
+SOM-OLP learning for research needs the real iterates in Python too. Results
+and speed are unchanged (benchmark ratios 0.85-1.05). *Rejected:* a
+`callback` argument on every function (duplicates the generators) and
+keeping the generators JavaScript-only (two engine shapes to maintain).
+
 ## 2026-10-06 Every iteration's result, on demand
 
 The JavaScript step generators yield `{ iteration, result }`, where
