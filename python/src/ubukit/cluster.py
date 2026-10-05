@@ -14,6 +14,7 @@ from scipy.special import xlogy
 from ._core import (
     TINY,
     Result,
+    Steps,
     check_float,
     check_int,
     iterate,
@@ -23,11 +24,13 @@ from ._core import (
     softmax_rows,
     sq_norms,
     sqdist,
+    stepwise,
     weighted_mean,
 )
 
 
-def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Result:
+@stepwise
+def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Steps:
     """Lloyd's k-means; distance ties go to the lowest center index.
 
     Iterates with Hamerly's (2010) bounds, which skip only distance
@@ -41,10 +44,15 @@ def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Result:
         seed: seed for k-means++.
     """
     X, mean, V = prepare(X, k, init, seed)
-    V, (labels, _), n_iter, converged, history = iterate(
-        X, V, _hamerly(X), max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
+
+    def view(loop):
+        return Result(loop.V + mean, loop.state[0], None, *loop[2:])
+
+    return (
+        yield from iterate(
+            X, V, _hamerly(X), max_iter=check_int(max_iter, "max_iter", 1), tol=0.0, view=view
+        )
     )
-    return Result(V + mean, labels, None, n_iter, converged, history)
 
 
 def _hamerly(X: np.ndarray):
@@ -62,7 +70,10 @@ def _hamerly(X: np.ndarray):
 
     def step(V, state, t):
         n, k = len(X), len(V)
-        labels, lower = state if state else (np.zeros(n, dtype=np.intp), np.zeros(n))
+        # Copies: a state once returned is never modified (see iterate).
+        labels, lower = (
+            (state[0].copy(), state[1].copy()) if state else (np.zeros(n, np.intp), np.zeros(n))
+        )
         vv = sq_norms(V)
         # Exact squared distances to the assigned centers: the objective, and
         # the quantity the bounds are compared with.
@@ -88,7 +99,8 @@ def _hamerly(X: np.ndarray):
     return step
 
 
-def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Result:
+@stepwise
+def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Steps:
     """Fuzzy c-means (Bezdek).
 
     Memberships u_ic are proportional to d_ic^(-2/(m-1)), evaluated as a softmax
@@ -109,13 +121,12 @@ def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> 
         return weighted_mean(X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
     step = lloyd(X, assign, update, objective=lambda D, U: float(np.sum(U**m * D)))
-    V, U, n_iter, converged, history = iterate(
-        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=check_float(tol, "tol", 0.0)
-    )
-    return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
+    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": check_float(tol, "tol", 0.0)}
+    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
 
 
-def efcm(X, k, *, tau=1.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Result:
+@stepwise
+def efcm(X, k, *, tau=1.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Steps:
     """Entropy-regularized fuzzy c-means (Miyamoto).
 
     Minimizes sum u d^2 + tau * sum u log u, giving u_ic = softmax_c(-d_ic^2 / tau).
@@ -128,13 +139,12 @@ def efcm(X, k, *, tau=1.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) 
         update=lambda U, V, t: weighted_mean(X, U, V),
         objective=lambda D, U: float(np.sum(U * D) + tau * np.sum(xlogy(U, U))),
     )
-    V, U, n_iter, converged, history = iterate(
-        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=check_float(tol, "tol", 0.0)
-    )
-    return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
+    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": check_float(tol, "tol", 0.0)}
+    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
 
 
-def rcm(X, k, *, alpha=1.1, beta=0.0, p=1.0, init="k-means++", max_iter=300, seed=None) -> Result:
+@stepwise
+def rcm(X, k, *, alpha=1.1, beta=0.0, p=1.0, init="k-means++", max_iter=300, seed=None) -> Steps:
     """Rough c-means; ``p != 1`` gives the extended ExRCM.
 
     Cluster c is admissible for x_i when d_ic^p <= (alpha d_i,min)^p + beta^p,
@@ -158,13 +168,12 @@ def rcm(X, k, *, alpha=1.1, beta=0.0, p=1.0, init="k-means++", max_iter=300, see
         return mask / mask.sum(axis=1, keepdims=True)
 
     step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
-    V, U, n_iter, converged, history = iterate(
-        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
-    )
-    return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
+    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": 0.0}
+    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
 
 
-def rmcm(X, k, delta, *, init="k-means++", max_iter=300, max_edges=10_000_000, seed=None) -> Result:
+@stepwise
+def rmcm(X, k, delta, *, init="k-means++", max_iter=300, max_edges=10_000_000, seed=None) -> Steps:
     """Rough membership c-means.
 
     With P the row-normalized delta-neighborhood graph (self included) and H
@@ -184,10 +193,18 @@ def rmcm(X, k, delta, *, init="k-means++", max_iter=300, max_edges=10_000_000, s
         return (P @ H).toarray()
 
     step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
-    V, U, n_iter, converged, history = iterate(
-        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
-    )
-    return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
+    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": 0.0}
+    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
+
+
+def _soft(mean: np.ndarray):
+    """The view of soft and rough clusterings: memberships are the state."""
+
+    def view(loop):
+        U = loop.state
+        return Result(loop.V + mean, U.argmax(axis=1), U, *loop[2:])
+
+    return view
 
 
 def _neighborhood(X: np.ndarray, delta: float, max_edges: int) -> sparse.csr_matrix:

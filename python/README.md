@@ -35,5 +35,14 @@ hard methods), `n_iter`, `converged`, `history` (objective per iteration) and
 `embedding` (maps). Inputs should be finite and of ordinary scale; standardize
 features first.
 
+`ub.steps` has every fitting function as a generator that yields after each
+iteration (each epoch for maps). `p.result()` is the `Result` the run would
+return had it stopped there, so the learning itself can be plotted or
+recorded, without rerunning:
+
+```python
+frames = [p.result().embedding for p in ub.steps.som_olp(X, (8, 8), lam=0.5, gamma=1.0)]
+```
+
 Equations, defaults and references: <https://github.com/subukata/ubukit/blob/main/docs/algorithms.md>.
 A JavaScript package with the same API is available as `ubukit` on npm.

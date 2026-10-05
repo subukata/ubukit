@@ -13,10 +13,12 @@ centered once before fitting, which keeps the Gram-identity distances accurate.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+import inspect
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
+from functools import wraps
 from numbers import Integral, Real
-from typing import Any
+from typing import Any, NamedTuple
 
 import numpy as np
 from scipy import sparse
@@ -198,13 +200,70 @@ Update = Callable[[np.ndarray, np.ndarray, int], np.ndarray]
 Objective = Callable[[np.ndarray, np.ndarray], float]
 
 
-def iterate(X: np.ndarray, V: np.ndarray, step: Step, *, max_iter: int, tol: float | None):
+@dataclass(frozen=True, slots=True)
+class Progress:
+    """Yielded after every iteration (epoch for maps) by the generators in ``ubukit.steps``.
+
+    ``result()`` returns the Result the run would return had it stopped at
+    this iteration; it costs nothing unless called and stays valid as the run
+    goes on.
+    """
+
+    iteration: int
+    result: Callable[[], Result]
+
+
+class Loop(NamedTuple):
+    """What the loop has reached; a method's ``view`` turns it into its Result."""
+
+    V: np.ndarray
+    state: Any
+    n_iter: int
+    converged: bool
+    history: np.ndarray
+
+
+# A fitting generator: it yields a Progress per iteration and returns the Result.
+Steps = Generator[Progress, None, Result]
+# The generators behind the public fitting functions, by name (ubukit.steps).
+STEPS: dict[str, Callable[..., Steps]] = {}
+
+
+def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
+    """Make a fitting generator a function that runs it to the end, and list it in STEPS."""
+    STEPS[generator.__name__] = generator
+
+    @wraps(generator)
+    def run(*args: P.args, **kwargs: P.kwargs) -> Result:
+        steps = generator(*args, **kwargs)
+        while True:
+            try:
+                next(steps)
+            except StopIteration as end:
+                return end.value
+
+    # help() shows the generator's parameters with the Result it returns.
+    run.__signature__ = inspect.signature(generator).replace(return_annotation=Result)
+    return run
+
+
+def iterate(
+    X: np.ndarray,
+    V: np.ndarray,
+    step: Step,
+    *,
+    max_iter: int,
+    tol: float | None,
+    view: Callable[[Loop], Result],
+) -> Steps:
     """The one loop: repeat ``step`` until the prototypes stop moving, or max_iter.
 
     The loop stops when no prototype coordinate moves more than ``tol`` times
     the RMS radius of X; ``tol=0`` therefore means an exact fixed point and
-    ``tol=None`` runs a fixed schedule. Returns (V, state, n_iter, converged,
-    history).
+    ``tol=None`` runs a fixed schedule. It yields a Progress after every step
+    and returns ``view`` of the final Loop, the method's Result; a Progress
+    builds its Result with the same ``view``, which is why steps never modify
+    a state they have returned.
     """
     limit = None if tol is None else tol * float(np.sqrt(sq_norms(X).mean()))
     state = None
@@ -214,9 +273,18 @@ def iterate(X: np.ndarray, V: np.ndarray, step: Step, *, max_iter: int, tol: flo
         V, state, value = step(V, state, t)
         if value is not None:
             history.append(value)
-        if limit is not None and float(np.max(np.abs(V - V_prev))) <= limit:
-            return V, state, t + 1, True, np.asarray(history, dtype=float)
-    return V, state, max_iter, False, np.asarray(history, dtype=float)
+        converged = limit is not None and float(np.max(np.abs(V - V_prev))) <= limit
+        result = _result(view, Loop(V, state, t + 1, converged, np.empty(0)), history)
+        yield Progress(t + 1, result)
+        if converged or t + 1 == max_iter:
+            return result()
+    raise ValueError("max_iter must be at least 1")
+
+
+def _result(view, loop: Loop, history: list[float]) -> Callable[[], Result]:
+    """The Result of ``loop`` with the history so far, built on demand."""
+    n = len(history)
+    return lambda: view(loop._replace(history=np.asarray(history[:n], dtype=float)))
 
 
 def lloyd(

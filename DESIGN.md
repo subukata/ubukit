@@ -51,8 +51,8 @@ Each principle states a rule and the failure it prevents.
 4. **Same API, same math, not the same bits.** Python and JavaScript share
    names, parameters and equations (`docs/algorithms.md`); results agree to
    ~1e-9 when the initialization is given. Each language may add API only for
-   its own concerns (JavaScript: step generators and asynchronous running;
-   Python: compiled kernels).
+   its own concerns (JavaScript: asynchronous running; Python: compiled
+   kernels).
    *Why:* users move between the languages and expect the same results, but
    random generators, BLAS and platforms make bit-for-bit agreement
    unattainable, so agreement is defined by equations and checked by fixtures.
@@ -89,15 +89,18 @@ Each principle states a rule and the failure it prevents.
 
 How the principles are realized today. This section changes with the code.
 
-- **Engine:** `iterate(X, V, step, max_iter, tol)` in
-  `python/src/ubukit/_core.py` and `js/src/core.js`; a step maps
-  `(V, state, t)` to `(V, state, objective)`. The standard step is
+- **Engine:** `iterate(X, V, step, max_iter, tol, view)` in
+  `python/src/ubukit/_core.py` and `js/src/core.js`, a generator in both; a
+  step maps `(V, state, t)` to `(V, state, objective)`. The standard step is
   `lloyd(assign, update, objective)`; k-means uses an exact accelerated
   step with Hamerly's bounds, and the online SOM's step is one epoch. Each
-  method passes the loop the function that turns its state into a Result,
-  so in JavaScript every yielded iteration can build, on demand, the Result
-  the run would return had it stopped there; steps therefore never modify a
-  state they have returned.
+  method passes the loop its `view`, the function that turns the loop's state
+  into its Result, so every yielded iteration can build, on demand, the
+  Result the run would return had it stopped there; steps therefore never
+  modify a state they have returned. Each fitting function is written once
+  as such a generator: `steps` exposes the generators, and the plain
+  functions run them to the end (`stepwise` in Python, `index.js` in
+  JavaScript).
 - **Input contract:** `as_matrix` (Python) and `matrix` (JavaScript) reject
   non-finite input and data outside the scale bounds.
 - **Implementations:** Python is vectorized NumPy/SciPy; JavaScript is plain
