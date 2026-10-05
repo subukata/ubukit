@@ -13,11 +13,12 @@ from scipy.special import xlogy
 from ._core import (
     TINY,
     Result,
-    alternate,
     as_matrix,
     check_float,
     check_int,
+    iterate,
     label_sums,
+    lloyd,
     softmax_rows,
     sq_norms,
     sqdist,
@@ -55,17 +56,20 @@ def som(
     rng = np.random.default_rng(seed)
     n = len(X)
     steps = epochs * n
-    t = 0
-    for _ in range(epochs):
-        for i in rng.permutation(n) if shuffle else range(n):
-            f = t / (steps - 1) if steps > 1 else 0.0
+
+    def epoch(W, _, e):
+        W = W.copy()
+        for j, i in enumerate(rng.permutation(n) if shuffle else range(n)):
+            f = (e * n + j) / (steps - 1) if steps > 1 else 0.0
             s, eta = s0 * (s1 / s0) ** f, lr * (lr_end / lr) ** f
             diff = X[i] - W
             bmu = np.einsum("ij,ij->i", diff, diff).argmin()
             g = R - R[bmu]
             h = np.exp(np.einsum("ij,ij->i", g, g) * (-0.5 / (s * s)))
             W += (eta * h)[:, None] * diff
-            t += 1
+        return W, None, None
+
+    W, *_ = iterate(X, W, epoch, max_iter=epochs, tol=None)
     return _finish(X, mean, R, W, epochs)
 
 
@@ -93,7 +97,8 @@ def batch_som(X, grid=(10, 10), *, epochs=50, sigma=None, sigma_end=0.5, init="p
         out[ok] = num.reshape(len(W), -1)[ok] / den[ok, None]
         return out
 
-    W, *_ = alternate(X, W, lambda D, _, t: D.argmin(axis=1), update, max_iter=epochs, tol=None)
+    step = lloyd(X, lambda D, _, t: D.argmin(axis=1), update)
+    W, *_ = iterate(X, W, step, max_iter=epochs, tol=None)
     return _finish(X, mean, R, W, epochs)
 
 
@@ -122,14 +127,14 @@ def som_olp(
         cost = D if P is None else D + gamma * sqdist(P @ R, R, cc=rr)
         return softmax_rows(cost * (-1.0 / lam))
 
-    W, P, n_iter, converged, history = alternate(
+    step = lloyd(
         X,
-        W,
         assign,
         update=lambda P, W, t: weighted_mean(X, P, W),
         objective=lambda D, P: float(np.sum(P * cost) + lam * np.sum(xlogy(P, P))),
-        max_iter=check_int(max_iter, "max_iter", 1),
-        tol=check_float(tol, "tol", 0.0),
+    )
+    W, P, n_iter, converged, history = iterate(
+        X, W, step, max_iter=check_int(max_iter, "max_iter", 1), tol=check_float(tol, "tol", 0.0)
     )
     return Result(W + mean, P.argmax(axis=1), P, n_iter, converged, history, P @ R)
 

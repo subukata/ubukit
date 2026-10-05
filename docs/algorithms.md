@@ -1,7 +1,9 @@
 # Algorithms
 
-All clustering methods and two of the maps share one alternating loop over data
-$X = \{x_i\}_{i=1}^N \subset \mathbb{R}^D$ and prototypes $V = \{v_c\}_{c=1}^K$:
+Every method repeats one step on data $X = \{x_i\}_{i=1}^N \subset \mathbb{R}^D$
+and prototypes $V = \{v_c\}_{c=1}^K$ under the same stopping rule. All
+clustering methods and two of the maps use the standard alternating step
+(the online SOM's step is one epoch):
 
 $$
 d_{ic}^2 = \lVert x_i - v_c \rVert^2

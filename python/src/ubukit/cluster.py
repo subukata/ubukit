@@ -14,10 +14,11 @@ from scipy.special import xlogy
 from ._core import (
     TINY,
     Result,
-    alternate,
     check_float,
     check_int,
+    iterate,
     label_mean,
+    lloyd,
     prepare,
     softmax_rows,
     weighted_mean,
@@ -35,14 +36,14 @@ def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Result:
         seed: seed for k-means++.
     """
     X, mean, V = prepare(X, k, init, seed)
-    V, labels, n_iter, converged, history = alternate(
+    step = lloyd(
         X,
-        V,
         assign=lambda D, _, t: D.argmin(axis=1),
         update=lambda labels, V, t: label_mean(X, labels, V),
         objective=lambda D, labels: float(D[np.arange(len(D)), labels].sum()),
-        max_iter=check_int(max_iter, "max_iter", 1),
-        tol=0.0,
+    )
+    V, labels, n_iter, converged, history = iterate(
+        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
     )
     return Result(V + mean, labels, None, n_iter, converged, history)
 
@@ -67,14 +68,9 @@ def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> 
         # keeps u^m from underflowing to all zeros for large m.
         return weighted_mean(X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
-    V, U, n_iter, converged, history = alternate(
-        X,
-        V,
-        assign,
-        update,
-        objective=lambda D, U: float(np.sum(U**m * D)),
-        max_iter=check_int(max_iter, "max_iter", 1),
-        tol=check_float(tol, "tol", 0.0),
+    step = lloyd(X, assign, update, objective=lambda D, U: float(np.sum(U**m * D)))
+    V, U, n_iter, converged, history = iterate(
+        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=check_float(tol, "tol", 0.0)
     )
     return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
 
@@ -86,14 +82,14 @@ def efcm(X, k, *, tau=1.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) 
     """
     tau = check_float(tau, "tau", 0.0, strict=True)
     X, mean, V = prepare(X, k, init, seed)
-    V, U, n_iter, converged, history = alternate(
+    step = lloyd(
         X,
-        V,
         assign=lambda D, _, t: softmax_rows(D * (-1.0 / tau)),
         update=lambda U, V, t: weighted_mean(X, U, V),
         objective=lambda D, U: float(np.sum(U * D) + tau * np.sum(xlogy(U, U))),
-        max_iter=check_int(max_iter, "max_iter", 1),
-        tol=check_float(tol, "tol", 0.0),
+    )
+    V, U, n_iter, converged, history = iterate(
+        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=check_float(tol, "tol", 0.0)
     )
     return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
 
@@ -121,13 +117,9 @@ def rcm(X, k, *, alpha=1.1, beta=0.0, p=1.0, init="k-means++", max_iter=300, see
         mask = d <= radius
         return mask / mask.sum(axis=1, keepdims=True)
 
-    V, U, n_iter, converged, history = alternate(
-        X,
-        V,
-        assign,
-        update=lambda U, V, t: weighted_mean(X, U, V),
-        max_iter=check_int(max_iter, "max_iter", 1),
-        tol=0.0,
+    step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
+    V, U, n_iter, converged, history = iterate(
+        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
     )
     return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
 
@@ -151,13 +143,9 @@ def rmcm(X, k, delta, *, init="k-means++", max_iter=300, max_edges=10_000_000, s
         H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), rows), shape=(n, len(V)))
         return (P @ H).toarray()
 
-    V, U, n_iter, converged, history = alternate(
-        X,
-        V,
-        assign,
-        update=lambda U, V, t: weighted_mean(X, U, V),
-        max_iter=check_int(max_iter, "max_iter", 1),
-        tol=0.0,
+    step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
+    V, U, n_iter, converged, history = iterate(
+        X, V, step, max_iter=check_int(max_iter, "max_iter", 1), tol=0.0
     )
     return Result(V + mean, U.argmax(axis=1), U, n_iter, converged, history)
 

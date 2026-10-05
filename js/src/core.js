@@ -1,8 +1,10 @@
 /**
  * Shared numerics: matrices, validation, distances, initialization and the
- * alternating engine. Every partitional method is one loop,
- * D = ||x_i - v_c||^2 -> U = assign(D) -> V = update(U),
- * written as a generator so callers can observe, pause or cancel it.
+ * engine. Every iterative method runs in one loop, iterate, which repeats a
+ * step until the prototypes stop moving; it is a generator so callers can
+ * observe, pause or cancel it. Nearly all methods use the standard step lloyd,
+ * D = ||x_i - v_c||^2 -> U = assign(D) -> V = update(U); a method whose
+ * iteration has another shape (the online SOM) supplies its own step.
  */
 
 /** @typedef {{ data: Float64Array, rows: number, cols: number }} Matrix */
@@ -279,28 +281,48 @@ export function prepare(X, k, init = 'k-means++', seed) {
 }
 
 /**
- * Iterate D -> U -> V until no prototype coordinate moves more than tol times
- * the RMS radius of X (tol = 0: exact fixed point; tol = null: fixed schedule).
- * Yields after every iteration.
+ * A step maps (prototypes, state, t) to { V, state, value }: new prototypes,
+ * the state the method carries (null at first) and an objective value or null.
+ * @typedef {(V: Matrix, state: any, t: number) => { V: Matrix, state: any, value: number | null }} Step
  */
-export function* alternate(X, V, { assign, update, objective = null, maxIter, tol }) {
+
+/**
+ * The one loop: repeat step until no prototype coordinate moves more than tol
+ * times the RMS radius of X (tol = 0: exact fixed point; tol = null: fixed
+ * schedule), or maxIter. Yields after every step.
+ * @param {Matrix} X @param {Matrix} V @param {Step} step
+ * @param {{ maxIter: number, tol: number | null }} options
+ */
+export function* iterate(X, V, step, { maxIter, tol }) {
   let radius = 0;
   for (const v of X.data) radius += v * v;
-  const step = tol === null ? null : tol * Math.sqrt(radius / X.rows);
+  const limit = tol === null ? null : tol * Math.sqrt(radius / X.rows);
   const history = [];
-  let U = null;
+  let state = null;
   for (let t = 0; t < maxIter; t++) {
-    const D = sqdist(X, V);
-    U = assign(D, U, t);
-    if (objective) history.push(objective(D, U));
-    const previous = V;
-    V = update(U, V, t);
+    const previous = V, next = step(V, state, t);
+    ({ V, state } = next);
+    if (next.value !== null) history.push(next.value);
     let move = 0;
     for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
     yield { iteration: t + 1 };
-    if (step !== null && move <= step) return { V, U, nIter: t + 1, converged: true, history: Float64Array.from(history) };
+    if (limit !== null && move <= limit) return { V, state, nIter: t + 1, converged: true, history: Float64Array.from(history) };
   }
-  return { V, U, nIter: maxIter, converged: false, history: Float64Array.from(history) };
+  return { V, state, nIter: maxIter, converged: false, history: Float64Array.from(history) };
+}
+
+/**
+ * The standard step, D = ||x - v||^2 -> U = assign(D, U_prev, t) -> V = update(U, V, t).
+ * assign returns labels or memberships, which are the step's state; the
+ * optional objective(D, U) gives one history value.
+ * @returns {Step}
+ */
+export function lloyd(X, { assign, update, objective = null }) {
+  return (V, U, t) => {
+    const D = sqdist(X, V);
+    U = assign(D, U, t);
+    return { V: update(U, V, t), state: U, value: objective ? objective(D, U) : null };
+  };
 }
 
 /**
