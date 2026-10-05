@@ -26,11 +26,27 @@ const best = await ub.minimize(p => (p.x - 1) ** 2, { x: ub.uniform(-5, 5) }, { 
 Inputs should be finite and of ordinary scale; standardize features first.
 
 Fitting runs synchronously. Every fitting function has a generator in `steps`
-that yields after each iteration; `runAsync` drives it without blocking the
-event loop and supports `AbortSignal`:
+that yields `{ iteration, result }` after each iteration (each epoch for
+maps). `result()` returns the Result the run would return had it stopped
+there (centers, memberships, labels, embedding, history), so the learning
+can be drawn as it happens, without interpolation; it costs nothing unless
+called. Keep the generator to pause, step or continue:
 
 ```js
-const result = await ub.runAsync(ub.steps.fcm(X, 2), { signal, onProgress: ({ iteration }) => {} });
+const run = ub.steps.somOlp(X, [10, 10], { lam: 0.5, gamma: 1, maxIter: 1000 });
+function frame() {
+  const { value, done } = run.next();     // one iteration
+  draw(done ? value : value.result());    // done: value is the final Result
+  if (!done) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+```
+
+`runAsync` drives a generator without blocking the event loop and supports
+`AbortSignal`; `onProgress` receives the same `{ iteration, result }`:
+
+```js
+const result = await ub.runAsync(ub.steps.fcm(X, 2), { signal, onProgress: p => draw(p.result()) });
 ```
 
 For heavy work in a browser, import `ubukit` inside your own Web Worker.

@@ -55,10 +55,10 @@ import { fcm, batchSom, trustworthiness, steps, runAsync } from 'ubukit';
 const X = [[0, 0], [0.1, 0.2], [4, 4], [4.2, 3.9]];   // rows, or { data, rows, cols }
 const r = fcm(X, 2, { m: 2, seed: 0 });                // r.centers is { data: Float64Array, rows, cols }
 
-// Progress and cancellation without blocking the page:
+// Every iteration's actual state, with cancellation, without blocking the page:
 const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
   signal: AbortSignal.timeout(5000),
-  onProgress: ({ iteration }) => console.log(iteration),
+  onProgress: p => console.log(p.iteration, p.result().centers),
 });
 ```
 

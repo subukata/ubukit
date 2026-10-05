@@ -57,8 +57,7 @@ export function* som(X, grid = [10, 10], {
     }
     return { V: { data: w, rows: k, cols: d }, state: null, value: null };
   };
-  const out = yield* iterate(s.X, s.W, epoch, { maxIter: epochs, tol: null });
-  return finish({ ...s, W: out.V }, epochs);
+  return yield* iterate(s.X, s.W, epoch, { maxIter: epochs, tol: null, view: loop => finish(s, loop, epochs) });
 }
 
 /**
@@ -100,8 +99,8 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     }
     return { data: out, rows: k, cols: d };
   };
-  const out = yield* iterate(s.X, s.W, lloyd(s.X, { assign: argminRows, update }), { maxIter: epochs, tol: null });
-  return finish({ ...s, W: out.V }, epochs);
+  const view = loop => finish(s, loop, epochs);
+  return yield* iterate(s.X, s.W, lloyd(s.X, { assign: argminRows, update }), { maxIter: epochs, tol: null, view });
 }
 
 /**
@@ -137,12 +136,11 @@ export function* somOlp(X, grid = [10, 10], options) {
       return J;
     },
   });
-  const out = yield* iterate(s.X, s.W, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
-  const P = out.state;
-  return {
-    centers: shift(out.V, s.mean), labels: argmaxRows(P), membership: P, nIter: out.nIter,
-    converged: out.converged, history: out.history, embedding: multiply(P, s.R),
-  };
+  const view = ({ V, state: P, nIter, converged, history }) => ({
+    centers: shift(V, s.mean), labels: argmaxRows(P), membership: P, nIter, converged, history,
+    embedding: multiply(P, s.R),
+  });
+  return yield* iterate(s.X, s.W, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
 }
 
 function multiply(A, B) {
@@ -194,11 +192,12 @@ function sigmas(sigma, sigmaEnd, R) {
   return [checkNumber(sigma, 'sigma', 0, true), checkNumber(sigmaEnd, 'sigmaEnd', 0, true)];
 }
 
-function finish(s, epochs) {
-  const labels = argminRows(sqdist(s.X, s.W)), q = s.R.cols, emb = new Float64Array(labels.length * q);
+/** A map's Result for the prototypes the loop has reached; its schedule is complete after `epochs`. */
+function finish(s, { V, nIter }, epochs) {
+  const labels = argminRows(sqdist(s.X, V)), q = s.R.cols, emb = new Float64Array(labels.length * q);
   labels.forEach((j, i) => emb.set(s.R.data.subarray(j * q, (j + 1) * q), i * q));
   return {
-    centers: shift(s.W, s.mean), labels, membership: null, nIter: epochs, converged: true,
+    centers: shift(V, s.mean), labels, membership: null, nIter, converged: nIter === epochs,
     history: new Float64Array(0), embedding: { data: emb, rows: labels.length, cols: q },
   };
 }

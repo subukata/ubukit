@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Every iteration's result, on demand
+
+The JavaScript step generators yield `{ iteration, result }`, where
+`result()` returns the Result the run would return had it stopped at that
+iteration; the loop builds it with the same function that builds the final
+Result. *Why:* the browser demo could show only finished runs: the
+generators yielded just the iteration number, so drawing the SOM-OLP
+learning meant restarting from the centers, which reset the memberships the
+latent positions come from. *Rejected:* building every intermediate Result
+eagerly (O(NK) per iteration even when unused), an `onIteration` callback on
+every function (duplicates the generators), and an API to resume from a
+saved state (exposes internal state; keeping the generator already resumes).
+
 ## 2026-10-05 CI only by hand while the repository is private (#50)
 
 CI runs only when the maintainer starts it, on one operating system per run,

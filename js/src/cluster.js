@@ -30,8 +30,8 @@ function result(mean, { V, state: U, nIter, converged, history }, hard = false) 
  */
 export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
   const p = prepare(X, k, init, seed);
-  const out = yield* iterate(p.X, p.V, hamerly(p.X), { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
-  return result(p.mean, { ...out, state: out.state.labels }, true);
+  const view = loop => result(p.mean, { ...loop, state: loop.state.labels }, true);
+  return yield* iterate(p.X, p.V, hamerly(p.X), { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0, view });
 }
 
 /**
@@ -49,7 +49,9 @@ function hamerly(X) {
   const { rows: n, cols: d, data: x } = X;
   return (V, state) => {
     const k = V.rows, v = V.data;
-    const labels = state?.labels ?? new Int32Array(n), lower = state?.lower ?? new Float64Array(n);
+    // Fresh arrays: a state once returned is never modified (see iterate).
+    const labels = Int32Array.from(state?.labels ?? new Int32Array(n));
+    const lower = Float64Array.from(state?.lower ?? new Float64Array(n));
     const dist = (i, j) => {
       let s = 0;
       for (let f = 0, a = i * d, b = j * d; f < d; f++) {
@@ -113,8 +115,8 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
       return J;
     },
   });
-  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
-  return result(p.mean, out);
+  const view = loop => result(p.mean, loop);
+  return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
 }
 
 /**
@@ -148,8 +150,8 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
       return J;
     },
   });
-  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
-  return result(p.mean, out);
+  const view = loop => result(p.mean, loop);
+  return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
 }
 
 /**
@@ -177,8 +179,8 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
     return U;
   };
   const step = lloyd(prep.X, { assign, update: (U, V) => weightedMean(prep.X, U, V) });
-  const out = yield* iterate(prep.X, prep.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
-  return result(prep.mean, out);
+  const view = loop => result(prep.mean, loop);
+  return yield* iterate(prep.X, prep.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0, view });
 }
 
 /**
@@ -200,8 +202,8 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
     return R;
   };
   const step = lloyd(p.X, { assign, update: (U, V) => weightedMean(p.X, U, V) });
-  const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
-  return result(p.mean, out);
+  const view = loop => result(p.mean, loop);
+  return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0, view });
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */
