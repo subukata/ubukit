@@ -25,8 +25,9 @@ networks, data loading and preprocessing, plotting, and GPUs.
 Each principle states a rule and the failure it prevents.
 
 1. **One loop.** Every iterative method runs in the shared loop, which owns
-   the control: the stopping rule, the iteration limit, the objective history
-   and, in JavaScript, progress and cancellation. A method supplies only its
+   the control: the stopping rule, the iteration limit, the objective history,
+   progress and cancellation (the loop is a generator, so the caller sees
+   every iteration and may stop at any). A method supplies only its
    step, usually the standard alternating step (distances, then memberships,
    then weighted means), so a new method is usually just a membership rule.
    *Why:* stopping rules, histories and cancellation written per method drift
