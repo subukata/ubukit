@@ -9,7 +9,7 @@ From the repository root, with Python 3.12+ and Node.js 22+:
 
 ```sh
 cd python && pip install -e . --group dev
-ruff check . ../fixtures ../bench && ruff format --check . ../fixtures ../bench && pytest
+ruff check . ../fixtures ../bench && ruff format --check . ../fixtures ../bench && mypy && pytest
 cd ../js && npm ci --ignore-scripts && npm test && npm run check
 cd .. && python bench/run.py --size smoke --check
 ```

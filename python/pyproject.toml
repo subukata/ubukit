@@ -29,9 +29,9 @@ Documentation = "https://github.com/subukata/ubukit/blob/main/docs/algorithms.md
 Issues = "https://github.com/subukata/ubukit/issues"
 
 [dependency-groups]
-# ruff stays within one minor series so that new lint rules and formatter
-# styles arrive only through a deliberate bump, not as a surprise CI failure.
-dev = ["pytest>=8", "ruff~=0.16.10", "scikit-learn>=1.6"]
+# ruff and mypy stay within one minor series so that new rules and styles
+# arrive only through a deliberate bump, not as a surprise failure.
+dev = ["mypy~=2.4.0", "pytest>=8", "ruff~=0.16.10", "scikit-learn>=1.6"]
 
 [tool.hatch.version]
 path = "src/ubukit/__init__.py"
@@ -45,6 +45,14 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "NPY", "SIM", "RUF"]
+
+[tool.mypy]
+files = ["src"]
+
+# SciPy ships no type information.
+[[tool.mypy.overrides]]
+module = ["scipy", "scipy.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

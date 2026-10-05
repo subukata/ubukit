@@ -14,8 +14,9 @@ package declared `Typing :: Typed` while 28% of the parameters were
 annotated, so editors and type checkers knew little about the API; now
 mypy `--strict` accepts correct calls and catches a string `k`, missing
 `lam`/`gamma` and an unknown `average`. *Rejected:* dropping the `Typed`
-classifier instead (gives up editor help for users). A type checker is not
-part of the checks yet; that is a dependency the maintainer decides on.
+classifier instead (gives up editor help for users). mypy, pinned to one
+minor series like ruff, is part of the local checks (SciPy's missing stubs
+are ignored in `pyproject.toml`), so the annotations stay true.
 
 ## 2026-10-06 One engine shape in both languages
 
