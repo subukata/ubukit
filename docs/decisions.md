@@ -4,7 +4,7 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
-## 2026-10-05 Hamerly's bounds for k-means
+## 2026-10-05 Hamerly's bounds for k-means (#49)
 
 k-means runs Lloyd's iterations as a step with Hamerly's (2010) bounds: a
 point keeps its label without computing its other distances when its exact
