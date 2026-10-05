@@ -4,7 +4,7 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
-## 2026-10-05 Documents by role
+## 2026-10-05 Documents by role (#46)
 
 `DESIGN.md` says what and why, `CONTRIBUTING.md` how, `AGENTS.md` only what
 is specific to agents, and this file the reasons; `CLAUDE.md` just includes
