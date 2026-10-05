@@ -10,7 +10,11 @@ Unless the maintainer asks for it:
 
 - do not push tags, publish packages, merge pull requests, or change
   repository settings, environments or secrets;
-- do not add dependencies or CI actions.
+- do not add dependencies or CI actions;
+- do not start a GitHub Actions workflow (dispatching or re-running one, or
+  anything else that triggers one). Say which workflow, how many jobs and on
+  which systems before asking: Actions minutes are the maintainer's and
+  limited.
 
 Never:
 

@@ -143,19 +143,28 @@ def label_mean(X: np.ndarray, labels: np.ndarray, V: np.ndarray) -> np.ndarray:
 
 
 def kmeans_plus_plus(X: np.ndarray, k: int, rng: np.random.Generator) -> np.ndarray:
-    """k-means++ seeding (Arthur & Vassilvitskii, 2007)."""
+    """Greedy k-means++ seeding (Arthur & Vassilvitskii, 2007).
+
+    Each new seed is the best, by the resulting sum of squared distances to the
+    nearest seed, of 2 + floor(ln k) candidates drawn in proportion to that
+    squared distance; a single draw too often puts two seeds in one cluster.
+    """
     n = len(X)
     xx = sq_norms(X)
+    trials = 2 + int(np.log(k))
     chosen = [int(rng.integers(n))]
     closest = sqdist(X, X[chosen], xx)[:, 0]
     for _ in range(1, k):
         total = closest.sum()
         if total > 0:
-            i = int(np.searchsorted(np.cumsum(closest), rng.random() * total, side="right"))
+            draws = np.searchsorted(np.cumsum(closest), rng.random(trials) * total, side="right")
+            candidates = np.minimum(draws, n - 1)
         else:
-            i = int(rng.integers(n))
-        chosen.append(min(i, n - 1))
-        np.minimum(closest, sqdist(X, X[chosen[-1:]], xx)[:, 0], out=closest)
+            candidates = rng.integers(n, size=trials)
+        D = np.minimum(closest[:, None], sqdist(X, X[candidates], xx))
+        best = int(D.sum(axis=0).argmin())
+        chosen.append(int(candidates[best]))
+        closest = D[:, best]
     return X[chosen].copy()
 
 

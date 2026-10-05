@@ -54,6 +54,20 @@ test('kmeans iterates are lloyds', () => {
   }
 });
 
+test('default seeding rarely merges separated blobs', () => {
+  // Greedy k-means++ keeps the best of 2 + ln k draws per seed (18 of 20 seeds
+  // recover these blobs exactly; single draws recovered 4).
+  let s = 11;
+  const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const g = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
+  const blobCenters = Array.from({ length: 10 }, () => Array.from({ length: 16 }, () => r() * 10 - 5));
+  const y = Array.from({ length: 2000 }, (_, i) => i % 10);
+  const data = y.map(c => blobCenters[c].map(v => v + g()));
+  let perfect = 0;
+  for (let seed = 0; seed < 20; seed++) perfect += ub.ari(y, ub.kmeans(data, 10, { seed }).labels) === 1;
+  assert.ok(perfect >= 13, `${perfect} of 20`);
+});
+
 test('fcm with a large fuzzifier keeps moving', () => {
   const m = 1000, r = ub.fcm(X, 3, { m, seed: 0, maxIter: 1000 });
   assert.ok(r.converged && r.nIter > 1);

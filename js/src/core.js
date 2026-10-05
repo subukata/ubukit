@@ -236,22 +236,32 @@ function divide(sums, mass, V) {
   return { data: out, rows: V.rows, cols: d };
 }
 
-/** k-means++ seeding (Arthur & Vassilvitskii, 2007). */
+/**
+ * Greedy k-means++ seeding (Arthur & Vassilvitskii, 2007): each new seed is the
+ * best, by the resulting sum of squared distances to the nearest seed, of
+ * 2 + floor(ln k) candidates drawn in proportion to that squared distance.
+ */
 export function kmeansPlusPlus(X, k, rand) {
-  const { rows: n, cols: d } = X, chosen = [Math.floor(rand() * n)];
+  const { rows: n, cols: d } = X, chosen = [Math.floor(rand() * n)], trials = 2 + Math.floor(Math.log(k));
   const row = i => ({ data: X.data.subarray(i * d, (i + 1) * d), rows: 1, cols: d });
-  const closest = sqdist(X, row(chosen[0])).data;
+  let closest = sqdist(X, row(chosen[0])).data;
   while (chosen.length < k) {
     let total = 0;
     for (const v of closest) total += v;
-    let i = n - 1;
-    if (total > 0) {
-      let target = rand() * total;
-      for (let j = 0; j < n; j++) if ((target -= closest[j]) < 0) { i = j; break; }
-    } else i = Math.floor(rand() * n);
-    chosen.push(i);
-    const next = sqdist(X, row(i)).data;
-    for (let j = 0; j < n; j++) closest[j] = Math.min(closest[j], next[j]);
+    let best = -1, bestSum = Infinity, bestClosest = closest;
+    for (let trial = 0; trial < trials; trial++) {
+      let i = n - 1;
+      if (total > 0) {
+        let target = rand() * total;
+        for (let j = 0; j < n; j++) if ((target -= closest[j]) < 0) { i = j; break; }
+      } else i = Math.floor(rand() * n);
+      const next = sqdist(X, row(i)).data;
+      let sum = 0;
+      for (let j = 0; j < n; j++) sum += next[j] = Math.min(closest[j], next[j]);
+      if (sum < bestSum) best = i, bestSum = sum, bestClosest = next;
+    }
+    chosen.push(best);
+    closest = bestClosest;
   }
   const V = new Float64Array(k * d);
   chosen.forEach((i, j) => V.set(row(i).data, j * d));

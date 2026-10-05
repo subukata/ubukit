@@ -73,6 +73,17 @@ def test_kmeans_with_duplicate_initial_centers_breaks_ties_by_index():
     assert not (r.labels == 1).any()
 
 
+def test_default_seeding_rarely_merges_separated_blobs():
+    # Greedy k-means++ keeps the best of 2 + ln k draws per seed; with a single
+    # draw, two seeds often land in one of these well-separated clusters.
+    rng = np.random.default_rng(0)
+    centers = rng.uniform(-5, 5, (10, 16))
+    y = np.repeat(np.arange(10), 200)
+    X = centers[y] + rng.normal(size=(2000, 16))
+    perfect = sum(ub.ari(y, ub.kmeans(X, 10, seed=s).labels) == 1.0 for s in range(20))
+    assert perfect >= 13  # 16 of 20 with greedy seeding, 6 with single draws
+
+
 def test_kmeans_matches_sklearn():
     rng = np.random.default_rng(0)
     X = rng.normal(size=(500, 4))
@@ -98,7 +109,9 @@ def test_fcm_is_stable_for_extreme_fuzzifiers(blobs, m):
     X, centers = blobs
     r = ub.fcm(X, 3, m=m, seed=0, max_iter=1000)
     assert np.isfinite(r.membership).all()
-    assert r.converged and r.n_iter > 1
+    # No n_iter check: with greedy seeding, m near 1 converges in one step. A
+    # stall (u^m underflowing, the centers never moving) fails the check below.
+    assert r.converged
     # Centers are the u^m-weighted means of the memberships; u^m itself
     # underflows for large m, so the reference weights use logarithms.
     with np.errstate(divide="ignore"):
