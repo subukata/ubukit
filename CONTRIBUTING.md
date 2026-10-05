@@ -14,6 +14,8 @@ cd ../js && npm ci --ignore-scripts && npm test && npm run check
 cd .. && python bench/run.py --size smoke --check
 ```
 
+Tests mirror the modules in both languages (`python/tests/test_<module>.py`,
+`js/test/<module>.test.js`, with shared JavaScript data in `js/test/helpers.js`).
 Run them before every pull request: CI does not run on pushes or pull
 requests (see "CI and releases"). ruff is pinned to one minor series; bump it
 in a pull request of its own.

@@ -16,7 +16,7 @@
   "engines": { "node": ">=22" },
   "publishConfig": { "access": "public", "provenance": true },
   "scripts": {
-    "test": "node --test",
+    "test": "node --test \"test/*.test.js\"",
     "check": "tsc -p .",
     "build:types": "tsc -p . --noEmit false --declaration --emitDeclarationOnly --outDir types",
     "prepack": "npm run build:types"
