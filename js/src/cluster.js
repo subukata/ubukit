@@ -5,10 +5,8 @@
  */
 import {
   alternate, argmaxRows, argminRows, checkInt, checkNumber, labelMean, mapMatrix,
-  prepare, shift, softmaxRows, weightedMean,
+  prepare, shift, softmaxRows, TINY, weightedMean,
 } from './core.js';
-
-const TINY = 2.2250738585072014e-308;
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
 /** @typedef {import('./core.js').Result} Result */
@@ -49,7 +47,13 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
   const p = prepare(X, k, init, seed);
   const out = yield* alternate(p.X, p.V, {
     assign: D => softmaxRows(mapMatrix(D, d => Math.log(Math.max(d, TINY)) / (1 - m))),
-    update: (U, V) => weightedMean(p.X, mapMatrix(U, u => u ** m), V),
+    update: (U, V) => {
+      // Scaling each column by its maximum leaves the means unchanged and
+      // keeps u^m from underflowing to all zeros for large m.
+      const k = U.cols, top = new Float64Array(k).fill(TINY);
+      U.data.forEach((u, i) => (top[i % k] = Math.max(top[i % k], u)));
+      return weightedMean(p.X, mapMatrix(U, (u, i) => (u / top[i % k]) ** m), V);
+    },
     objective: (D, U) => U.data.reduce((s, u, i) => s + u ** m * D.data[i], 0),
     maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0),
   });

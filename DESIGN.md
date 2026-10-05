@@ -46,7 +46,7 @@ docs/algorithms.md  the equations; code mirrors them
 
 ## Workflow
 
-- Python: `cd python && pip install -e . --group dev && ruff check . && ruff format --check . && pytest`
+- Python: `cd python && pip install -e . --group dev && ruff check . ../fixtures && ruff format --check . ../fixtures && pytest`
 - JavaScript: `cd js && npm ci && npm test && npm run check`
 - After changing Python numerics: `python fixtures/generate.py`, then run both test suites.
 - Release: bump `python/src/ubukit/__init__.py` and `js/package.json` together,

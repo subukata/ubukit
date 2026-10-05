@@ -31,24 +31,27 @@ def _datasets() -> dict:
         "grid_init": grid_init,
         "high": np.random.default_rng(3).normal(size=(40, 5)),
         "low": np.random.default_rng(4).normal(size=(40, 2)),
+        "wide": np.random.default_rng(5).normal(size=(30, 100)) * np.linspace(3, 0.1, 100),
         "labels_a": labels.integers(0, 4, 50),
         "labels_b": labels.integers(0, 3, 50),
     }
 
 
-# (method, positional args, options); strings in args/options name datasets.
+# (method, data, positional args, options); strings in args/options name datasets.
 CASES = [
-    ("kmeans", [3], {"init": "centers"}),
-    ("fcm", [3], {"init": "centers", "m": 2.0, "tol": 1e-10}),
-    ("fcm", [3], {"init": "centers", "m": 1.5, "tol": 1e-10}),
-    ("efcm", [3], {"init": "centers", "tau": 2.0, "tol": 1e-10}),
-    ("rcm", [3], {"init": "centers", "alpha": 1.3}),
-    ("rcm", [3], {"init": "centers", "alpha": 1.2, "beta": 0.4, "p": 2.0}),
-    ("rmcm", [3, 0.8], {"init": "centers"}),
-    ("batch_som", [[3, 4]], {"init": "grid_init", "epochs": 8}),
-    ("batch_som", [[3, 4]], {"epochs": 8}),
-    ("som", [[3, 4]], {"init": "grid_init", "epochs": 2, "shuffle": False}),
-    ("som_olp", [[3, 4]], {"lam": 0.5, "gamma": 1.0, "tol": 1e-10}),
+    ("kmeans", "blobs", [3], {"init": "centers"}),
+    ("fcm", "blobs", [3], {"init": "centers", "m": 2.0, "tol": 1e-10}),
+    ("fcm", "blobs", [3], {"init": "centers", "m": 1.5, "tol": 1e-10}),
+    ("efcm", "blobs", [3], {"init": "centers", "tau": 2.0, "tol": 1e-10}),
+    ("rcm", "blobs", [3], {"init": "centers", "alpha": 1.3}),
+    ("rcm", "blobs", [3], {"init": "centers", "alpha": 1.2, "beta": 0.4, "p": 2.0}),
+    ("rmcm", "blobs", [3, 0.8], {"init": "centers"}),
+    ("batch_som", "blobs", [[3, 4]], {"init": "grid_init", "epochs": 8}),
+    ("batch_som", "blobs", [[3, 4]], {"epochs": 8}),
+    ("som", "blobs", [[3, 4]], {"init": "grid_init", "epochs": 2, "shuffle": False}),
+    ("som_olp", "blobs", [[3, 4]], {"lam": 0.5, "gamma": 1.0, "tol": 1e-10}),
+    # PCA initialization with D > 64 > N.
+    ("som_olp", "wide", [[3, 4]], {"lam": 50.0, "gamma": 1.0, "max_iter": 5}),
 ]
 METRICS = [
     ("ari", ["labels_a", "labels_b"], {}),
@@ -68,9 +71,9 @@ def _resolve(value, data):
 def build() -> dict:
     data = _datasets()
     cases = []
-    for method, args, options in CASES:
+    for method, X, args, options in CASES:
         r = getattr(ub, method)(
-            data["blobs"],
+            data[X],
             *[tuple(a) if isinstance(a, list) else a for a in args],
             **{k: _resolve(v, data) for k, v in options.items()},
         )
@@ -79,9 +82,7 @@ def build() -> dict:
             expect["membership"] = r.membership
         if r.embedding is not None:
             expect["embedding"] = r.embedding
-        cases.append(
-            {"method": method, "X": "blobs", "args": args, "options": options, "expect": expect}
-        )
+        cases.append({"method": method, "X": X, "args": args, "options": options, "expect": expect})
     for method, args, options in METRICS:
         value = getattr(ub, method)(*[_resolve(a, data) for a in args], **options)
         cases.append({"method": method, "args": args, "options": options, "expect": value})

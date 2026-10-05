@@ -18,11 +18,17 @@ import numpy as np
 from scipy import sparse
 
 TINY = np.finfo(np.float64).tiny
+# "Ordinary scale": row norms below 1e150 keep every squared distance between
+# data, prototypes and grid points (~1e301 at most) far from float64 overflow.
+MAX_SQ_NORM = 1e300
 
 
 @dataclass(frozen=True, slots=True, eq=False)
 class Result:
     """A fitted clustering or map.
+
+    ``labels`` and ``membership`` come from the last assignment step, i.e. for
+    the prototypes before the final update; they coincide at a fixed point.
 
     Attributes:
         centers: (K, D) prototypes in input coordinates.
@@ -44,13 +50,15 @@ class Result:
 
 
 def as_matrix(X, name: str = "X") -> np.ndarray:
-    """Return X as a finite, non-empty, C-contiguous float64 matrix."""
-    A = np.asarray(X, dtype=np.float64)
+    """Return X as a finite, non-empty, C-contiguous float64 matrix of ordinary scale."""
+    A = np.ascontiguousarray(X, dtype=np.float64)
     if A.ndim != 2 or 0 in A.shape:
         raise ValueError(f"{name} must be a non-empty 2-D array")
     if not np.isfinite(A).all():
         raise ValueError(f"{name} must contain only finite values")
-    return np.ascontiguousarray(A)
+    if not sq_norms(A).max() < MAX_SQ_NORM:
+        raise ValueError(f"{name} is too large in scale for float64 distances; standardize it")
+    return A
 
 
 def check_int(value, name: str, low: int, high: int | None = None) -> int:

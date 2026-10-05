@@ -62,11 +62,16 @@ def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> 
         L *= -1.0 / (m - 1.0)
         return softmax_rows(L)
 
+    def update(U, V, t):
+        # Scaling each column by its maximum leaves the means unchanged and
+        # keeps u^m from underflowing to all zeros for large m.
+        return weighted_mean(X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
+
     V, U, n_iter, converged, history = alternate(
         X,
         V,
         assign,
-        update=lambda U, V, t: weighted_mean(X, U**m, V),
+        update,
         objective=lambda D, U: float(np.sum(U**m * D)),
         max_iter=check_int(max_iter, "max_iter", 1),
         tol=check_float(tol, "tol", 0.0),

@@ -23,6 +23,8 @@ ub.ari([0, 0, 1, 1], Array.from(r.labels));
 const best = await ub.minimize(p => (p.x - 1) ** 2, { x: ub.uniform(-5, 5) }, { nTrials: 40 });
 ```
 
+Inputs should be finite and of ordinary scale; standardize features first.
+
 Fitting runs synchronously. Every fitting function has a generator in `steps`
 that yields after each iteration; `runAsync` drives it without blocking the
 event loop and supports `AbortSignal`:

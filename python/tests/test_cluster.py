@@ -59,12 +59,18 @@ def test_objective_never_increases(blobs, method, options):
     assert np.all(np.diff(h) <= 1e-9 * abs(h[0]))
 
 
-@pytest.mark.parametrize("m", [1.0 + 1e-6, 1.01, 3.0, 50.0])
+@pytest.mark.parametrize("m", [1.0 + 1e-6, 1.01, 3.0, 50.0, 1000.0])
 def test_fcm_is_stable_for_extreme_fuzzifiers(blobs, m):
     X, centers = blobs
     r = ub.fcm(X, 3, m=m, seed=0, max_iter=1000)
     assert np.isfinite(r.membership).all()
-    assert r.converged
+    assert r.converged and r.n_iter > 1
+    # Centers are the u^m-weighted means of the memberships; u^m itself
+    # underflows for large m, so the reference weights use logarithms.
+    with np.errstate(divide="ignore"):
+        L = m * np.log(r.membership)
+    W = np.exp(L - L.max(axis=0))
+    np.testing.assert_allclose(r.centers, W.T @ X / W.sum(axis=0)[:, None], atol=1e-9)
     if m < 5:
         assert match_centers(r.centers, centers) < 0.15
 
@@ -141,6 +147,7 @@ def test_coincident_points_and_centers():
         (lambda X: ub.rcm(X, 3, alpha=0.9), "alpha"),
         (lambda X: ub.rmcm(X, 3, -1.0), "delta"),
         (lambda X: ub.kmeans(np.where(X > 4, np.nan, X), 3), "finite"),
+        (lambda X: ub.kmeans(X * 1e200, 3), "scale"),
         (lambda X: ub.kmeans(X[:, 0], 3), "2-D"),
         (lambda X: ub.kmeans(X, True), "k"),
     ],

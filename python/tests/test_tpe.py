@@ -61,6 +61,10 @@ def test_tell_accepts_external_trials():
         lambda: ub.TPE({"x": ub.uniform(0, 1)}, gamma=1.0),
         lambda: ub.TPE({"x": ub.uniform(0, 1)}).tell({"y": 0.5}, 1.0),
         lambda: ub.TPE({"x": ub.uniform(0, 1)}).tell({"x": 0.5}, float("nan")),
+        lambda: ub.TPE({"x": ub.uniform(0, 1)}).tell({"x": 5.0}, 1.0),
+        lambda: ub.TPE({"x": ub.uniform(0, 1)}).tell({"x": "0.5"}, 1.0),
+        lambda: ub.TPE({"n": ub.integer(1, 3)}).tell({"n": 1.5}, 1.0),
+        lambda: ub.TPE({"k": ub.choice("a", "b")}).tell({"k": "c"}, 1.0),
         lambda: ub.TPE({"x": ub.uniform(0, 1)}).result(),
     ],
 )

@@ -12,6 +12,7 @@ from __future__ import annotations
 import math
 from collections.abc import Callable
 from dataclasses import dataclass
+from numbers import Real
 
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
@@ -31,6 +32,14 @@ class _Numeric:
         return (math.log(lo), math.log(hi)) if self.log else (lo, hi)
 
     def encode(self, x) -> float:
+        if (
+            isinstance(x, bool)
+            or not isinstance(x, Real)
+            or not self.low <= x <= self.high
+            or (self.integer and x != round(x))
+        ):
+            kind = "an integer" if self.integer else "a number"
+            raise ValueError(f"{x!r} is not {kind} in [{self.low}, {self.high}]")
         lo, hi = self._bounds()
         v = math.log(x) if self.log else float(x)
         return (v - lo) / (hi - lo)
@@ -49,6 +58,8 @@ class _Choice:
     options: tuple
 
     def encode(self, x) -> float:
+        if x not in self.options:
+            raise ValueError(f"{x!r} is not an option")
         return float(self.options.index(x))
 
     def decode(self, u: float):

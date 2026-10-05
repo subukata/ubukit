@@ -8,6 +8,8 @@
 /** @typedef {{ data: Float64Array, rows: number, cols: number }} Matrix */
 /** @typedef {number[][] | Matrix} MatrixLike */
 /**
+ * labels and membership come from the last assignment step, i.e. for the
+ * prototypes before the final update; they coincide at a fixed point.
  * @typedef {object} Result
  * @property {Matrix} centers (K, D) prototypes.
  * @property {Int32Array} labels strongest membership (nearest prototype for hard methods).
@@ -19,8 +21,15 @@
  */
 /** @typedef {{ iteration: number }} Progress */
 
+/** Smallest positive normal float64. */
+export const TINY = 2.2250738585072014e-308;
+// "Ordinary scale": row norms below 1e150 keep every squared distance between
+// data, prototypes and grid points (~1e301 at most) far from float64 overflow.
+const MAX_SQ_NORM = 1e300;
+
 /**
- * Copy rows or a {data, rows, cols} matrix into a validated Float64 matrix.
+ * Copy rows or a {data, rows, cols} matrix into a validated Float64 matrix
+ * that is finite, non-empty and of ordinary scale.
  * @param {MatrixLike} values
  * @returns {Matrix}
  */
@@ -40,10 +49,18 @@ export function matrix(values, name = 'X') {
   } else {
     throw new TypeError(`${name} must be an array of rows or {data, rows, cols}`);
   }
-  if (!(out.rows > 0 && out.cols > 0) || out.data.length !== out.rows * out.cols) {
+  const { rows, cols, data } = out;
+  if (!(Number.isSafeInteger(rows) && Number.isSafeInteger(cols) && rows > 0 && cols > 0) || data.length !== rows * cols) {
     throw new RangeError(`${name} must be a non-empty rows x cols matrix`);
   }
-  for (const v of out.data) if (!Number.isFinite(v)) throw new RangeError(`${name} must contain only finite values`);
+  for (let i = 0; i < rows; i++) {
+    let norm = 0;
+    for (let f = i * cols; f < (i + 1) * cols; f++) {
+      if (!Number.isFinite(data[f])) throw new RangeError(`${name} must contain only finite values`);
+      norm += data[f] * data[f];
+    }
+    if (!(norm < MAX_SQ_NORM)) throw new RangeError(`${name} is too large in scale for float64 distances; standardize it`);
+  }
   return out;
 }
 

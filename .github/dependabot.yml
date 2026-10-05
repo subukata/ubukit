@@ -1,11 +1,9 @@
+# Python dependencies are lower bounds set by policy (SPEC 0), not pins, and
+# CI already installs the newest releases, so pip is deliberately not listed.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: monthly
-  - package-ecosystem: pip
-    directory: /python
     schedule:
       interval: monthly
   - package-ecosystem: npm
