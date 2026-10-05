@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
+from typing import Literal
 
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.spatial.distance import cdist
 from scipy.special import gammaln
 
 from ._core import as_matrix, check_int
 
-_AVERAGES = {
+type Average = Literal["arithmetic", "geometric", "min", "max"]
+
+_AVERAGES: dict[str, Callable[[float, float], float]] = {
     "arithmetic": lambda a, b: (a + b) / 2,
     "geometric": lambda a, b: np.sqrt(a * b),
     "min": min,
@@ -18,7 +23,7 @@ _AVERAGES = {
 }
 
 
-def ari(labels_true, labels_pred) -> float:
+def ari(labels_true: ArrayLike, labels_pred: ArrayLike) -> float:
     """Adjusted Rand index (Hubert & Arabie, 1985)."""
     n, a, b, _, _, nij = _contingency(labels_true, labels_pred)
     # Exact integer pair counts: same/same, diff/same, same/diff, diff/diff.
@@ -30,7 +35,9 @@ def ari(labels_true, labels_pred) -> float:
     return 2.0 * (tp * tn - fn * fp) / ((tp + fn) * (fn + tn) + (tp + fp) * (fp + tn))
 
 
-def ami(labels_true, labels_pred, *, average="arithmetic") -> float:
+def ami(
+    labels_true: ArrayLike, labels_pred: ArrayLike, *, average: Average = "arithmetic"
+) -> float:
     """Adjusted mutual information (Vinh, Epps & Bailey, 2010).
 
     ``average`` normalizes by the arithmetic, geometric, min or max of the
@@ -49,7 +56,7 @@ def ami(labels_true, labels_pred, *, average="arithmetic") -> float:
     return (mi - emi) / denominator
 
 
-def trustworthiness(X, Y, k=5) -> float:
+def trustworthiness(X: ArrayLike, Y: ArrayLike, k: int = 5) -> float:
     """Trustworthiness of embedding Y of X (Venna & Kaski, 2001).
 
     Penalizes points that are among the k nearest neighbors in Y but not in X,
@@ -81,7 +88,7 @@ def trustworthiness(X, Y, k=5) -> float:
     return 1.0 - 2.0 * penalty / (n * k * (2.0 * n - 3.0 * k - 1.0))
 
 
-def continuity(X, Y, k=5) -> float:
+def continuity(X: ArrayLike, Y: ArrayLike, k: int = 5) -> float:
     """Continuity of embedding Y of X: trustworthiness with the roles swapped."""
     return trustworthiness(Y, X, k)
 

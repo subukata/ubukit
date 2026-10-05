@@ -8,3 +8,4 @@ dist/
 node_modules/
 js/types/
 .coverage
+.mypy_cache/

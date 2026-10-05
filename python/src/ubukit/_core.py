@@ -14,14 +14,21 @@ centered once before fitting, which keeps the Gram-identity distances accurate.
 from __future__ import annotations
 
 import inspect
+import math
 from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from functools import wraps
 from numbers import Integral, Real
-from typing import Any, NamedTuple
+from typing import Any, Literal, NamedTuple
 
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy import sparse
+
+# Public argument types.
+type Init = Literal["k-means++"] | ArrayLike  # k-means++ seeding or (k, D) centers
+type MapInit = Literal["pca"] | ArrayLike  # principal-plane start or (K, D) prototypes
+type Grid = tuple[int, int] | ArrayLike  # (rows, cols) or (K, Q) unit coordinates
 
 TINY = np.finfo(np.float64).tiny
 # "Ordinary scale": row norms below 1e150 keep every squared distance between
@@ -59,7 +66,7 @@ class Result:
     embedding: np.ndarray | None = None
 
 
-def as_matrix(X, name: str = "X") -> np.ndarray:
+def as_matrix(X: ArrayLike, name: str = "X") -> np.ndarray:
     """Return X as a finite, non-empty, C-contiguous float64 matrix of ordinary scale."""
     A = np.ascontiguousarray(X, dtype=np.float64)
     if A.ndim != 2 or 0 in A.shape:
@@ -74,28 +81,22 @@ def as_matrix(X, name: str = "X") -> np.ndarray:
     return A
 
 
-def check_int(value, name: str, low: int, high: int | None = None) -> int:
+def check_int(value: Any, name: str, low: int, high: int | None = None) -> int:
     """Validate an integer in [low, high]; like JavaScript, never beyond +-(2**53 - 1)."""
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, Integral)
-        or not max(low, -MAX_INT) <= value <= (MAX_INT if high is None else min(high, MAX_INT))
-    ):
+    v = int(value) if isinstance(value, Integral) and not isinstance(value, bool) else None
+    top = MAX_INT if high is None else min(high, MAX_INT)
+    if v is None or not max(low, -MAX_INT) <= v <= top:
         bound = f">= {low}" if high is None else f"in [{low}, {high}]"
         raise ValueError(f"{name} must be an integer {bound}")
-    return int(value)
+    return v
 
 
-def check_float(value, name: str, low: float = -np.inf, *, strict: bool = False) -> float:
-    if (
-        isinstance(value, bool)
-        or not isinstance(value, Real)
-        or not np.isfinite(value)
-        or value < low
-        or (strict and value == low)
-    ):
+def check_float(value: Any, name: str, low: float = -np.inf, *, strict: bool = False) -> float:
+    """Validate a finite real number >= low (> low when strict)."""
+    v = float(value) if isinstance(value, Real) and not isinstance(value, bool) else math.nan
+    if not (math.isfinite(v) and (v > low if strict else v >= low)):
         raise ValueError(f"{name} must be a finite number {'>' if strict else '>='} {low}")
-    return float(value)
+    return v
 
 
 def sq_norms(X: np.ndarray) -> np.ndarray:
@@ -170,7 +171,9 @@ def kmeans_plus_plus(X: np.ndarray, k: int, rng: np.random.Generator) -> np.ndar
     return X[chosen].copy()
 
 
-def prepare(X, k, init, seed):
+def prepare(
+    X: ArrayLike, k: int, init: Init, seed: int | None
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Validate and center X; return (centered X, mean, initial centers)."""
     X = as_matrix(X)
     k = check_int(k, "k", 1, len(X))
@@ -243,7 +246,9 @@ def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
                 return end.value
 
     # help() shows the generator's parameters with the Result it returns.
-    run.__signature__ = inspect.signature(generator).replace(return_annotation=Result)
+    run.__signature__ = inspect.signature(generator).replace(  # type: ignore[attr-defined]
+        return_annotation=Result
+    )
     return run
 
 

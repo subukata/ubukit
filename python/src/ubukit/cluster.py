@@ -7,12 +7,14 @@ See docs/algorithms.md for the update equations.
 from __future__ import annotations
 
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy import sparse
 from scipy.spatial import cKDTree
 from scipy.special import xlogy
 
 from ._core import (
     TINY,
+    Init,
     Result,
     Steps,
     check_float,
@@ -30,7 +32,9 @@ from ._core import (
 
 
 @stepwise
-def kmeans(X, k, *, init="k-means++", max_iter=300, seed=None) -> Steps:
+def kmeans(
+    X: ArrayLike, k: int, *, init: Init = "k-means++", max_iter: int = 300, seed: int | None = None
+) -> Steps:
     """Lloyd's k-means; distance ties go to the lowest center index.
 
     Iterates with Hamerly's (2010) bounds, which skip only distance
@@ -100,7 +104,16 @@ def _hamerly(X: np.ndarray):
 
 
 @stepwise
-def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Steps:
+def fcm(
+    X: ArrayLike,
+    k: int,
+    *,
+    m: float = 2.0,
+    init: Init = "k-means++",
+    max_iter: int = 300,
+    tol: float = 1e-6,
+    seed: int | None = None,
+) -> Steps:
     """Fuzzy c-means (Bezdek).
 
     Memberships u_ic are proportional to d_ic^(-2/(m-1)), evaluated as a softmax
@@ -121,12 +134,21 @@ def fcm(X, k, *, m=2.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> 
         return weighted_mean(X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
     step = lloyd(X, assign, update, objective=lambda D, U: float(np.sum(U**m * D)))
-    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": check_float(tol, "tol", 0.0)}
-    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
+    max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
+    return (yield from iterate(X, V, step, max_iter=max_iter, tol=tol, view=_soft(mean)))
 
 
 @stepwise
-def efcm(X, k, *, tau=1.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) -> Steps:
+def efcm(
+    X: ArrayLike,
+    k: int,
+    *,
+    tau: float = 1.0,
+    init: Init = "k-means++",
+    max_iter: int = 300,
+    tol: float = 1e-6,
+    seed: int | None = None,
+) -> Steps:
     """Entropy-regularized fuzzy c-means (Miyamoto).
 
     Minimizes sum u d^2 + tau * sum u log u, giving u_ic = softmax_c(-d_ic^2 / tau).
@@ -139,12 +161,22 @@ def efcm(X, k, *, tau=1.0, init="k-means++", max_iter=300, tol=1e-6, seed=None) 
         update=lambda U, V, t: weighted_mean(X, U, V),
         objective=lambda D, U: float(np.sum(U * D) + tau * np.sum(xlogy(U, U))),
     )
-    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": check_float(tol, "tol", 0.0)}
-    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
+    max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
+    return (yield from iterate(X, V, step, max_iter=max_iter, tol=tol, view=_soft(mean)))
 
 
 @stepwise
-def rcm(X, k, *, alpha=1.1, beta=0.0, p=1.0, init="k-means++", max_iter=300, seed=None) -> Steps:
+def rcm(
+    X: ArrayLike,
+    k: int,
+    *,
+    alpha: float = 1.1,
+    beta: float = 0.0,
+    p: float = 1.0,
+    init: Init = "k-means++",
+    max_iter: int = 300,
+    seed: int | None = None,
+) -> Steps:
     """Rough c-means; ``p != 1`` gives the extended ExRCM.
 
     Cluster c is admissible for x_i when d_ic^p <= (alpha d_i,min)^p + beta^p,
@@ -168,12 +200,21 @@ def rcm(X, k, *, alpha=1.1, beta=0.0, p=1.0, init="k-means++", max_iter=300, see
         return mask / mask.sum(axis=1, keepdims=True)
 
     step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
-    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": 0.0}
-    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
+    max_iter = check_int(max_iter, "max_iter", 1)
+    return (yield from iterate(X, V, step, max_iter=max_iter, tol=0.0, view=_soft(mean)))
 
 
 @stepwise
-def rmcm(X, k, delta, *, init="k-means++", max_iter=300, max_edges=10_000_000, seed=None) -> Steps:
+def rmcm(
+    X: ArrayLike,
+    k: int,
+    delta: float,
+    *,
+    init: Init = "k-means++",
+    max_iter: int = 300,
+    max_edges: int = 10_000_000,
+    seed: int | None = None,
+) -> Steps:
     """Rough membership c-means.
 
     With P the row-normalized delta-neighborhood graph (self included) and H
@@ -193,8 +234,8 @@ def rmcm(X, k, delta, *, init="k-means++", max_iter=300, max_edges=10_000_000, s
         return (P @ H).toarray()
 
     step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
-    limits = {"max_iter": check_int(max_iter, "max_iter", 1), "tol": 0.0}
-    return (yield from iterate(X, V, step, **limits, view=_soft(mean)))
+    max_iter = check_int(max_iter, "max_iter", 1)
+    return (yield from iterate(X, V, step, max_iter=max_iter, tol=0.0, view=_soft(mean)))
 
 
 def _soft(mean: np.ndarray):

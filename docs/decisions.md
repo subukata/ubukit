@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 A typed public Python API
+
+Every public Python function and the TPE class annotate their parameters and
+results (`ArrayLike` inputs, `Literal` choices such as `average`, and the
+aliases `Init`, `MapInit`, `Grid` and `Space`), and the internal helpers are
+typed so that mypy finds nothing beyond SciPy's missing stubs. *Why:* the
+package declared `Typing :: Typed` while 28% of the parameters were
+annotated, so editors and type checkers knew little about the API; now
+mypy `--strict` accepts correct calls and catches a string `k`, missing
+`lam`/`gamma` and an unknown `average`. *Rejected:* dropping the `Typed`
+classifier instead (gives up editor help for users). A type checker is not
+part of the checks yet; that is a dependency the maintainer decides on.
+
 ## 2026-10-06 One engine shape in both languages
 
 Python's `iterate` is now a generator that takes the method's `view`, like
