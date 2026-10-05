@@ -191,7 +191,10 @@ export function softmaxRows(L) {
 
 /** Map every entry (new matrix). */
 export function mapMatrix(M, fn) {
-  return { data: M.data.map(fn), rows: M.rows, cols: M.cols };
+  // A plain loop: TypedArray callbacks (map, reduce, forEach) are several times slower.
+  const out = new Float64Array(M.data.length);
+  for (let i = 0; i < out.length; i++) out[i] = fn(M.data[i], i);
+  return { data: out, rows: M.rows, cols: M.cols };
 }
 
 /** Means of X weighted by the columns of W; columns without mass keep V. */

@@ -31,7 +31,11 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) 
   const step = lloyd(p.X, {
     assign: D => argminRows(D),
     update: (labels, V) => labelMean(p.X, labels, V),
-    objective: (D, labels) => labels.reduce((s, c, i) => s + D.data[i * D.cols + c], 0),
+    objective: (D, labels) => {
+      let J = 0;
+      for (let i = 0; i < labels.length; i++) J += D.data[i * D.cols + labels[i]];
+      return J;
+    },
   });
   const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0 });
   return result(p.mean, out, true);
@@ -47,17 +51,26 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
   const p = prepare(X, k, init, seed);
   const step = lloyd(p.X, {
     assign: D => softmaxRows(mapMatrix(D, d => Math.log(Math.max(d, TINY)) / (1 - m))),
-    update: (U, V) => {
-      // Scaling each column by its maximum leaves the means unchanged and
-      // keeps u^m from underflowing to all zeros for large m.
-      const k = U.cols, top = new Float64Array(k).fill(TINY);
-      U.data.forEach((u, i) => (top[i % k] = Math.max(top[i % k], u)));
-      return weightedMean(p.X, mapMatrix(U, (u, i) => (u / top[i % k]) ** m), V);
+    update: (U, V) => weightedMean(p.X, fuzzyWeights(U, m), V),
+    objective: (D, U) => {
+      let J = 0;
+      for (let i = 0; i < U.data.length; i++) J += U.data[i] ** m * D.data[i];
+      return J;
     },
-    objective: (D, U) => U.data.reduce((s, u, i) => s + u ** m * D.data[i], 0),
   });
   const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
   return result(p.mean, out);
+}
+
+/**
+ * u^m with each column scaled by its maximum first, which leaves the weighted
+ * means unchanged and keeps u^m from underflowing to all zeros for large m.
+ */
+function fuzzyWeights(U, m) {
+  const { rows: n, cols: k, data } = U, top = new Float64Array(k).fill(TINY), out = new Float64Array(n * k);
+  for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) top[j] = Math.max(top[j], data[i * k + j]);
+  for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) out[i * k + j] = (data[i * k + j] / top[j]) ** m;
+  return { data: out, rows: n, cols: k };
 }
 
 /**
@@ -71,7 +84,14 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
   const step = lloyd(p.X, {
     assign: D => softmaxRows(mapMatrix(D, d => -d / tau)),
     update: (U, V) => weightedMean(p.X, U, V),
-    objective: (D, U) => U.data.reduce((s, u, i) => s + u * D.data[i] + (u > 0 ? tau * u * Math.log(u) : 0), 0),
+    objective: (D, U) => {
+      let J = 0;
+      for (let i = 0; i < U.data.length; i++) {
+        const u = U.data[i];
+        J = J + u * D.data[i] + (u > 0 ? tau * u * Math.log(u) : 0);
+      }
+      return J;
+    },
   });
   const out = yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0) });
   return result(p.mean, out);
