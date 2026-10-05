@@ -54,6 +54,28 @@ jobs:
       - run: python -m pip install "numpy==2.2.*" "scipy==1.15.*" -e . --group dev
       - run: pytest
 
+  packages:
+    name: Build release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - run: python -m pip install build twine
+      - run: python -m build python --outdir dist
+      - run: python -m twine check --strict dist/*
+      - run: npm ci
+        working-directory: js
+      # Runs prepack, i.e. the type-declaration build that publishing uses.
+      - run: npm pack --dry-run
+        working-directory: js
+
   javascript:
     name: Node ${{ matrix.node }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
