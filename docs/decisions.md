@@ -4,7 +4,7 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
-## 2026-10-05 Greedy k-means++ seeding
+## 2026-10-05 Greedy k-means++ seeding (#48)
 
 Each seed is the best, by the resulting sum of squared distances, of
 2 + floor(ln K) candidates drawn in proportion to the squared distance to the
