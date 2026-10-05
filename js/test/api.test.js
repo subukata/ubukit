@@ -31,6 +31,29 @@ for (const [name, fit] of [
   });
 }
 
+test('kmeans iterates are lloyds', () => {
+  // Hamerly's bounds only skip work: compare with a plain Lloyd loop.
+  for (const k of [1, 2, 7, 40]) {
+    const init = X.filter((_, i) => i % Math.floor(X.length / k) === 0).slice(0, k).map(r => r.map(v => v + 0.01));
+    let V = init.map(r => r.slice()), labels = [], history = [];
+    for (let t = 0; t < 300; t++) {
+      labels = X.map(x => V.reduce((b, v, j) => (x.reduce((s, xf, f) => s + (xf - v[f]) ** 2, 0) < x.reduce((s, xf, f) => s + (xf - V[b][f]) ** 2, 0) ? j : b), 0));
+      history.push(X.reduce((s, x, i) => s + x.reduce((a, xf, f) => a + (xf - V[labels[i]][f]) ** 2, 0), 0));
+      const next = V.map((v, c) => {
+        const members = X.filter((_, i) => labels[i] === c);
+        return members.length ? v.map((_, f) => members.reduce((s, m) => s + m[f], 0) / members.length) : v;
+      });
+      if (next.every((v, c) => v.every((a, f) => a === V[c][f]))) break;
+      V = next;
+    }
+    const r = ub.kmeans(X, k, { init });
+    assert.deepEqual(Array.from(r.labels), labels);
+    assert.equal(r.nIter, history.length);
+    ub.toRows(r.centers).forEach((row, c) => row.forEach((a, f) => assert.ok(Math.abs(a - V[c][f]) < 1e-9)));
+    r.history.forEach((h, t) => assert.ok(Math.abs(h - history[t]) <= 1e-9 * history[t]));
+  }
+});
+
 test('default seeding rarely merges separated blobs', () => {
   // Greedy k-means++ keeps the best of 2 + ln k draws per seed (18 of 20 seeds
   // recover these blobs exactly; single draws recovered 4).

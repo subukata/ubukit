@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from conftest import match_centers
+from scipy.spatial.distance import cdist
 from sklearn.cluster import KMeans
 
 import ubukit as ub
@@ -37,6 +38,39 @@ def test_memberships_are_row_stochastic(blobs, method, options):
     assert U.shape == (300, 3)
     assert (U >= 0).all()
     np.testing.assert_allclose(U.sum(axis=1), 1.0)
+
+
+@pytest.mark.parametrize("k", [1, 2, 7, 40])
+def test_kmeans_iterates_are_lloyds(k):
+    # Hamerly's bounds only skip work: labels, centers, objective history and
+    # iteration count equal those of a plain Lloyd loop.
+    rng = np.random.default_rng(k)
+    X = rng.normal(size=(600, 5)) + 3.0 * rng.integers(0, 4, size=(600, 1))
+    init = X[rng.choice(600, k, replace=False)] + 0.01
+    V, history = init.copy(), []
+    for _ in range(300):
+        D = cdist(X, V, "sqeuclidean")
+        labels = D.argmin(axis=1)
+        history.append(D[np.arange(600), labels].sum())
+        means = [X[labels == c].mean(axis=0) if (labels == c).any() else V[c] for c in range(k)]
+        new = np.array(means)
+        if np.array_equal(new, V):
+            break
+        V = new
+    r = ub.kmeans(X, k, init=init)
+    np.testing.assert_array_equal(r.labels, labels)
+    np.testing.assert_allclose(r.centers, V, atol=1e-10)
+    np.testing.assert_allclose(r.history, history, rtol=1e-9)
+    assert r.n_iter == len(history)
+
+
+def test_kmeans_with_duplicate_initial_centers_breaks_ties_by_index():
+    X = np.random.default_rng(3).normal(size=(200, 3))
+    init = X[[0, 0, 1]]
+    r = ub.kmeans(X, 3, init=init, max_iter=1)
+    D = cdist(X, init, "sqeuclidean")
+    np.testing.assert_array_equal(r.labels, D.argmin(axis=1))
+    assert not (r.labels == 1).any()
 
 
 def test_default_seeding_rarely_merges_separated_blobs():

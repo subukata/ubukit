@@ -92,7 +92,8 @@ How the principles are realized today. This section changes with the code.
 - **Engine:** `iterate(X, V, step, max_iter, tol)` in
   `python/src/ubukit/_core.py` and `js/src/core.js`; a step maps
   `(V, state, t)` to `(V, state, objective)`. The standard step is
-  `lloyd(assign, update, objective)`; the online SOM's step is one epoch.
+  `lloyd(assign, update, objective)`; k-means uses an exact accelerated
+  step with Hamerly's bounds, and the online SOM's step is one epoch.
 - **Input contract:** `as_matrix` (Python) and `matrix` (JavaScript) reject
   non-finite input and data outside the scale bounds.
 - **Implementations:** Python is vectorized NumPy/SciPy; JavaScript is plain
