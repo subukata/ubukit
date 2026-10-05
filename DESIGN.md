@@ -101,14 +101,17 @@ How the principles are realized today. This section changes with the code.
 - **Cross-language reference:** `fixtures/generate.py` writes Python results
   to `fixtures/fixtures.json` (one case per line); the JavaScript tests
   reproduce them.
-- **Benchmark:** `bench/run.py` defines each case once and times and scores
-  it in both languages.
+- **Benchmark:** `bench/cases.py` defines each case once; `bench/run.py`
+  writes the data as binary files and runs it in a process per implementation
+  (`worker.py` for Python and scikit-learn, `worker.mjs` for JavaScript),
+  each importing the source tree it is given, so `--compare` times another
+  commit with the same harness.
 
 ```
 python/src/ubukit/  _core.py cluster.py som.py metrics.py tpe.py
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
-bench/              run.py + run.mjs
+bench/              cases.py run.py worker.py worker.mjs
 docs/               algorithms.md (the equations), decisions.md (the reasons)
 ```
 

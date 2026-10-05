@@ -4,6 +4,24 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-05 A benchmark that can tell differences apart
+
+The benchmark now compares two git trees in alternating ABBA order and calls
+a difference only for non-overlapping samples at least 5% apart; it reports
+medians with spreads, iterations, Python peak memory, BLAS threads, a
+scikit-learn column, quality over seeds with the default initialization
+(`--quality`), growth with N per iteration (`--size s,m,l`), and fails CI if
+the languages disagree at small sizes. *Why:* the first benchmark ran each
+side separately and could not resolve differences under about 20% (Python
+batch SOM ranged over 0.182-0.215 s for one tree); BLAS threads moved times
+by 20%; and scikit-learn's k-means, timed without a warm-up (0.063 s cold,
+0.019 s warm), looked 1.4x faster than ours when it is 5.5-7.6x faster per
+iteration. The 13-15% gains reported for
+EFCM and SOM-OLP in #45 were within that noise and are not claimed; FCM's
+1.4x is. Identical trees still differ by up to 5% under ABBA, hence the
+threshold. *Rejected:* tracking times in CI, whose shared runners are too
+noisy to compare.
+
 ## 2026-10-05 Documents by role (#46)
 
 `DESIGN.md` says what and why, `CONTRIBUTING.md` how, `AGENTS.md` only what
