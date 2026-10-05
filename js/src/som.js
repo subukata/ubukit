@@ -107,11 +107,11 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
  * SOM with optimized latent positions (SOM-OLP, Ubukata): minimizes
  * sum p (||x - w||^2 + gamma ||v - r||^2) + lam sum p log p with v_i = sum_j p_ij r_j.
  * grid is [rows, cols] or a (K, Q) matrix of unit coordinates.
- * @param {MatrixLike} X @param {Grid} grid
+ * @param {MatrixLike} X @param {Grid | undefined} grid
  * @param {MapInit & { lam: number, gamma: number, pcaScale?: number, maxIter?: number, tol?: number }} options
  * @returns {Generator<Progress, Result>}
  */
-export function* somOlp(X, grid, { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = /** @type {any} */ ({})) {
+export function* somOlp(X, grid = [10, 10], { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = /** @type {any} */ ({})) {
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
   const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale'));
@@ -195,16 +195,10 @@ function finish(s, epochs) {
 
 /** Spread the normalized grid over the leading principal axes of centered X. */
 function pcaInit(X, R, scale) {
-  const { rows: n, cols: d, data } = X, cov = new Float64Array(d * d);
-  for (let i = 0; i < n; i++) for (let a = 0; a < d; a++) for (let b = a; b < d; b++) cov[a * d + b] += data[i * d + a] * data[i * d + b];
-  for (let a = 0; a < d; a++) for (let b = a; b < d; b++) cov[b * d + a] = cov[a * d + b] /= n;
-  const { values, vectors } = symmetricEigen(cov, d);
-  const q = Math.min(R.cols, d), order = Array.from(values.keys()).sort((a, b) => values[b] - values[a]).slice(0, q);
-  const W = new Float64Array(R.rows * d);
-  order.forEach((e, h) => {
-    const axis = Array.from({ length: d }, (_, f) => vectors[f * d + e]);
+  const d = X.cols, W = new Float64Array(R.rows * d);
+  principalAxes(X, Math.min(R.cols, d)).forEach(({ value, axis }, h) => {
     const lead = axis.reduce((best, v) => (Math.abs(v) > Math.abs(best) ? v : best), 0);
-    const sign = Math.sign(lead), spread = scale * Math.sqrt(Math.max(values[e], 0));
+    const sign = Math.sign(lead), spread = scale * Math.sqrt(Math.max(value, 0));
     let mean = 0, extent = 0;
     for (let j = 0; j < R.rows; j++) mean += R.data[j * R.cols + h] / R.rows;
     for (let j = 0; j < R.rows; j++) extent = Math.max(extent, Math.abs(R.data[j * R.cols + h] - mean));
@@ -217,7 +211,49 @@ function pcaInit(X, R, scale) {
   return { data: W, rows: R.rows, cols: d };
 }
 
-/** Cyclic Jacobi eigendecomposition of a symmetric matrix; vectors are columns. */
+/**
+ * Leading q eigenpairs of the covariance X^T X / N by Rayleigh-Ritz on a
+ * Krylov basis of at most 64 vectors (Lanczos with full reorthogonalization,
+ * restarted from a fresh direction when the space closes). The basis spans
+ * R^D when D <= 64, so the axes are then exact; each step costs O(N D) and
+ * the D x D covariance is never formed.
+ */
+function principalAxes(X, q) {
+  const { rows: n, cols: d, data } = X, size = Math.min(d, 64), rand = random(0), xv = new Float64Array(n);
+  const basis = [], images = [];
+  const dot = (a, b) => { let s = 0; for (let f = 0; f < d; f++) s += a[f] * b[f]; return s; };
+  const covariance = v => {
+    const out = new Float64Array(d);
+    for (let i = 0; i < n; i++) { let s = 0; for (let f = 0; f < d; f++) s += data[i * d + f] * v[f]; xv[i] = s / n; }
+    for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) out[f] += data[i * d + f] * xv[i];
+    return out;
+  };
+  // v orthogonalized against the basis (twice, for stability) and normalized; null if it vanishes.
+  const unit = (v, scale) => {
+    for (let pass = 0; pass < 2; pass++) for (const u of basis) { const c = dot(u, v); for (let f = 0; f < d; f++) v[f] -= c * u[f]; }
+    const norm = Math.sqrt(dot(v, v));
+    return norm > 1e-12 * scale ? v.map(x => x / norm) : null;
+  };
+  const fresh = () => unit(Float64Array.from({ length: d }, () => rand() - 0.5), 0);
+  for (let v = fresh(); ;) {
+    const w = covariance(v);
+    basis.push(v);
+    images.push(w);
+    if (basis.length === size) break;
+    v = unit(w.slice(), Math.sqrt(dot(w, w))) ?? fresh();
+  }
+  const H = new Float64Array(size * size);
+  for (let a = 0; a < size; a++) for (let b = a; b < size; b++) {
+    H[a * size + b] = H[b * size + a] = (dot(basis[a], images[b]) + dot(basis[b], images[a])) / 2;
+  }
+  const { values, vectors } = symmetricEigen(H, size);
+  return Array.from(values.keys()).sort((a, b) => values[b] - values[a]).slice(0, q).map(e => ({
+    value: values[e],
+    axis: Array.from({ length: d }, (_, f) => basis.reduce((s, u, a) => s + vectors[a * size + e] * u[f], 0)),
+  }));
+}
+
+/** Cyclic Jacobi eigendecomposition of a small symmetric matrix; vectors are columns. */
 function symmetricEigen(S, n) {
   const a = S.slice(), v = new Float64Array(n * n);
   for (let i = 0; i < n; i++) v[i * n + i] = 1;

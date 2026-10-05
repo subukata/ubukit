@@ -47,6 +47,9 @@ function encode(dim, x) {
     if (i < 0) throw new RangeError(`${x} is not an option`);
     return i;
   }
+  if (typeof x !== 'number' || !(x >= dim.low && x <= dim.high) || (dim.integer && !Number.isInteger(x))) {
+    throw new RangeError(`${x} is not ${dim.integer ? 'an integer' : 'a number'} in [${dim.low}, ${dim.high}]`);
+  }
   const [lo, hi] = bounds(dim);
   return ((dim.log ? Math.log(x) : x) - lo) / (hi - lo);
 }

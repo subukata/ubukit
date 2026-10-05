@@ -71,6 +71,7 @@ def test_som_olp_accepts_arbitrary_unit_coordinates(blobs):
     r = ub.som_olp(X, R, lam=1.0, gamma=1.0)
     assert r.embedding.shape == (300, 3)
     np.testing.assert_allclose(r.membership.sum(axis=1), 1.0)
+    np.testing.assert_array_equal(ub.som_olp(X, R.tolist(), lam=1.0, gamma=1.0).centers, r.centers)
 
 
 def test_pca_init_spans_principal_axes():
@@ -81,6 +82,17 @@ def test_pca_init_spans_principal_axes():
     assert np.abs(W[:, 2]).max() < 0.1
     assert np.ptp(W[:, 0]) > np.ptp(W[:, 1]) > 0
     np.testing.assert_allclose(W.mean(axis=0), 0, atol=1e-12)
+
+
+def test_pca_init_agrees_between_gram_matrices():
+    # 20 x 50 data use X X^T; three stacked copies (60 x 50) have the same
+    # covariance and use X^T X.
+    X = np.random.default_rng(1).normal(size=(20, 50)) * np.linspace(3, 0.1, 50)
+    X -= X.mean(axis=0)
+    R = _grid((3, 4))
+    np.testing.assert_allclose(
+        _pca_init(X, R, 2.0), _pca_init(np.vstack([X, X, X]), R, 2.0), atol=1e-10
+    )
 
 
 def test_tiny_values_take_the_ordinary_path():

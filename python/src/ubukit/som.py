@@ -7,9 +7,11 @@ Units sit on a rectangular grid; unit j = row * cols + col has coordinates
 from __future__ import annotations
 
 import numpy as np
+from scipy.linalg import eigh
 from scipy.special import xlogy
 
 from ._core import (
+    TINY,
     Result,
     alternate,
     as_matrix,
@@ -132,15 +134,15 @@ def som_olp(
     return Result(W + mean, P.argmax(axis=1), P, n_iter, converged, history, P @ R)
 
 
-def _shape(shape) -> tuple[int, int]:
-    if isinstance(shape, np.ndarray) or len(shape) != 2:
+def _shape(grid) -> tuple[int, int]:
+    if np.ndim(grid) != 1 or len(grid) != 2:
         raise ValueError("grid must be (rows, cols)")
-    return check_int(shape[0], "rows", 1), check_int(shape[1], "cols", 1)
+    return check_int(grid[0], "rows", 1), check_int(grid[1], "cols", 1)
 
 
 def _grid(grid) -> np.ndarray:
     """Unit coordinates: (rows, cols) -> rectangular grid, or an explicit (K, Q) array."""
-    if isinstance(grid, np.ndarray):
+    if np.ndim(grid) == 2:
         return as_matrix(grid, "grid")
     rows, cols = _shape(grid)
     r, c = np.divmod(np.arange(rows * cols), cols)
@@ -165,15 +167,24 @@ def _setup(X, grid, init, pca_scale=2.0):
 
 
 def _pca_init(X: np.ndarray, R: np.ndarray, scale: float) -> np.ndarray:
-    """Spread the normalized grid over the leading principal axes of centered X."""
-    eigval, eigvec = np.linalg.eigh(X.T @ X / len(X))
-    q = min(R.shape[1], X.shape[1])
-    order = np.argsort(eigval)[::-1][:q]
-    axes = eigvec[:, order].T
+    """Spread the normalized grid over the leading principal axes of centered X.
+
+    The axes come from the smaller of X^T X and X X^T (whose eigenvectors u
+    give the axes X^T u), so the cost is O(N D min(N, D)).
+    """
+    n, d = X.shape
+    q = min(R.shape[1], d, n)
+    dual = d > n
+    S = (X @ X.T if dual else X.T @ X) / n
+    eigval, vec = eigh(S, subset_by_index=[len(S) - q, len(S) - 1])
+    eigval, vec = eigval[::-1], vec[:, ::-1]
+    if dual:
+        vec = X.T @ vec / np.sqrt(np.maximum(n * eigval, TINY))
+    axes = vec.T
     axes *= np.sign(axes[np.arange(q), np.abs(axes).argmax(axis=1)])[:, None]
     G = R[:, :q] - R[:, :q].mean(axis=0)
     G /= np.maximum(np.abs(G).max(axis=0), 1e-12)
-    return (G * (scale * np.sqrt(np.maximum(eigval[order], 0.0)))) @ axes
+    return (G * (scale * np.sqrt(np.maximum(eigval, 0.0)))) @ axes
 
 
 def _sigmas(sigma, sigma_end, R):

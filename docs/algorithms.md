@@ -11,7 +11,9 @@ U = \mathrm{assign}(D)
 v_c = \frac{\sum_i w(u_{ic})\, x_i}{\sum_i w(u_{ic})}
 $$
 
-A prototype with no mass keeps its previous position. The loop stops when no
+Inputs must be finite with row norms below $10^{150}$, so that no squared
+distance can overflow; standardize data first. A prototype with no mass keeps
+its previous position. The loop stops when no
 prototype coordinate moves more than `tol` times the RMS radius of the centered
 data (`tol = 0` means an exact fixed point), or after `max_iter` iterations.
 The default initialization is k-means++ seeding followed by one assignment step,
@@ -33,7 +35,9 @@ Minimizes $J_m = \sum_{i,c} u_{ic}^m d_{ic}^2$ subject to $\sum_c u_{ic} = 1$
 (Bezdek, 1981). The membership update is evaluated as a softmax of
 $-\log d_{ic}^2 / (m-1)$, which is stable for every $m > 1$: as $m \to 1$ it
 tends to k-means, and coincident points and centers get the largest weight
-without special cases. `history` holds $J_m$ per iteration.
+without special cases. Each column of $u^m$ is evaluated as
+$(u_{ic} / \max_j u_{jc})^m$, which leaves the weighted means unchanged and
+cannot underflow to all zeros for large $m$. `history` holds $J_m$ per iteration.
 
 ## Entropy-regularized FCM (`efcm`)
 
@@ -65,6 +69,9 @@ $R = P H$, the fraction of each point's neighborhood assigned to each cluster.
 Units $j$ sit at grid coordinates $r_j$ (unit $j$ = `row * cols + col` at
 `(row, col)`). Unless `init` is given, prototypes start on the plane of the two
 leading principal axes, spread over $\pm$`pca_scale` standard deviations.
+Python takes the axes from the smaller of $X^\top X$ and $X X^\top$;
+JavaScript uses Rayleigh–Ritz on a Krylov basis of at most 64 vectors, which
+is exact for $D \le 64$ and never forms the $D \times D$ covariance.
 The neighborhood is $h_t(b, j) = \exp(-\lVert r_b - r_j \rVert^2 / 2\sigma_t^2)$
 with $\sigma_t$ decaying geometrically from `sigma` (half the grid extent) to
 `sigma_end`.

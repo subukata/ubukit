@@ -14,8 +14,10 @@ Read `DESIGN.md` before changing code. In short:
 
 ## Commands
 
+From the repository root:
+
 ```sh
 cd python && pip install -e . --group dev
-ruff check . && ruff format --check . && pytest
-cd js && npm ci && npm test && npm run check
+ruff check . ../fixtures && ruff format --check . ../fixtures && pytest
+cd ../js && npm ci && npm test && npm run check
 ```
