@@ -10,11 +10,13 @@
 /** @typedef {{ data: Float64Array, rows: number, cols: number }} Matrix */
 /** @typedef {number[][] | Matrix} MatrixLike */
 /**
- * labels and membership come from the last assignment step, i.e. for the
- * prototypes before the final update; they coincide at a fixed point.
+ * For clusterings and SOM-OLP, labels and membership come from the last
+ * assignment step, i.e. for the prototypes before the final update; they
+ * coincide at a fixed point. For som and batchSom, labels are the
+ * best-matching units of the final prototypes.
  * @typedef {object} Result
  * @property {Matrix} centers (K, D) prototypes.
- * @property {Int32Array} labels strongest membership (nearest prototype for hard methods).
+ * @property {Int32Array} labels strongest membership (nearest prototype for kmeans, best-matching unit for som and batchSom).
  * @property {Matrix | null} membership (N, K) memberships; null for hard methods.
  * @property {number} nIter iterations performed (epochs for SOMs).
  * @property {boolean} converged stopping rule met (SOMs: schedule completed).
@@ -23,7 +25,8 @@
  */
 /**
  * Yielded after every iteration (epoch for SOMs); result() is the Result the
- * run would return had it stopped there.
+ * run would return had it stopped there. It shares no arrays with the run,
+ * so changing it leaves the iterations that follow unchanged.
  * @typedef {{ iteration: number, result: () => Result }} Progress
  */
 
@@ -133,6 +136,11 @@ export function center(X) {
   const out = new Float64Array(data.length);
   for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) out[i * d + f] = data[i * d + f] - mean[f];
   return { X: { data: out, rows: n, cols: d }, mean };
+}
+
+/** A copy of a matrix. */
+export function copyMatrix(M) {
+  return { data: M.data.slice(), rows: M.rows, cols: M.cols };
 }
 
 /** Add a row vector to every row (new matrix). */
@@ -316,7 +324,8 @@ export function prepare(X, k, init = 'k-means++', seed) {
  * every step it yields { iteration, result }, where result() builds the same
  * Result as if the run had stopped there; it costs nothing unless called and
  * stays valid as the loop goes on, because steps never modify a state they
- * have returned.
+ * have returned, and it shares no arrays with the run, because views copy
+ * the state they put in a Result.
  * @param {Matrix} X @param {Matrix} V @param {Step} step
  * @param {{ maxIter: number, tol: number | null, view: (loop: Loop) => Result }} options
  * @returns {Generator<Progress, Result>}

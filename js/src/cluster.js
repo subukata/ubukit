@@ -4,7 +4,7 @@
  * Every function here is a generator: use run()/runAsync() or the wrappers in index.js.
  */
 import {
-  argmaxRows, argminRows, checkInt, checkNumber, iterate, labelMean, lloyd, mapMatrix,
+  argmaxRows, argminRows, checkInt, checkNumber, copyMatrix, iterate, labelMean, lloyd, mapMatrix,
   prepare, shift, softmaxRows, TINY, weightedMean,
 } from './core.js';
 
@@ -13,10 +13,10 @@ import {
 /** @typedef {import('./core.js').Progress} Progress */
 /** @typedef {{ init?: 'k-means++' | MatrixLike, maxIter?: number, seed?: number }} Common */
 
-/** @returns {import('./core.js').Result} */
+/** The Result of a clustering; it copies the state (see iterate). @returns {import('./core.js').Result} */
 function result(mean, { V, state: U, nIter, converged, history }, hard = false) {
   return {
-    centers: shift(V, mean), labels: hard ? U : argmaxRows(U), membership: hard ? null : U,
+    centers: shift(V, mean), labels: hard ? U.slice() : argmaxRows(U), membership: hard ? null : copyMatrix(U),
     nIter, converged, history, embedding: null,
   };
 }

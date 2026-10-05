@@ -26,6 +26,15 @@ def assert_same(a, b):
             np.testing.assert_array_equal(x, y, err_msg=field)
 
 
+def finish(run):
+    """Run a fitting generator to the end and return its Result."""
+    while True:
+        try:
+            next(run)
+        except StopIteration as end:
+            return end.value
+
+
 @pytest.mark.parametrize("name", CONVERGING)
 def test_progress_results_are_the_run_stopped_there(blobs, name):
     # result() at iteration t equals the run with max_iter = t, even when it is
@@ -38,6 +47,20 @@ def test_progress_results_are_the_run_stopped_there(blobs, name):
     for t in {1, 2, len(progress)}:
         stopped = getattr(ub, name)(X, *args, **options, max_iter=t)
         assert_same(progress[t - 1].result(), stopped)
+
+
+@pytest.mark.parametrize("name", CONVERGING)
+def test_changing_a_progress_result_leaves_the_run_unchanged(blobs, name):
+    # A Result shares no arrays with the run: SOM-OLP's next step reads the
+    # memberships, so changing them in place used to change the run.
+    X, _ = blobs
+    args, options = CONVERGING[name]
+    run = getattr(ub.steps, name)(X, *args, **options)
+    first = next(run).result()
+    first.labels[:] = 0
+    if first.membership is not None:
+        first.membership[:] = 1.0 / first.membership.shape[1]
+    assert_same(finish(run), getattr(ub, name)(X, *args, **options))
 
 
 @pytest.mark.parametrize(

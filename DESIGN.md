@@ -98,15 +98,16 @@ How the principles are realized today. This section changes with the code.
   method passes the loop its `view`, the function that turns the loop's state
   into its Result, so every yielded iteration can build, on demand, the
   Result the run would return had it stopped there; steps therefore never
-  modify a state they have returned. Each fitting function is written once
-  as such a generator: `steps` exposes the generators, and the plain
-  functions run them to the end (`stepwise` in Python, `index.js` in
-  JavaScript).
+  modify a state they have returned, and views copy the state they put in a
+  Result, so changing a Result leaves the run unchanged. Each fitting
+  function is written once as such a generator: `steps` exposes the
+  generators, and the plain functions run them to the end (`stepwise` in
+  Python, `index.js` in JavaScript).
 - **Input contract:** `as_matrix` (Python) and `matrix` (JavaScript) reject
   non-finite input and data outside the scale bounds.
 - **Implementations:** Python is vectorized NumPy/SciPy; JavaScript is plain
-  loops on `Float64Array`, with generators for progress and cancellation.
-  There is no Numba kernel yet.
+  loops on `Float64Array`, with `runAsync` driving a generator without
+  blocking the event loop. There is no Numba kernel yet.
 - **Cross-language reference:** `fixtures/generate.py` writes Python results
   to `fixtures/fixtures.json` (one case per line); the JavaScript tests
   reproduce them.

@@ -3,18 +3,19 @@ import test from 'node:test';
 import * as ub from '../src/index.js';
 import { X } from './helpers.js';
 
+// Four clusters for three blobs, so that every method takes several iterations.
+const converging = {
+  kmeans: n => ub.steps.kmeans(X, 4, { seed: 1, maxIter: n }),
+  fcm: n => ub.steps.fcm(X, 4, { seed: 1, maxIter: n }),
+  efcm: n => ub.steps.efcm(X, 4, { seed: 1, tau: 0.5, maxIter: n }),
+  rcm: n => ub.steps.rcm(X, 4, { seed: 1, maxIter: n }),
+  rmcm: n => ub.steps.rmcm(X, 4, 0.5, { seed: 1, maxIter: n }),
+  somOlp: n => ub.steps.somOlp(X, [3, 3], { lam: 0.5, gamma: 1, maxIter: n }),
+};
+
 test('progress results are the run stopped at that iteration', () => {
   // result() at iteration t equals the run with maxIter = t, even when called
   // after the loop has moved on (spreading the generator runs it to the end).
-  // Four clusters for three blobs, so that every method takes several iterations.
-  const converging = {
-    kmeans: n => ub.steps.kmeans(X, 4, { seed: 1, maxIter: n }),
-    fcm: n => ub.steps.fcm(X, 4, { seed: 1, maxIter: n }),
-    efcm: n => ub.steps.efcm(X, 4, { seed: 1, tau: 0.5, maxIter: n }),
-    rcm: n => ub.steps.rcm(X, 4, { seed: 1, maxIter: n }),
-    rmcm: n => ub.steps.rmcm(X, 4, 0.5, { seed: 1, maxIter: n }),
-    somOlp: n => ub.steps.somOlp(X, [3, 3], { lam: 0.5, gamma: 1, maxIter: n }),
-  };
   for (const [name, start] of Object.entries(converging)) {
     const results = [...start(1000)].map(p => p.result());
     assert.ok(results.length > 1, name);
@@ -26,6 +27,17 @@ test('progress results are the run stopped at that iteration', () => {
     const results = [...start()].map(p => p.result());
     assert.deepEqual(results.at(-1), ub.run(start()));
     assert.ok(results.slice(0, -1).every(r => !r.converged) && results.at(-1).converged);
+  }
+});
+
+test('changing a progress result leaves the run unchanged', () => {
+  // A Result shares no arrays with the run: SOM-OLP's next step reads the
+  // memberships, so changing them in place used to change the run.
+  for (const [name, start] of Object.entries(converging)) {
+    const run = start(1000), first = run.next().value.result();
+    first.labels.fill(0);
+    first.membership?.data.fill(1 / first.membership.cols);
+    assert.deepEqual(ub.run(run), ub.run(start(1000)), name);
   }
 });
 

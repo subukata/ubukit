@@ -163,7 +163,7 @@ def som_olp(
     )
 
     def view(loop):
-        P = loop.state
+        P = loop.state.copy()  # the next step reads it
         return Result(loop.V + mean, P.argmax(axis=1), P, *loop[2:], P @ R)
 
     max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
