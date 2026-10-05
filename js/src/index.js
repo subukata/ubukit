@@ -2,9 +2,10 @@
  * UbuKit: fuzzy, rough and classical clustering, self-organizing maps,
  * evaluation metrics and TPE search. Zero dependencies.
  *
- * Fitting functions run synchronously. For progress or cancellation, pass a
- * generator from `steps` to `runAsync`:
- *   await runAsync(steps.fcm(X, 3), { signal, onProgress })
+ * Fitting functions run synchronously. The generators in `steps` yield
+ * { iteration, result } after every iteration, where result() is the Result
+ * as if the run had stopped there; drive them by hand or with `runAsync`:
+ *   await runAsync(steps.fcm(X, 3), { signal, onProgress: p => draw(p.result()) })
  */
 import * as cluster from './cluster.js';
 import { run } from './core.js';

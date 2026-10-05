@@ -21,7 +21,11 @@
  * @property {Float64Array} history objective per iteration; empty when undefined.
  * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs.
  */
-/** @typedef {{ iteration: number }} Progress */
+/**
+ * Yielded after every iteration (epoch for SOMs); result() is the Result the
+ * run would return had it stopped there.
+ * @typedef {{ iteration: number, result: () => Result }} Progress
+ */
 
 /** Smallest positive normal float64. */
 export const TINY = 2.2250738585072014e-308;
@@ -300,13 +304,24 @@ export function prepare(X, k, init = 'k-means++', seed) {
  */
 
 /**
+ * What the loop has reached: prototypes, the step's state, iterations,
+ * whether the stopping rule held at the last one, and the objective history.
+ * @typedef {{ V: Matrix, state: any, nIter: number, converged: boolean, history: Float64Array }} Loop
+ */
+
+/**
  * The one loop: repeat step until no prototype coordinate moves more than tol
  * times the RMS radius of X (tol = 0: exact fixed point; tol = null: fixed
- * schedule), or maxIter. Yields after every step.
+ * schedule), or maxIter, and return view(loop), the method's Result. After
+ * every step it yields { iteration, result }, where result() builds the same
+ * Result as if the run had stopped there; it costs nothing unless called and
+ * stays valid as the loop goes on, because steps never modify a state they
+ * have returned.
  * @param {Matrix} X @param {Matrix} V @param {Step} step
- * @param {{ maxIter: number, tol: number | null }} options
+ * @param {{ maxIter: number, tol: number | null, view: (loop: Loop) => Result }} options
+ * @returns {Generator<Progress, Result>}
  */
-export function* iterate(X, V, step, { maxIter, tol }) {
+export function* iterate(X, V, step, { maxIter, tol, view }) {
   let radius = 0;
   for (const v of X.data) radius += v * v;
   const limit = tol === null ? null : tol * Math.sqrt(radius / X.rows);
@@ -318,10 +333,11 @@ export function* iterate(X, V, step, { maxIter, tol }) {
     if (next.value !== null) history.push(next.value);
     let move = 0;
     for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
-    yield { iteration: t + 1 };
-    if (limit !== null && move <= limit) return { V, state, nIter: t + 1, converged: true, history: Float64Array.from(history) };
+    const loop = { V, state, nIter: t + 1, converged: limit !== null && move <= limit }, length = history.length;
+    const result = () => view({ ...loop, history: Float64Array.from(history.slice(0, length)) });
+    yield { iteration: t + 1, result };
+    if (loop.converged || t + 1 === maxIter) return result();
   }
-  return { V, state, nIter: maxIter, converged: false, history: Float64Array.from(history) };
 }
 
 /**
