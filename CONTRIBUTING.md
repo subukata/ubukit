@@ -17,8 +17,8 @@ cd .. && python bench/run.py --size smoke --check
 Tests mirror the modules in both languages (`python/tests/test_<module>.py`,
 `js/test/<module>.test.js`, with shared JavaScript data in `js/test/helpers.js`).
 Run them before every pull request: CI does not run on pushes or pull
-requests (see "CI and releases"). ruff is pinned to one minor series; bump it
-in a pull request of its own.
+requests (see "CI and dependencies"). ruff and mypy are each pinned to one
+minor series; bump them in pull requests of their own.
 
 ## Kinds of change
 
@@ -71,17 +71,58 @@ One change per pull request. When pull requests are stacked, retarget each
 dependent to `main` before merging its base: deleting a merged base branch
 closes the pull requests that target it.
 
-## CI and releases
+## CI and dependencies
 
 - CI (`.github/workflows/ci.yml`) runs only when the maintainer starts it
-  (Actions > CI > Run workflow), on one operating system per run, typically
-  once per system before a release. Actions minutes are limited while the
-  repository is private (macOS counts 10x and Windows 2x), and the local
-  checks cover each change.
+  (Actions > CI > Run workflow), on one operating system per run, once per
+  system before a release; the local checks cover each change. Actions
+  minutes are limited while the repository is private (macOS counts 10x and
+  Windows 2x).
 - A new action is pinned to a full commit SHA with the version in a comment,
   gets only the permissions it needs, and checks out with
   `persist-credentials: false`.
-- To release, bump `python/src/ubukit/__init__.py` and `js/package.json`
-  together, date the version in `CHANGELOG.md`, and let the maintainer push
-  the `v*` tag. `.github/workflows/release.yml` tests and builds both
-  packages without credentials, then publishes them with trusted publishing.
+- Dependabot proposes the month's updates to the actions and to the npm
+  development dependencies as one pull request per ecosystem, and only
+  versions at least a week old. CI does not run on these pull requests:
+  check out the branch and run the checks before merging, and read the
+  release notes of an updated action, which runs only in CI and releases.
+  The Python requirements are deliberate lower bounds and are not updated.
+
+## Releasing
+
+Only the maintainer releases. A published version can never be replaced
+(PyPI refuses a file name it has seen and npm a version number), so a broken
+release is fixed by the next patch version.
+
+Once, before the first release:
+
+1. Make the repository public. npm does not generate provenance in a private
+   repository, and `release.yml` and `js/package.json` require it; CI on
+   standard runners is then free. Turn on private vulnerability reporting in
+   the security settings, which `SECURITY.md` points to.
+2. Create the `pypi` and `npm` environments, each limited to tags matching
+   `v*` and with the maintainer as required reviewer, so every upload waits
+   for a last confirmation.
+3. On PyPI, add a pending trusted publisher for `ubukit`: owner `subukata`,
+   repository `ubukit`, workflow `release.yml`, environment `pypi`.
+4. npm trusts only an existing package, so the first upload uses a token:
+   store a granular access token that can publish and expires within days as
+   the `NPM_TOKEN` secret of the `npm` environment. After the first release,
+   add the trusted publisher on npmjs.com (same fields, environment `npm`),
+   revoke the token, and delete the secret and the `NODE_AUTH_TOKEN` line of
+   `release.yml`.
+
+Every release:
+
+1. Run the checks on an up-to-date `main`, then CI once on each operating
+   system.
+2. In one pull request, set the version in `python/src/ubukit/__init__.py`
+   and `js/package.json`, and replace "(unreleased)" in `CHANGELOG.md` with
+   the date.
+3. After merging it, tag the merge and push the tag
+   (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` checks that
+   the tag matches both versions, tests and builds both packages without
+   credentials, and publishes them once the environments are approved.
+4. Install the published versions in a clean environment
+   (`pip install ubukit==0.1.0`, `npm install ubukit@0.1.0`) and fit one
+   example.

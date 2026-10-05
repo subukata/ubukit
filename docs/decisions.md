@@ -4,6 +4,22 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 One release checklist; Dependabot batched and delayed
+
+The release steps, including the one-time setup, are one checklist under
+"Releasing" in `CONTRIBUTING.md`, which starts by making the repository
+public. Dependabot stays, with one pull request per ecosystem a month and
+only for versions at least a week old. *Why:* the one-time steps lived only
+in comments of `release.yml`, and a mistake is permanent because neither
+registry accepts a version again; npm does not generate provenance in a
+private repository, so the first tag would have failed there. Dependabot's
+update jobs do not count against Actions minutes, and it keeps the pinned
+actions of the publishing workflow current; since CI no longer checks its
+pull requests, fewer and older updates are easier to check by hand and less
+likely to carry a compromised release. *Rejected:* removing Dependabot and
+refreshing the pins by hand before each release (an easy step to skip), and
+publishing npm without provenance while private.
+
 ## 2026-10-06 A typed public Python API
 
 Every public Python function and the TPE class annotate their parameters and
