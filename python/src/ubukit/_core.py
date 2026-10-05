@@ -19,8 +19,12 @@ from scipy import sparse
 
 TINY = np.finfo(np.float64).tiny
 # "Ordinary scale": row norms below 1e150 keep every squared distance between
-# data, prototypes and grid points (~1e301 at most) far from float64 overflow.
+# data, prototypes and grid points (~1e301 at most) far from float64 overflow,
+# and some feature spanning at least 1e-150 (unless all rows are equal) keeps
+# the squared distances of the data from underflowing to zero.
 MAX_SQ_NORM = 1e300
+MIN_SPAN = 1e-150
+MAX_INT = 2**53 - 1  # JavaScript's Number.MAX_SAFE_INTEGER
 
 
 @dataclass(frozen=True, slots=True, eq=False)
@@ -58,15 +62,18 @@ def as_matrix(X, name: str = "X") -> np.ndarray:
         raise ValueError(f"{name} must contain only finite values")
     if not sq_norms(A).max() < MAX_SQ_NORM:
         raise ValueError(f"{name} is too large in scale for float64 distances; standardize it")
+    span = float((A.max(axis=0) - A.min(axis=0)).max())
+    if 0 < span < MIN_SPAN:
+        raise ValueError(f"{name} is too small in scale for float64 distances; standardize it")
     return A
 
 
 def check_int(value, name: str, low: int, high: int | None = None) -> int:
+    """Validate an integer in [low, high]; like JavaScript, never beyond +-(2**53 - 1)."""
     if (
         isinstance(value, bool)
         or not isinstance(value, Integral)
-        or value < low
-        or (high is not None and value > high)
+        or not max(low, -MAX_INT) <= value <= (MAX_INT if high is None else min(high, MAX_INT))
     ):
         bound = f">= {low}" if high is None else f"in [{low}, {high}]"
         raise ValueError(f"{name} must be an integer {bound}")
@@ -158,8 +165,9 @@ def prepare(X, k, init, seed):
         if init != "k-means++":
             raise ValueError("init must be 'k-means++' or a (k, n_features) array")
         V = kmeans_plus_plus(Xc, k, np.random.default_rng(seed))
-        # Start from the seeds' cell means: a center sitting exactly on a data
-        # point would give that point full weight in fuzzy updates with large m.
+        # Start from the seeds' cell means, so a center sits exactly on a data
+        # point (which then gets full weight in fuzzy updates) only when its
+        # cell holds that point alone.
         V = label_mean(Xc, sqdist(Xc, V).argmin(axis=1), V)
     else:
         V = as_matrix(init, "init")

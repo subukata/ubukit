@@ -29,7 +29,9 @@ Documentation = "https://github.com/subukata/ubukit/blob/main/docs/algorithms.md
 Issues = "https://github.com/subukata/ubukit/issues"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.13", "scikit-learn>=1.6"]
+# ruff stays within one minor series so that new lint rules and formatter
+# styles arrive only through a deliberate bump, not as a surprise CI failure.
+dev = ["pytest>=8", "ruff~=0.16.10", "scikit-learn>=1.6"]
 
 [tool.hatch.version]
 path = "src/ubukit/__init__.py"

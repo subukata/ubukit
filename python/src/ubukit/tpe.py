@@ -17,7 +17,7 @@ from numbers import Real
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
 
-from ._core import check_float, check_int
+from ._core import MAX_INT, check_float, check_int
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,7 +78,8 @@ def loguniform(low, high) -> _Numeric:
 
 def integer(low, high, *, log=False) -> _Numeric:
     """Integers in [low, high], optionally searched on a log scale."""
-    return _numeric(check_int(low, "low", -(2**53)), check_int(high, "high", low), log, True)
+    low = check_int(low, "low", -MAX_INT, MAX_INT)
+    return _numeric(low, check_int(high, "high", low, MAX_INT), log, True)
 
 
 def choice(*options) -> _Choice:
@@ -91,6 +92,8 @@ def choice(*options) -> _Choice:
 def _numeric(low, high, log, integer) -> _Numeric:
     low = check_float(low, "low", 0.0, strict=True) if log else check_float(low, "low")
     high = check_float(high, "high", low, strict=not integer)
+    if not math.isfinite(high - low):
+        raise ValueError("high - low must be finite")
     return _Numeric(low, high, log, integer)
 
 

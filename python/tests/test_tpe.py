@@ -55,6 +55,8 @@ def test_tell_accepts_external_trials():
         lambda: ub.uniform(1, 1),
         lambda: ub.loguniform(0, 1),
         lambda: ub.integer(3, 2),
+        lambda: ub.integer(0, 2**60),
+        lambda: ub.uniform(-1e308, 1e308),
         lambda: ub.choice(),
         lambda: ub.TPE({}),
         lambda: ub.TPE({"x": (0, 1)}),

@@ -25,6 +25,7 @@ def _datasets() -> dict:
         [np.tile(np.linspace(-1, 5, 4), 3), np.repeat(np.linspace(-1, 5, 3), 4)]
     )
     labels = np.random.default_rng(2)
+    correlated = np.random.default_rng(6).normal(size=(60, 2)) @ [[1.0, 0.0], [0.6, 0.8]]
     return {
         "blobs": blobs,
         "centers": np.array([[0.5, 0.5], [3.0, 1.0], [1.0, 3.0]]),
@@ -32,6 +33,7 @@ def _datasets() -> dict:
         "high": np.random.default_rng(3).normal(size=(40, 5)),
         "low": np.random.default_rng(4).normal(size=(40, 2)),
         "wide": np.random.default_rng(5).normal(size=(30, 100)) * np.linspace(3, 0.1, 100),
+        "standard": (correlated - correlated.mean(axis=0)) / correlated.std(axis=0),
         "labels_a": labels.integers(0, 4, 50),
         "labels_b": labels.integers(0, 3, 50),
     }
@@ -50,8 +52,9 @@ CASES = [
     ("batch_som", "blobs", [[3, 4]], {"epochs": 8}),
     ("som", "blobs", [[3, 4]], {"init": "grid_init", "epochs": 2, "shuffle": False}),
     ("som_olp", "blobs", [[3, 4]], {"lam": 0.5, "gamma": 1.0, "tol": 1e-10}),
-    # PCA initialization with D > 64 > N.
+    # PCA initialization with D > 64 > N, and with axes whose components tie.
     ("som_olp", "wide", [[3, 4]], {"lam": 50.0, "gamma": 1.0, "max_iter": 5}),
+    ("som_olp", "standard", [[3, 4]], {"lam": 0.5, "gamma": 1.0, "max_iter": 5}),
 ]
 METRICS = [
     ("ari", ["labels_a", "labels_b"], {}),

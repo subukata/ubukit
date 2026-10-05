@@ -111,10 +111,11 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
  * @param {MapInit & { lam: number, gamma: number, pcaScale?: number, maxIter?: number, tol?: number }} options
  * @returns {Generator<Progress, Result>}
  */
-export function* somOlp(X, grid = [10, 10], { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = /** @type {any} */ ({})) {
+export function* somOlp(X, grid = [10, 10], options) {
+  const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = options ?? /** @type {any} */ ({});
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
-  const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale'));
+  const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale', 0, true));
   let cost = null;
   const assign = (D, P) => {
     cost = D;
@@ -197,8 +198,10 @@ function finish(s, epochs) {
 function pcaInit(X, R, scale) {
   const d = X.cols, W = new Float64Array(R.rows * d);
   principalAxes(X, Math.min(R.cols, d)).forEach(({ value, axis }, h) => {
-    const lead = axis.reduce((best, v) => (Math.abs(v) > Math.abs(best) ? v : best), 0);
-    const sign = Math.sign(lead), spread = scale * Math.sqrt(Math.max(value, 0));
+    // Make the first clearly nonzero component positive (the largest one is
+    // ambiguous: standardized 2-D data have axes (1, +-1)/sqrt(2)).
+    const top = axis.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    const sign = Math.sign(axis.find(v => Math.abs(v) > 1e-6 * top) ?? 0), spread = scale * Math.sqrt(Math.max(value, 0));
     let mean = 0, extent = 0;
     for (let j = 0; j < R.rows; j++) mean += R.data[j * R.cols + h] / R.rows;
     for (let j = 0; j < R.rows; j++) extent = Math.max(extent, Math.abs(R.data[j * R.cols + h] - mean));

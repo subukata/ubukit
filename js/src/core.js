@@ -24,8 +24,11 @@
 /** Smallest positive normal float64. */
 export const TINY = 2.2250738585072014e-308;
 // "Ordinary scale": row norms below 1e150 keep every squared distance between
-// data, prototypes and grid points (~1e301 at most) far from float64 overflow.
+// data, prototypes and grid points (~1e301 at most) far from float64 overflow,
+// and some feature spanning at least 1e-150 (unless all rows are equal) keeps
+// the squared distances of the data from underflowing to zero.
 const MAX_SQ_NORM = 1e300;
+const MIN_SPAN = 1e-150;
 
 /**
  * Copy rows or a {data, rows, cols} matrix into a validated Float64 matrix
@@ -53,14 +56,21 @@ export function matrix(values, name = 'X') {
   if (!(Number.isSafeInteger(rows) && Number.isSafeInteger(cols) && rows > 0 && cols > 0) || data.length !== rows * cols) {
     throw new RangeError(`${name} must be a non-empty rows x cols matrix`);
   }
+  const lo = new Float64Array(cols).fill(Infinity), hi = new Float64Array(cols).fill(-Infinity);
   for (let i = 0; i < rows; i++) {
     let norm = 0;
-    for (let f = i * cols; f < (i + 1) * cols; f++) {
-      if (!Number.isFinite(data[f])) throw new RangeError(`${name} must contain only finite values`);
-      norm += data[f] * data[f];
+    for (let c = 0; c < cols; c++) {
+      const v = data[i * cols + c];
+      if (!Number.isFinite(v)) throw new RangeError(`${name} must contain only finite values`);
+      norm += v * v;
+      lo[c] = Math.min(lo[c], v);
+      hi[c] = Math.max(hi[c], v);
     }
     if (!(norm < MAX_SQ_NORM)) throw new RangeError(`${name} is too large in scale for float64 distances; standardize it`);
   }
+  let span = 0;
+  for (let c = 0; c < cols; c++) span = Math.max(span, hi[c] - lo[c]);
+  if (span > 0 && span < MIN_SPAN) throw new RangeError(`${name} is too small in scale for float64 distances; standardize it`);
   return out;
 }
 
@@ -73,6 +83,11 @@ export function toRows(m) {
   return Array.from({ length: m.rows }, (_, i) => Array.from(m.data.subarray(i * m.cols, (i + 1) * m.cols)));
 }
 
+/**
+ * Validate a safe integer in [low, high].
+ * @param {number} value @param {string} name @param {number} low @param {number} [high]
+ * @returns {number}
+ */
 export function checkInt(value, name, low, high = Infinity) {
   if (!Number.isSafeInteger(value) || value < low || value > high) {
     throw new RangeError(`${name} must be an integer ${high === Infinity ? `>= ${low}` : `in [${low}, ${high}]`}`);
@@ -80,6 +95,11 @@ export function checkInt(value, name, low, high = Infinity) {
   return value;
 }
 
+/**
+ * Validate a finite number >= low (> low when strict).
+ * @param {number} value @param {string} name @param {number} [low] @param {boolean} [strict]
+ * @returns {number}
+ */
 export function checkNumber(value, name, low = -Infinity, strict = false) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < low || (strict && value === low)) {
     throw new RangeError(`${name} must be a finite number ${strict ? '>' : '>='} ${low}`);
@@ -244,8 +264,9 @@ export function prepare(X, k, init = 'k-means++', seed) {
   let V;
   if (init === 'k-means++') {
     V = kmeansPlusPlus(Xc, k, random(seed));
-    // Start from the seeds' cell means: a center sitting exactly on a data
-    // point would give that point full weight in fuzzy updates with large m.
+    // Start from the seeds' cell means, so a center sits exactly on a data
+    // point (which then gets full weight in fuzzy updates) only when its
+    // cell holds that point alone.
     V = labelMean(Xc, argminRows(sqdist(Xc, V)), V);
   } else if (typeof init === 'string') {
     throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");

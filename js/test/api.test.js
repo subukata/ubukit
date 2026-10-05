@@ -63,6 +63,24 @@ test('maps produce grid embeddings', () => {
   assert.equal(ub.somOlp(X, undefined, { lam: 0.5, gamma: 1, maxIter: 2 }).centers.rows, 100);
 });
 
+test('pca orientation does not depend on rounding', () => {
+  // Standardized 2-D data have axes (1, +-1)/sqrt(2) whose components tie in
+  // magnitude; reordering the rows changes only the rounding.
+  const fit = A => ub.somOlp(A, [3, 4], { lam: 1, gamma: 0, maxIter: 1 }).membership.data;
+  for (let t = 0; t < 20; t++) {
+    const Z = Array.from({ length: 200 }, () => { const a = gauss(), b = gauss(); return [a, 0.6 * a + 0.8 * b]; });
+    const S = Z.map(z => z.slice());
+    for (let f = 0; f < 2; f++) {
+      const mean = Z.reduce((s, z) => s + z[f], 0) / Z.length;
+      const sd = Math.sqrt(Z.reduce((s, z) => s + (z[f] - mean) ** 2, 0) / Z.length);
+      S.forEach(z => (z[f] = (z[f] - mean) / sd));
+    }
+    const order = S.map((_, i) => (i * 37) % S.length);
+    const a = fit(S), b = fit(order.map(i => S[i]));
+    order.forEach((i, r) => { for (let j = 0; j < 12; j++) assert.ok(Math.abs(a[i * 12 + j] - b[r * 12 + j]) < 1e-9); });
+  }
+});
+
 test('matrix input accepts {data, rows, cols} and validates', () => {
   const m = ub.matrix(X);
   assert.deepEqual(ub.kmeans(m, 3, { seed: 2 }).centers, ub.kmeans(X, 3, { seed: 2 }).centers);
@@ -70,6 +88,10 @@ test('matrix input accepts {data, rows, cols} and validates', () => {
   assert.throws(() => ub.kmeans([[1, 2], [3]], 1), RangeError);
   assert.throws(() => ub.matrix({ data: new Float64Array(5), rows: 2.5, cols: 2 }), RangeError);
   assert.throws(() => ub.kmeans(X.map(row => row.map(v => v * 1e200)), 3), /scale/);
+  assert.throws(() => ub.kmeans(X.map(row => row.map(v => v * 1e-170)), 3), /scale/);
+  assert.deepEqual(Array.from(ub.fcm([[1, 1], [1, 1], [1, 1]], 2, { seed: 0 }).centers.data), [1, 1, 1, 1]);
+  assert.throws(() => ub.rmcm(X, 3, 0, { maxEdges: 10 }), /maxEdges/);
+  assert.throws(() => ub.somOlp(X, [3, 3], { lam: 1, gamma: 1, pcaScale: 0 }), RangeError);
   assert.throws(() => ub.kmeans(X, 0), RangeError);
   assert.throws(() => ub.fcm(X, 3, { m: 1 }), RangeError);
   assert.throws(() => ub.rmcm(X, 3, 100, { maxEdges: 1000 }), /maxEdges/);
@@ -113,4 +135,9 @@ test('tpe minimizes a mixed objective', async () => {
   const p = tpe.ask();
   for (const bad of [{ x: 99 }, { x: '0' }, { n: 2.5 }, { kind: 'z' }]) assert.throws(() => tpe.tell({ ...p, ...bad }, 1), RangeError);
   assert.throws(() => ub.uniform(1, 1), RangeError);
+  assert.throws(() => ub.uniform(-1e308, 1e308), RangeError);
+  assert.throws(() => ub.integer(0, 2 ** 60), /9007199254740991/);
+  const many = new ub.TPE({ x: ub.uniform(0, 1) }, { seed: 0 });
+  for (let t = 0; t < 200_000; t++) many.tell({ x: 0.5 }, 200_000 - t);
+  assert.equal(many.result().bestValue, 1);
 });

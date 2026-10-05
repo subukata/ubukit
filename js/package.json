@@ -14,6 +14,7 @@
   "files": ["src", "types"],
   "sideEffects": false,
   "engines": { "node": ">=22" },
+  "publishConfig": { "access": "public", "provenance": true },
   "scripts": {
     "test": "node --test",
     "check": "tsc -p .",

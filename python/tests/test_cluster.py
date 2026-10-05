@@ -128,6 +128,12 @@ def test_seed_reproducibility(blobs):
     np.testing.assert_array_equal(a.centers, b.centers)
 
 
+def test_identical_points_have_zero_span_and_are_accepted():
+    r = ub.fcm(np.ones((5, 2)), 2, seed=0)
+    np.testing.assert_allclose(r.centers, 1.0)
+    assert r.converged
+
+
 def test_coincident_points_and_centers():
     X = np.array([[0.0, 0.0], [0.0, 0.0], [1.0, 1.0], [1.0, 1.0]])
     r = ub.fcm(X, 2, init=X[[0, 2]])
@@ -148,6 +154,8 @@ def test_coincident_points_and_centers():
         (lambda X: ub.rmcm(X, 3, -1.0), "delta"),
         (lambda X: ub.kmeans(np.where(X > 4, np.nan, X), 3), "finite"),
         (lambda X: ub.kmeans(X * 1e200, 3), "scale"),
+        (lambda X: ub.kmeans(X * 1e-170, 3), "scale"),
+        (lambda X: ub.rmcm(X, 3, 0.0, max_edges=10), "max_edges"),
         (lambda X: ub.kmeans(X[:, 0], 3), "2-D"),
         (lambda X: ub.kmeans(X, True), "k"),
     ],

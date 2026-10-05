@@ -21,8 +21,8 @@ export const loguniform = (low, high) => numeric(low, high, true, false);
  * @param {number} low @param {number} high @param {{ log?: boolean }} [options] @returns {NumericDim}
  */
 export const integer = (low, high, { log = false } = {}) => {
-  checkInt(low, 'low', Number.MIN_SAFE_INTEGER);
-  return numeric(low, checkInt(high, 'high', low), log, true);
+  checkInt(low, 'low', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+  return numeric(low, checkInt(high, 'high', low, Number.MAX_SAFE_INTEGER), log, true);
 };
 /** One of the given options (compared with ===). @param {...unknown} options @returns {ChoiceDim} */
 export function choice(...options) {
@@ -34,6 +34,7 @@ export function choice(...options) {
 function numeric(low, high, log, integer) {
   checkNumber(low, 'low', log ? 0 : -Infinity, log);
   checkNumber(high, 'high', low, !integer);
+  if (!Number.isFinite(high - low)) throw new RangeError('high - low must be finite');
   return { kind: 'numeric', low, high, log, integer };
 }
 
@@ -92,7 +93,10 @@ export class TPE {
     return Object.fromEntries(Object.entries(this.#space).map(([name, dim], j) => [name, decode(dim, u[j])]));
   }
 
-  /** Record the objective value of params (lower is better). */
+  /**
+   * Record the objective value of params (lower is better).
+   * @param {Record<string, unknown>} params @param {number} value
+   */
   tell(params, value) {
     const names = Object.keys(this.#space);
     if (Object.keys(params).length !== names.length || !names.every(k => k in params)) throw new RangeError('params must have exactly the keys of the space');
@@ -105,7 +109,7 @@ export class TPE {
   /** @returns {TPEResult} */
   result() {
     if (!this.#values.length) throw new RangeError('no trials have been told');
-    const best = this.#values.indexOf(Math.min(...this.#values));
+    const best = this.#values.reduce((b, v, i, all) => (v < all[b] ? i : b), 0);
     return { bestParams: { ...this.#params[best] }, bestValue: this.#values[best], params: this.#params.map(p => ({ ...p })), values: Float64Array.from(this.#values) };
   }
 
@@ -178,7 +182,7 @@ function parzen(obs, dims) {
         const t = (z[j] - col.mu[c]) / col.sigma[c];
         return s - 0.5 * t * t - col.logNorm[c];
       }, 0));
-      const max = Math.max(...terms);
+      const max = terms.reduce((a, b) => Math.max(a, b), -Infinity);
       return max + Math.log(terms.reduce((s, t) => s + Math.exp(t - max), 0));
     },
   };
