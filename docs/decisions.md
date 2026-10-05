@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-05 CI only by hand while the repository is private (#50)
+
+CI runs only when the maintainer starts it, on one operating system per run,
+and agents may not trigger workflows without asking. *Why:* the rebuild
+(#36) replaced the previous workflow, which ran only by hand on one system per
+run after confirming the remaining minutes, with CI on every pull request and
+every push to `main` on three systems. In one day (#36-#49) that ran about 33
+times at over 100 billed minutes each (macOS counts 10x) and used the
+account's entire 2,000 monthly minutes, while every problem it could have
+found had already been caught by the local checks. *Rejected:* removing CI
+altogether (it is the only check on macOS and Linux before a release) and
+Linux-only CI on every pull request (still repeats the local checks).
+
 ## 2026-10-05 Greedy k-means++ seeding (#48)
 
 Each seed is the best, by the resulting sum of squared distances, of
