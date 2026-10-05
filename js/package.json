@@ -21,6 +21,6 @@
     "prepack": "npm run build:types"
   },
   "devDependencies": {
-    "typescript": "^5.9.0"
+    "typescript": "^7.0.2"
   }
 }
