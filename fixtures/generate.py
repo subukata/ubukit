@@ -9,6 +9,7 @@ both languages walk the same iterates. Run from the repository root:
 from __future__ import annotations
 
 import json
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -100,7 +101,14 @@ def _jsonable(value):
     raise TypeError(type(value))
 
 
+def dumps(fixtures: dict) -> str:
+    """JSON with one dataset or case per line, so a diff names the cases that changed."""
+    compact = partial(json.dumps, separators=(",", ":"))
+    data = ",\n".join(f"{json.dumps(k)}:{compact(v)}" for k, v in fixtures["data"].items())
+    cases = ",\n".join(compact(case) for case in fixtures["cases"])
+    return f'{{"data":{{\n{data}\n}},\n"cases":[\n{cases}\n]}}\n'
+
+
 if __name__ == "__main__":
-    text = json.dumps(build(), separators=(",", ":")) + "\n"
-    PATH.write_text(text, encoding="utf-8", newline="\n")
+    PATH.write_text(dumps(build()), encoding="utf-8", newline="\n")
     print(f"wrote {PATH}")
