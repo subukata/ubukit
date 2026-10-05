@@ -1,5 +1,0 @@
-import test from 'node:test';import assert from 'node:assert/strict';
-import * as before from '../references/before_final_weight_cache/index.js';import * as after from '../../consumer/node_modules/ubukit-js/src/index.js';
-for(const m of [1+Number.EPSILON,1.3,1.5,2,3,1000,1e308])test(`Reused final objective weights keep all FCM outputs exact, m=${m}`,()=>{
- const random=before.seededRandom(188),n=37,d=9,k=5,data=Float64Array.from({length:n*d},()=>random()*2-1),initMembership=Float64Array.from({length:n*k},()=>random()),input={data,nSamples:n,nFeatures:d},options={initMembership,nClusters:k,m,maxIterations:5,tolerance:0,returnHistory:true,blockRows:13};const result=after.run('fcm',input,options);if((m>32||m-1<1e-4)){assert.equal(result.numericalMode,'log-domain');assert.ok(result.centers.every(Number.isFinite));assert.ok(result.membership.every(Number.isFinite));assert.deepEqual(result,after.run('fcm',input,{...options,blockRows:1}));}else assert.deepEqual(result,before.run('fcm',input,options));
-});

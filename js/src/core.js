@@ -1,0 +1,305 @@
+/**
+ * Shared numerics: matrices, validation, distances, initialization and the
+ * alternating engine. Every partitional method is one loop,
+ * D = ||x_i - v_c||^2 -> U = assign(D) -> V = update(U),
+ * written as a generator so callers can observe, pause or cancel it.
+ */
+
+/** @typedef {{ data: Float64Array, rows: number, cols: number }} Matrix */
+/** @typedef {number[][] | Matrix} MatrixLike */
+/**
+ * @typedef {object} Result
+ * @property {Matrix} centers (K, D) prototypes.
+ * @property {Int32Array} labels strongest membership (nearest prototype for hard methods).
+ * @property {Matrix | null} membership (N, K) memberships; null for hard methods.
+ * @property {number} nIter iterations performed (epochs for SOMs).
+ * @property {boolean} converged stopping rule met (SOMs: schedule completed).
+ * @property {Float64Array} history objective per iteration; empty when undefined.
+ * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs.
+ */
+/** @typedef {{ iteration: number }} Progress */
+
+/**
+ * Copy rows or a {data, rows, cols} matrix into a validated Float64 matrix.
+ * @param {MatrixLike} values
+ * @returns {Matrix}
+ */
+export function matrix(values, name = 'X') {
+  /** @type {Matrix} */
+  let out;
+  if (Array.isArray(values)) {
+    const rows = values.length;
+    const cols = rows ? values[0].length : 0;
+    out = { data: new Float64Array(rows * cols), rows, cols };
+    values.forEach((row, i) => {
+      if (row.length !== cols) throw new RangeError(`${name} rows must have equal length`);
+      out.data.set(row, i * cols);
+    });
+  } else if (values && ArrayBuffer.isView(values.data)) {
+    out = { data: Float64Array.from(values.data), rows: values.rows, cols: values.cols };
+  } else {
+    throw new TypeError(`${name} must be an array of rows or {data, rows, cols}`);
+  }
+  if (!(out.rows > 0 && out.cols > 0) || out.data.length !== out.rows * out.cols) {
+    throw new RangeError(`${name} must be a non-empty rows x cols matrix`);
+  }
+  for (const v of out.data) if (!Number.isFinite(v)) throw new RangeError(`${name} must contain only finite values`);
+  return out;
+}
+
+/**
+ * Rows of a matrix as plain arrays.
+ * @param {Matrix} m
+ * @returns {number[][]}
+ */
+export function toRows(m) {
+  return Array.from({ length: m.rows }, (_, i) => Array.from(m.data.subarray(i * m.cols, (i + 1) * m.cols)));
+}
+
+export function checkInt(value, name, low, high = Infinity) {
+  if (!Number.isSafeInteger(value) || value < low || value > high) {
+    throw new RangeError(`${name} must be an integer ${high === Infinity ? `>= ${low}` : `in [${low}, ${high}]`}`);
+  }
+  return value;
+}
+
+export function checkNumber(value, name, low = -Infinity, strict = false) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < low || (strict && value === low)) {
+    throw new RangeError(`${name} must be a finite number ${strict ? '>' : '>='} ${low}`);
+  }
+  return value;
+}
+
+/** Seeded uniform [0, 1) generator (Mulberry32); random seed when omitted. */
+export function random(seed) {
+  let s = seed === undefined ? (Math.random() * 2 ** 32) >>> 0 : checkInt(seed, 'seed', 0, 2 ** 32 - 1);
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), s | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Center the columns of X; returns the centered copy and the mean. */
+export function center(X) {
+  const { rows: n, cols: d, data } = X;
+  const mean = new Float64Array(d);
+  for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) mean[f] += data[i * d + f];
+  for (let f = 0; f < d; f++) mean[f] /= n;
+  const out = new Float64Array(data.length);
+  for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) out[i * d + f] = data[i * d + f] - mean[f];
+  return { X: { data: out, rows: n, cols: d }, mean };
+}
+
+/** Add a row vector to every row (new matrix). */
+export function shift(M, v) {
+  const data = M.data.slice();
+  for (let i = 0; i < data.length; i++) data[i] += v[i % M.cols];
+  return { data, rows: M.rows, cols: M.cols };
+}
+
+/** Squared Euclidean distances (N, K) from direct differences. */
+export function sqdist(X, C) {
+  const { rows: n, cols: d } = X, k = C.rows, x = X.data, c = C.data;
+  const out = new Float64Array(n * k);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < k; j++) {
+      let s = 0;
+      for (let f = 0, a = i * d, b = j * d; f < d; f++) {
+        const t = x[a + f] - c[b + f];
+        s += t * t;
+      }
+      out[i * k + j] = s;
+    }
+  }
+  return { data: out, rows: n, cols: k };
+}
+
+/** Index of the smallest entry per row; ties go to the lowest index. */
+export function argminRows(D) {
+  const { rows: n, cols: k, data } = D, out = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    let best = 0;
+    for (let j = 1; j < k; j++) if (data[i * k + j] < data[i * k + best]) best = j;
+    out[i] = best;
+  }
+  return out;
+}
+
+/** Index of the largest entry per row. */
+export function argmaxRows(U) {
+  const { rows: n, cols: k, data } = U, out = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    let best = 0;
+    for (let j = 1; j < k; j++) if (data[i * k + j] > data[i * k + best]) best = j;
+    out[i] = best;
+  }
+  return out;
+}
+
+/** Row-wise softmax of logits, in place. */
+export function softmaxRows(L) {
+  const { rows: n, cols: k, data } = L;
+  for (let i = 0; i < n; i++) {
+    let max = -Infinity, sum = 0;
+    for (let j = 0; j < k; j++) max = Math.max(max, data[i * k + j]);
+    for (let j = 0; j < k; j++) sum += data[i * k + j] = Math.exp(data[i * k + j] - max);
+    for (let j = 0; j < k; j++) data[i * k + j] /= sum;
+  }
+  return L;
+}
+
+/** Map every entry (new matrix). */
+export function mapMatrix(M, fn) {
+  return { data: M.data.map(fn), rows: M.rows, cols: M.cols };
+}
+
+/** Means of X weighted by the columns of W; columns without mass keep V. */
+export function weightedMean(X, W, V) {
+  const { rows: n, cols: d } = X, k = W.cols, sums = new Float64Array(k * d), mass = new Float64Array(k);
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < k; j++) {
+      const w = W.data[i * k + j];
+      if (w === 0) continue;
+      mass[j] += w;
+      for (let f = 0; f < d; f++) sums[j * d + f] += w * X.data[i * d + f];
+    }
+  }
+  return divide(sums, mass, V);
+}
+
+/** Per-label sums of X rows and label counts. */
+export function labelSums(X, labels, k) {
+  const d = X.cols, sums = new Float64Array(k * d), counts = new Float64Array(k);
+  for (let i = 0; i < labels.length; i++) {
+    const j = labels[i];
+    counts[j]++;
+    for (let f = 0; f < d; f++) sums[j * d + f] += X.data[i * d + f];
+  }
+  return { sums, counts };
+}
+
+/** Per-label means of X; empty labels keep V. */
+export function labelMean(X, labels, V) {
+  const { sums, counts } = labelSums(X, labels, V.rows);
+  return divide(sums, counts, V);
+}
+
+function divide(sums, mass, V) {
+  const d = V.cols, out = V.data.slice();
+  for (let j = 0; j < V.rows; j++) {
+    if (mass[j] > 0) for (let f = 0; f < d; f++) out[j * d + f] = sums[j * d + f] / mass[j];
+  }
+  return { data: out, rows: V.rows, cols: d };
+}
+
+/** k-means++ seeding (Arthur & Vassilvitskii, 2007). */
+export function kmeansPlusPlus(X, k, rand) {
+  const { rows: n, cols: d } = X, chosen = [Math.floor(rand() * n)];
+  const row = i => ({ data: X.data.subarray(i * d, (i + 1) * d), rows: 1, cols: d });
+  const closest = sqdist(X, row(chosen[0])).data;
+  while (chosen.length < k) {
+    let total = 0;
+    for (const v of closest) total += v;
+    let i = n - 1;
+    if (total > 0) {
+      let target = rand() * total;
+      for (let j = 0; j < n; j++) if ((target -= closest[j]) < 0) { i = j; break; }
+    } else i = Math.floor(rand() * n);
+    chosen.push(i);
+    const next = sqdist(X, row(i)).data;
+    for (let j = 0; j < n; j++) closest[j] = Math.min(closest[j], next[j]);
+  }
+  const V = new Float64Array(k * d);
+  chosen.forEach((i, j) => V.set(row(i).data, j * d));
+  return { data: V, rows: k, cols: d };
+}
+
+/**
+ * Validate and center X; return the centered X, its mean and initial centers.
+ * @param {MatrixLike} X @param {number} k @param {'k-means++' | MatrixLike} [init] @param {number} [seed]
+ */
+export function prepare(X, k, init = 'k-means++', seed) {
+  X = matrix(X);
+  checkInt(k, 'k', 1, X.rows);
+  const { X: Xc, mean } = center(X);
+  let V;
+  if (init === 'k-means++') {
+    V = kmeansPlusPlus(Xc, k, random(seed));
+    // Start from the seeds' cell means: a center sitting exactly on a data
+    // point would give that point full weight in fuzzy updates with large m.
+    V = labelMean(Xc, argminRows(sqdist(Xc, V)), V);
+  } else if (typeof init === 'string') {
+    throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");
+  } else {
+    V = matrix(init, 'init');
+    if (V.rows !== k || V.cols !== X.cols) throw new RangeError(`init must have shape (${k}, ${X.cols})`);
+    V = shift(V, mean.map(v => -v));
+  }
+  return { X: Xc, mean, V };
+}
+
+/**
+ * Iterate D -> U -> V until no prototype coordinate moves more than tol times
+ * the RMS radius of X (tol = 0: exact fixed point; tol = null: fixed schedule).
+ * Yields after every iteration.
+ */
+export function* alternate(X, V, { assign, update, objective = null, maxIter, tol }) {
+  let radius = 0;
+  for (const v of X.data) radius += v * v;
+  const step = tol === null ? null : tol * Math.sqrt(radius / X.rows);
+  const history = [];
+  let U = null;
+  for (let t = 0; t < maxIter; t++) {
+    const D = sqdist(X, V);
+    U = assign(D, U, t);
+    if (objective) history.push(objective(D, U));
+    const previous = V;
+    V = update(U, V, t);
+    let move = 0;
+    for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
+    yield { iteration: t + 1 };
+    if (step !== null && move <= step) return { V, U, nIter: t + 1, converged: true, history: Float64Array.from(history) };
+  }
+  return { V, U, nIter: maxIter, converged: false, history: Float64Array.from(history) };
+}
+
+/**
+ * Run a step generator to completion.
+ * @template T
+ * @param {Generator<Progress, T>} steps
+ * @returns {T}
+ */
+export function run(steps) {
+  for (;;) {
+    const { value, done } = steps.next();
+    if (done) return value;
+  }
+}
+
+/**
+ * Run a step generator cooperatively, yielding to the event loop about every
+ * budgetMs and stopping when signal aborts.
+ * @template T
+ * @param {Generator<Progress, T>} steps
+ * @param {{ signal?: AbortSignal, onProgress?: (p: Progress) => void, budgetMs?: number }} [options]
+ * @returns {Promise<T>}
+ */
+export async function runAsync(steps, { signal, onProgress, budgetMs = 12 } = {}) {
+  let deadline = performance.now() + budgetMs;
+  try {
+    for (;;) {
+      signal?.throwIfAborted();
+      const { value, done } = steps.next();
+      if (done) return value;
+      onProgress?.(/** @type {Progress} */ (value));
+      if (performance.now() >= deadline) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        deadline = performance.now() + budgetMs;
+      }
+    }
+  } finally {
+    steps.return(undefined);
+  }
+}

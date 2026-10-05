@@ -1,79 +1,67 @@
 <p align="center">
-  <img src="docs/assets/ubukit-logo-b.png" alt="UbuKit" width="520">
+  <img src="docs/assets/ubukit-logo-b.png" alt="UbuKit" width="420">
 </p>
 
 # UbuKit
 
-**Uncertainty-Based Unsupervised Knowledge Inference Toolkit**
+Fuzzy, rough and classical clustering, self-organizing maps, evaluation metrics
+and TPE search, for Python and JavaScript.
 
-A Python and JavaScript library for clustering, self-organizing maps, evaluation metrics, and lightweight parameter search.
+| | |
+|---|---|
+| Clustering | k-means, fuzzy c-means (FCM), entropy-regularized FCM, rough c-means (RCM/ExRCM), rough membership c-means (RMCM) |
+| Maps | online SOM, batch SOM, SOM with optimized latent positions (SOM-OLP) |
+| Metrics | adjusted Rand index, adjusted mutual information, trustworthiness, continuity |
+| Search | multivariate Tree-structured Parzen Estimator |
 
-![UbuKit workflow: data, models, results, evaluation, and parameter search](docs/assets/ubukit-overview-en.png)
-
-[Overview SVG](docs/assets/ubukit-overview-en.svg) · [Mascot character sheet](docs/assets/ubukit-mascot.png)
-
-- **Clustering:** k-means assigns each sample to one cluster; fuzzy c-means (FCM) assigns degrees of membership; [entropy-regularized FCM](docs/entropy-fcm.md) controls membership softness with a temperature
-- **Rough clustering:** rough c-means (RCM) and extended rough c-means (ExRCM) allow overlapping cluster assignments; rough membership c-means (RMCM) derives membership from fixed-radius neighborhoods
-- **Self-organizing maps (SOM):** online and batch training (BatchSOM) map samples to a grid for visualization
-- **Self-organizing maps with optimized latent positions (SOM-OLP):** learn continuous sample positions using a supplied grid
-- **Evaluation:** trustworthiness and continuity check neighborhood preservation; adjusted Rand index (ARI) and adjusted mutual information (AMI) measure chance-adjusted agreement between cluster labels
-- **Parameter search:** Tree-structured Parzen Estimator (TPE) search uses earlier trial results to suggest parameter values; random search samples without that feedback
-
-This checkout prepares **alpha.3** (`ubukit==0.1.0a3`, `ubukit-js@0.1.0-alpha.3`).
-At source preparation on 2026-10-03, initial registry publication and fresh
-exact-artifact qualification were pending. This is a dated preparation record;
-check the maintainer’s release record for subsequent results and exact archive
-hashes. The most recent
-three-OS qualification belongs to the separate, frozen alpha.2 archives; it does
-not qualify this changed source. Follow [getting started](docs/getting-started.md)
-to build and install local archives, and read the [security and resource
-boundaries](SECURITY.md) before using untrusted input.
+Both packages share names, parameters and equations ([docs/algorithms.md](docs/algorithms.md)).
+Python depends only on NumPy and SciPy; JavaScript has no dependencies.
 
 ## Python
 
-```python
-import numpy as np
-import ubukit
-
-X = np.array([[0.0], [0.1], [4.0], [4.1]], dtype=np.float64)
-result = ubukit.fit_fcm(X, 2, random_state=1, max_iter=20, backend="numpy")
-print(result["labels"])
-
-som = ubukit.som_batch(X, grid_shape=(4, 3), epochs=2, random_state=1)
-print(som["embedding"])
+```sh
+pip install ubukit
 ```
 
-Use `import ubukit` for the public Python API. See the [Python reference](python/README.md) for inputs, result shapes, and optional backends.
+```python
+import numpy as np
+import ubukit as ub
+
+X = np.random.default_rng(0).normal(size=(500, 2))
+r = ub.fcm(X, 3, m=2.0, seed=0)
+r.centers, r.membership, r.labels, r.converged
+
+m = ub.batch_som(X, (8, 8), epochs=30)
+ub.trustworthiness(X, m.embedding, k=5)
+
+y = ub.kmeans(X, 3, seed=1).labels
+best = ub.minimize(  # pick the fuzzifier whose FCM labels agree best with y
+    lambda p: -ub.ari(y, ub.fcm(X, 3, m=p["m"], seed=0).labels),
+    {"m": ub.uniform(1.1, 3.0)},
+    n_trials=20,
+)
+best.best_params, best.best_value
+```
 
 ## JavaScript
 
-```javascript
-import { run } from 'ubukit-js';
-
-const X = { data: new Float64Array([0, 0.1, 4, 4.1]), nSamples: 4, nFeatures: 1 };
-const result = run('kmeans', X, { nClusters: 2, seed: 1, maxIterations: 20 });
-console.log(result.labels);
+```sh
+npm install ubukit
 ```
 
-Use ES modules in Node.js or the browser, with no runtime npm dependencies. See the [JavaScript reference](javascript/README.md) for data layouts, sessions, and Workers.
+```js
+import { fcm, batchSom, trustworthiness, steps, runAsync } from 'ubukit';
 
-## Guides
+const X = [[0, 0], [0.1, 0.2], [4, 4], [4.2, 3.9]];   // rows, or { data, rows, cols }
+const r = fcm(X, 2, { m: 2, seed: 0 });                // r.centers is { data: Float64Array, rows, cols }
 
-- [Getting started](docs/getting-started.md)
-- [Choosing an API](docs/api.md)
-- [Numerical contracts and limits](docs/numerics.md)
-- [Understanding performance](docs/performance.md)
-- [Examples](examples/README.md)
+// Progress and cancellation without blocking the page:
+const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
+  signal: AbortSignal.timeout(5000),
+  onProgress: ({ iteration }) => console.log(iteration),
+});
+```
 
 ## Development
 
-See [development and verification](docs/contributing.md) for contributor instructions.
-
-## License
-
-UbuKit project contributions use the [MIT License](LICENSE). Retained third-party terms are described in [license scope](LICENSE-SCOPE.txt).
-
-The source and intended terms for the logo and mascot images in `docs/assets/`
-(`ubukit-logo-b.png` and `ubukit-mascot.png`) need explicit owner confirmation
-before public repository publication. This note
-does not make or revoke a license grant for those assets.
+See [DESIGN.md](DESIGN.md) for the principles and commands. Licensed under [MIT](LICENSE).
