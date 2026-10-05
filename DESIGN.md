@@ -78,12 +78,13 @@ Each principle states a rule and the failure it prevents.
    unmeasured optimization is usually complexity without benefit.
 8. **A short, closed supply chain.** CI actions are pinned to commit SHAs
    and get the least permissions; dependency install scripts do not run;
-   tests and builds run without credentials, and the publishing jobs only
-   upload the built files through trusted publishing. Only the maintainer
+   tests and builds run without credentials and in separate jobs, so the
+   published files are made with the build tools alone, and the publishing
+   jobs only upload them through trusted publishing. Only the maintainer
    pushes release tags.
    *Why:* a package is only as trustworthy as the path from source to
-   registry, and no third-party code may run where a publishing token can be
-   minted.
+   registry: no third-party code may run where a publishing token can be
+   minted, and only the build tools where the published files are made.
 
 ## Current architecture
 
