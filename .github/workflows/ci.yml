@@ -1,25 +1,34 @@
+# Runs only when started by hand (Actions > CI > Run workflow), one operating
+# system per run: Actions minutes are limited while the repository is private,
+# and macOS counts 10x, Windows 2x. Run it before a release, not for every
+# change; the checks in CONTRIBUTING.md run locally.
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Operating system for this run
+        type: choice
+        options: [ubuntu-latest, windows-latest, macos-latest]
+        default: ubuntu-latest
+      minutes_checked:
+        description: I checked the remaining Actions minutes
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   python:
-    name: Python ${{ matrix.python }} (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    if: inputs.minutes_checked
+    name: Python ${{ matrix.python }} (${{ inputs.os }})
+    runs-on: ${{ inputs.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.12", "3.14"]
     defaults:
       run:
@@ -38,6 +47,7 @@ jobs:
       - run: pytest
 
   python-oldest:
+    if: inputs.minutes_checked && inputs.os == 'ubuntu-latest'
     name: Python oldest supported dependencies
     runs-on: ubuntu-latest
     defaults:
@@ -55,6 +65,7 @@ jobs:
       - run: pytest
 
   packages:
+    if: inputs.minutes_checked && inputs.os == 'ubuntu-latest'
     name: Build release artifacts and smoke-run the benchmark
     runs-on: ubuntu-latest
     steps:
@@ -82,12 +93,12 @@ jobs:
       - run: python bench/run.py --size smoke --check
 
   javascript:
-    name: Node ${{ matrix.node }} (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    if: inputs.minutes_checked
+    name: Node ${{ matrix.node }} (${{ inputs.os }})
+    runs-on: ${{ inputs.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         node: [22, 24]
     defaults:
       run:
