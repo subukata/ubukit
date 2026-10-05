@@ -4,7 +4,7 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
-## 2026-10-05 A benchmark that can tell differences apart
+## 2026-10-05 A benchmark that can tell differences apart (#47)
 
 The benchmark now compares two git trees in alternating ABBA order and calls
 a difference only for non-overlapping samples at least 5% apart; it reports
