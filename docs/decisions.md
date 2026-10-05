@@ -4,7 +4,7 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
-## 2026-10-05 CI only by hand while the repository is private
+## 2026-10-05 CI only by hand while the repository is private (#50)
 
 CI runs only when the maintainer starts it, on one operating system per run,
 and agents may not trigger workflows without asking. *Why:* the rebuild
@@ -16,6 +16,20 @@ account's entire 2,000 monthly minutes, while every problem it could have
 found had already been caught by the local checks. *Rejected:* removing CI
 altogether (it is the only check on macOS and Linux before a release) and
 Linux-only CI on every pull request (still repeats the local checks).
+
+## 2026-10-05 Greedy k-means++ seeding (#48)
+
+Each seed is the best, by the resulting sum of squared distances, of
+2 + floor(ln K) candidates drawn in proportion to the squared distance to the
+nearest seed (as in scikit-learn), instead of a single draw. *Why:*
+`bench/run.py --quality` showed single draws putting two seeds into one
+well-separated cluster: over 10 seeds, k-means ARI rose from a median of
+0.87 to 1.0 (26.5 to 2 iterations), K = 100 from 0.84 to 0.96, and EFCM, RCM
+and RMCM from about 0.87 to 1.0; recovering 10 separated blobs exactly went
+from 6 to 16 of 20 seeds in Python and 4 to 18 in JavaScript. Seeding costs
+2 + floor(ln K) times more distance evaluations, which fewer iterations
+usually repay. *Rejected:* k-means|| (built for distributed data) and
+several restarts (multiplies the whole run).
 
 ## 2026-10-05 A benchmark that can tell differences apart (#47)
 
