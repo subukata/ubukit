@@ -30,7 +30,7 @@ export function ari(labelsTrue, labelsPred) {
  * @param {{ average?: 'arithmetic' | 'geometric' | 'min' | 'max' }} [options]
  */
 export function ami(labelsTrue, labelsPred, { average = 'arithmetic' } = {}) {
-  if (!(average in AVERAGES)) throw new RangeError(`average must be one of ${Object.keys(AVERAGES).join(', ')}`);
+  if (!Object.hasOwn(AVERAGES, average)) throw new RangeError(`average must be one of ${Object.keys(AVERAGES).join(', ')}`);
   const { n, a, b, cells } = contingency(labelsTrue, labelsPred);
   if (a.length === b.length && a.length <= 1) return 1;
   let mi = 0;
@@ -102,6 +102,11 @@ function distances(M, i, out) {
 }
 
 function contingency(labelsTrue, labelsPred) {
+  for (const labels of [labelsTrue, labelsPred]) {
+    if (typeof labels !== 'object' || labels === null || !Number.isSafeInteger(labels.length)) {
+      throw new TypeError('labels must be arrays');
+    }
+  }
   const n = labelsTrue.length;
   if (n !== labelsPred.length) throw new RangeError('labels must have equal length');
   const encode = labels => {

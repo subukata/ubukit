@@ -85,4 +85,6 @@ def test_invalid_arguments():
     with pytest.raises(ValueError):
         ub.ari([0, 1], [0])
     with pytest.raises(ValueError):
+        ub.ami(5, 7)
+    with pytest.raises(ValueError):
         ub.ami([0, 1], [0, 1], average="median")

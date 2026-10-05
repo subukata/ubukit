@@ -18,6 +18,9 @@ test('tpe minimizes a mixed objective', async () => {
     tpe.tell(p, f(p));
   }
   assert.throws(() => tpe.tell({ x: 0 }, 1), RangeError);
+  // The keys must be the params' own: an inherited x is not a value for x.
+  const inherited = Object.assign(Object.create({ x: 0.5 }), { y: 1 });
+  assert.throws(() => new ub.TPE({ x: ub.uniform(0, 1) }).tell(inherited, 1), RangeError);
   const p = tpe.ask();
   for (const bad of [{ x: 99 }, { x: '0' }, { n: 2.5 }, { kind: 'z' }]) assert.throws(() => tpe.tell({ ...p, ...bad }, 1), RangeError);
   assert.throws(() => ub.uniform(1, 1), RangeError);

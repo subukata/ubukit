@@ -4,8 +4,8 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, argminRows, center, checkInt, checkNumber, iterate, labelSums, lloyd, mapMatrix, matrix,
-  random, shift, softmaxRows, sqdist, weightedMean,
+  argmaxRows, argminRows, center, checkInt, checkNumber, copyMatrix, iterate, labelSums, lloyd, mapMatrix,
+  matrix, random, shift, softmaxRows, sqdist, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -137,7 +137,8 @@ export function* somOlp(X, grid = [10, 10], options) {
     },
   });
   const view = ({ V, state: P, nIter, converged, history }) => ({
-    centers: shift(V, s.mean), labels: argmaxRows(P), membership: P, nIter, converged, history,
+    // A copy: the next step reads P.
+    centers: shift(V, s.mean), labels: argmaxRows(P), membership: copyMatrix(P), nIter, converged, history,
     embedding: multiply(P, s.R),
   });
   return yield* iterate(s.X, s.W, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });

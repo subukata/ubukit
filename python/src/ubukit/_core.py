@@ -44,12 +44,15 @@ MAX_INT = 2**53 - 1  # JavaScript's Number.MAX_SAFE_INTEGER
 class Result:
     """A fitted clustering or map.
 
-    ``labels`` and ``membership`` come from the last assignment step, i.e. for
-    the prototypes before the final update; they coincide at a fixed point.
+    For clusterings and SOM-OLP, ``labels`` and ``membership`` come from the
+    last assignment step, i.e. for the prototypes before the final update;
+    they coincide at a fixed point. For ``som`` and ``batch_som``, ``labels``
+    are the best-matching units of the final prototypes.
 
     Attributes:
         centers: (K, D) prototypes in input coordinates.
-        labels: (N,) index of the strongest membership (nearest prototype for hard methods).
+        labels: (N,) index of the strongest membership (nearest prototype for k-means,
+            best-matching unit for ``som`` and ``batch_som``).
         membership: (N, K) soft or rough memberships; ``None`` for hard methods.
         n_iter: iterations performed (epochs for SOMs).
         converged: whether the stopping rule was met (SOMs: the schedule completed).
@@ -208,8 +211,9 @@ class Progress:
     """Yielded after every iteration (epoch for maps) by the generators in ``ubukit.steps``.
 
     ``result()`` returns the Result the run would return had it stopped at
-    this iteration; it costs nothing unless called and stays valid as the run
-    goes on.
+    this iteration; it costs nothing unless called, stays valid as the run
+    goes on, and shares no arrays with the run, so changing it leaves the
+    iterations that follow unchanged.
     """
 
     iteration: int
@@ -268,7 +272,7 @@ def iterate(
     ``tol=None`` runs a fixed schedule. It yields a Progress after every step
     and returns ``view`` of the final Loop, the method's Result; a Progress
     builds its Result with the same ``view``, which is why steps never modify
-    a state they have returned.
+    a state they have returned and views copy the state they put in a Result.
     """
     limit = None if tol is None else tol * float(np.sqrt(sq_norms(X).mean()))
     state = None

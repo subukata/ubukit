@@ -50,7 +50,7 @@ def kmeans(
     X, mean, V = prepare(X, k, init, seed)
 
     def view(loop):
-        return Result(loop.V + mean, loop.state[0], None, *loop[2:])
+        return Result(loop.V + mean, loop.state[0].copy(), None, *loop[2:])
 
     return (
         yield from iterate(
@@ -242,7 +242,7 @@ def _soft(mean: np.ndarray):
     """The view of soft and rough clusterings: memberships are the state."""
 
     def view(loop):
-        U = loop.state
+        U = loop.state.copy()
         return Result(loop.V + mean, U.argmax(axis=1), U, *loop[2:])
 
     return view

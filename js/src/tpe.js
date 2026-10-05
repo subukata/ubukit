@@ -99,7 +99,7 @@ export class TPE {
    */
   tell(params, value) {
     const names = Object.keys(this.#space);
-    if (Object.keys(params).length !== names.length || !names.every(k => k in params)) throw new RangeError('params must have exactly the keys of the space');
+    if (Object.keys(params).length !== names.length || !names.every(k => Object.hasOwn(params, k))) throw new RangeError('params must have exactly the keys of the space');
     checkNumber(value, 'value');
     this.#encoded.push(names.map(k => encode(this.#space[k], params[k])));
     this.#params.push({ ...params });
