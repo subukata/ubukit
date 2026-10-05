@@ -1,6 +1,9 @@
 # Publishes both packages when a v* tag is pushed. Uses trusted publishing
 # (OIDC): configure the "pypi" and "npm" environments and the trusted
 # publishers on PyPI and npm once; no long-lived tokens are stored.
+# npm can only trust a package that already exists, so the very first npm
+# release reads a short-lived NPM_TOKEN secret from the "npm" environment;
+# delete that secret once the trusted publisher is configured.
 name: Release
 
 on:
@@ -52,3 +55,5 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
