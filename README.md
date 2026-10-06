@@ -67,4 +67,6 @@ const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
 
 [DESIGN.md](DESIGN.md) explains what UbuKit is and why,
 [CONTRIBUTING.md](CONTRIBUTING.md) how to change it, and
-[CHANGELOG.md](CHANGELOG.md) what changed. Licensed under [MIT](LICENSE).
+[CHANGELOG.md](CHANGELOG.md) what changed. Licensed under [MIT](LICENSE);
+three small expressions in ARI and AMI follow scikit-learn under BSD-3-Clause
+([THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)).

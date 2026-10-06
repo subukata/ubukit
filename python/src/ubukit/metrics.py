@@ -30,6 +30,8 @@ def ari(labels_true: ArrayLike, labels_pred: ArrayLike) -> float:
     sa, sb, s = int(a @ a), int(b @ b), int(nij @ nij)
     tp, fp, fn = s - n, sb - s, sa - s
     tn = n * n - sa - sb + s
+    # This expression and its fn = fp = 0 case follow scikit-learn (BSD-3-Clause;
+    # see THIRD_PARTY_NOTICES.txt).
     if fp == 0 and fn == 0:
         return 1.0
     return 2.0 * (tp * tn - fn * fp) / ((tp + fn) * (fn + tn) + (tp + fp) * (fp + tn))
@@ -52,6 +54,8 @@ def ami(
         raise ValueError(f"average must be one of {sorted(_AVERAGES)}")
     kernels = numba_kernels(engine)
     n, a, b, rows, cols, nij = _contingency(labels_true, labels_pred)
+    # The single-cluster case and the signed epsilon below follow scikit-learn
+    # (BSD-3-Clause; see THIRD_PARTY_NOTICES.txt).
     if len(a) == len(b) <= 1:
         return 1.0
     mi = float(np.sum(nij / n * (np.log(nij) + np.log(n) - np.log(a[rows]) - np.log(b[cols]))))

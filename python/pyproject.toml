@@ -7,8 +7,8 @@ name = "ubukit"
 dynamic = ["version"]
 description = "Fuzzy, rough and classical clustering, self-organizing maps, evaluation metrics and TPE search"
 readme = "README.md"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "MIT AND BSD-3-Clause"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.txt"]
 authors = [{ name = "Seiki Ubukata" }]
 requires-python = ">=3.12"
 dependencies = ["numpy>=2.2", "scipy>=1.15"]
@@ -42,7 +42,7 @@ dev = ["mypy~=2.4.0", "numba>=0.61.2", "pytest>=8", "ruff~=0.16.10", "scikit-lea
 path = "src/ubukit/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "tests", "README.md", "LICENSE"]
+include = ["src", "tests", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.txt"]
 
 [tool.ruff]
 line-length = 100

@@ -19,6 +19,7 @@ export function ari(labelsTrue, labelsPred) {
   const square = v => v.reduce((s, x) => s + BigInt(x) * BigInt(x), 0n);
   const N = BigInt(n), sa = square(a), sb = square(b), s = square([...cells.values()]);
   const tp = s - N, fp = sb - s, fn = sa - s, tn = N * N - sa - sb + s;
+  // This expression and its fn = fp = 0 case follow scikit-learn (BSD-3-Clause; see THIRD_PARTY_NOTICES.txt).
   if (fp === 0n && fn === 0n) return 1;
   return Number(2n * (tp * tn - fn * fp)) / Number((tp + fn) * (fn + tn) + (tp + fp) * (fp + tn));
 }
@@ -32,6 +33,8 @@ export function ari(labelsTrue, labelsPred) {
 export function ami(labelsTrue, labelsPred, { average = 'arithmetic' } = {}) {
   if (!Object.hasOwn(AVERAGES, average)) throw new RangeError(`average must be one of ${Object.keys(AVERAGES).join(', ')}`);
   const { n, a, b, cells } = contingency(labelsTrue, labelsPred);
+  // The single-cluster case and the signed epsilon below follow scikit-learn
+  // (BSD-3-Clause; see THIRD_PARTY_NOTICES.txt).
   if (a.length === b.length && a.length <= 1) return 1;
   let mi = 0;
   for (const [key, nij] of cells) {
