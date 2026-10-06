@@ -15,7 +15,15 @@ publisher like PyPI, the token is revoked, and `release.yml` reads no secret.
 *Why:* a stored publishing token is the credential an attacker would want;
 trusted publishing mints one per run, for this workflow and environment
 only. *Rejected:* keeping the token for convenience (it would outlive its
-one use).
+one use). *Deferred:* npm recommends a stage-only trusted publisher, where
+CI runs `npm stage publish` and a maintainer approves each version on
+npmjs.com with 2FA, a second approval that a compromised GitHub account
+cannot give. It needs npm 11.15.0, newer than the npm of Node 24.15
+(11.14.1) that the release job uses, and installing a newer npm in that job
+would run registry code where an OIDC token can be minted (principle 8). So
+the trusted publisher allows `npm publish` for now; once the Node 24 used in
+CI ships npm 11.15 or newer, the job switches to `npm stage publish` and the
+trusted publisher is recreated stage-only.
 
 ## 2026-10-06 No JavaScript allocation sized by a claimed length (#80)
 
