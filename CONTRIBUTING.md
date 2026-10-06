@@ -137,12 +137,10 @@ Once, before the first release:
    also refuses a tag whose commit is not on `main`.
 3. On PyPI, add a pending trusted publisher for `ubukit`: owner `subukata`,
    repository `ubukit`, workflow `release.yml`, environment `pypi`.
-4. npm trusts only an existing package, so the first upload uses a token:
-   store a granular access token that can publish and expires within days as
-   the `NPM_TOKEN` secret of the `npm` environment. After the first release,
-   add the trusted publisher on npmjs.com (same fields, environment `npm`),
-   revoke the token, and delete the secret and the `NODE_AUTH_TOKEN` line of
-   `release.yml`.
+4. On npmjs.com, add the trusted publisher for `ubukit` (same fields,
+   environment `npm`) and set its publishing access to disallow tokens. npm
+   trusts only an existing package, so 0.1.0 was uploaded once with a
+   short-lived token, revoked right after.
 
 Every release:
 
