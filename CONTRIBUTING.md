@@ -127,10 +127,14 @@ Once, before the first release:
 2. Create the `pypi` and `npm` environments, each limited to tags matching
    `v*`, with the maintainer as required reviewer and without the
    administrators' bypass, so every upload waits for a last confirmation.
-   Add a tag ruleset for `v*` that restricts creations, updates and
-   deletions, with only the repository admin role allowed to bypass it: a
-   release tag is made by the maintainer alone and never moved or removed.
-   `release.yml` also refuses a tag whose commit is not on `main`.
+   Add two tag rulesets for `v*`: "release tags: create" restricts
+   creations, with only the repository admin role allowed to bypass it, and
+   "release tags: fixed" restricts updates and deletions and blocks force
+   pushes, with no bypass at all. A ruleset's bypass applies to every rule
+   in it, so only the split lets the maintainer make release tags while
+   nobody, the maintainer included, can move or remove one; fixing a
+   mistaken tag means disabling the second ruleset on purpose. `release.yml`
+   also refuses a tag whose commit is not on `main`.
 3. On PyPI, add a pending trusted publisher for `ubukit`: owner `subukata`,
    repository `ubukit`, workflow `release.yml`, environment `pypi`.
 4. npm trusts only an existing package, so the first upload uses a token:
