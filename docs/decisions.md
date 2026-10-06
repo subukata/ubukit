@@ -4,6 +4,21 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 JavaScript keeps the shared step for speed (#67)
+
+FCM, EFCM and SOM-OLP in JavaScript stay in stages (all distances, then all
+memberships, then the weighted means) rather than one fused loop per point.
+*Why:* fusing them was expected to gain 1.5-2x (unmeasured) where
+JavaScript is slower than the textbook NumPy code (0.5-0.6x), but it would
+give three methods loops of their own in one language only, so the same
+method would have two shapes to fix; FCM's column-scaled weights need every
+point before the update, so two passes would remain; each method would grow
+from a few lines to a few dozen; and JavaScript already meets its target
+(within an order of magnitude of Python), with the browser demo's hundreds
+to thousands of points fast enough. *Rejected:* the fused loops. If
+JavaScript needs speed, the shared parts (`lloyd`, `softmaxRows`,
+`weightedMean`) are where to find it, for every method at once.
+
 ## 2026-10-06 Typed generators in Python (#66)
 
 The fitting generators are the functions of `cluster.py` and `som.py`;
@@ -41,21 +56,24 @@ languages, and `bench/run.py --compare` finds every affected case the same.
 *Rejected:* `assign` returning its costs with the memberships (a second
 output for one method).
 
-## 2026-10-06 The data are an input of every iteration
+## 2026-10-06 The data are an input of every iteration (#64)
 
 A step is `step(data, V, state, t)` and reads the data from its argument;
 the fitting generators accept new rows between iterations (`send` /
 `next(X)`). The engine prepares them (centering; `rmcm`'s graph), keeps the
 prototypes where they are, keeps the schedule and the random state, and
 keeps the step's state only through the method's `keep` (SOM-OLP's
-memberships, while the rows are the same points); any other state is a cache
-of the old data and starts again. `max_iter=None` / `maxIter: Infinity`
+memberships, while the number of rows stays the same: points are known only
+by their rows, row i being the same point); any other state is a cache of
+the old data and starts again. `max_iter=None` / `maxIter: Infinity`
 removes the limit. *Why:* the browser demo needs learning to follow points
 that move, and an iterative method is a map from (data, state) to state, of
 which fixed data are the special case; the steps had instead captured the
 data in closures, which is what kept the data from changing. The change
 removed those closures, adds no path, and gives mini-batch learning for free
-(send a different batch each iteration). JavaScript's online SOM now
+to the methods that carry only their prototypes (send a different batch each
+iteration; not to SOM-OLP, whose memberships belong to the points, as #67
+corrected this entry). JavaScript's online SOM now
 shuffles from the identity each epoch, as Python's does, so the number of
 rows may change. *Rejected:* passing the previous Result back as `init`
 (an output carrying the next iteration's state, a new run every frame that
@@ -63,7 +81,7 @@ loses the schedule and random state; principle 9), a public state object
 with a pure `step` function (exposes the internal state as API), and
 swapping the data inside each method (the same logic eight times, twice).
 
-## 2026-10-06 Designs follow the model, not the shortest path
+## 2026-10-06 Designs follow the model, not the shortest path (#63)
 
 `DESIGN.md` gains principle 9, and `AGENTS.md` asks agents to choose designs
 by it. *Why:* asked to let the browser demo keep learning while its points
@@ -76,7 +94,7 @@ iteration. The proposal was chosen for the size of the change, which is the
 failure the principle names. *Rejected:* leaving it to review (the same
 choice recurs with every feature).
 
-## 2026-10-06 Seeds stay language-specific
+## 2026-10-06 Seeds stay language-specific (#63)
 
 Python keeps NumPy's generator and JavaScript its Mulberry32; equal results
 across the languages come from passing the same initial prototypes.
@@ -87,7 +105,7 @@ convenience. *Rejected:* Mulberry32 in Python, and for now a stronger
 JavaScript generator such as sfc32 or xoshiro128** (Mulberry32 serves its
 uses, seeding, shuffling and TPE draws, far below its period).
 
-## 2026-10-06 The k-means++ start kept; degenerate FCM documented
+## 2026-10-06 The k-means++ start kept; degenerate FCM documented (#62)
 
 The clustering methods keep starting from greedy k-means++ seeds moved to
 their cells' means, and `docs/algorithms.md` now explains why, where zero
@@ -110,7 +128,7 @@ relocating empty clusters (none in 80 k-means runs; they need fewer distinct
 points than K), and a helper returning m* (new API; the formula is
 documented).
 
-## 2026-10-06 Faster default paths without new code paths
+## 2026-10-06 Faster default paths without new code paths (#60)
 
 Without Numba, in both languages: FCM memberships as powers of
 d_min^2 / d^2 (the same softmax, without logarithms); the FCM, EFCM and
@@ -137,7 +155,7 @@ the sparse product), rmcm memberships by `bincount` (no gain), and ranks by
 sorting in trustworthiness (30x at k = 1000 but 2x slower at the usual k =
 5-10).
 
-## 2026-10-06 Numba kernels for the online SOM, trustworthiness and AMI
+## 2026-10-06 Numba kernels for the online SOM, trustworthiness and AMI (#59)
 
 `som`, `trustworthiness`, `continuity` and `ami` take `engine="numba"`
 (`pip install "ubukit[numba]"`; Numba is in the dev group so the checks
@@ -168,7 +186,7 @@ the core count and does not pay for a second implementation. ARI spends its
 time encoding arbitrary labels (`np.unique`), and TPE 0.4 ms per trial;
 neither benefits.
 
-## 2026-10-06 Release files built apart from the tests; PyPI before npm
+## 2026-10-06 Release files built apart from the tests; PyPI before npm (#56)
 
 `release.yml` runs the tests in one job and builds the packages in another
 that installs only the build tools (`build`, and TypeScript for the type
@@ -184,7 +202,7 @@ the development group by hash (more maintenance for a job that need not
 install it) and keeping the tests out of the release workflow (the tag's
 exact commit would go untested on the release platform).
 
-## 2026-10-06 One release checklist; Dependabot batched and delayed
+## 2026-10-06 One release checklist; Dependabot batched and delayed (#55)
 
 The release steps, including the one-time setup, are one checklist under
 "Releasing" in `CONTRIBUTING.md`, which starts by making the repository
@@ -200,7 +218,7 @@ likely to carry a compromised release. *Rejected:* removing Dependabot and
 refreshing the pins by hand before each release (an easy step to skip), and
 publishing npm without provenance while private.
 
-## 2026-10-06 A typed public Python API
+## 2026-10-06 A typed public Python API (#53)
 
 Every public Python function and the TPE class annotate their parameters and
 results (`ArrayLike` inputs, `Literal` choices such as `average`, and the
@@ -214,7 +232,7 @@ classifier instead (gives up editor help for users). mypy, pinned to one
 minor series like ruff, is part of the local checks (SciPy's missing stubs
 are ignored in `pyproject.toml`), so the annotations stay true.
 
-## 2026-10-06 One engine shape in both languages
+## 2026-10-06 One engine shape in both languages (#52)
 
 Python's `iterate` is now a generator that takes the method's `view`, like
 JavaScript's, and each fitting function is written once as a generator;
@@ -228,7 +246,7 @@ and speed are unchanged (benchmark ratios 0.85-1.05). *Rejected:* a
 `callback` argument on every function (duplicates the generators) and
 keeping the generators JavaScript-only (two engine shapes to maintain).
 
-## 2026-10-06 Every iteration's result, on demand
+## 2026-10-06 Every iteration's result, on demand (#51)
 
 The JavaScript step generators yield `{ iteration, result }`, where
 `result()` returns the Result the run would return had it stopped at that

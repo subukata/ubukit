@@ -170,7 +170,8 @@ def som_olp(
 
     def keep(P, data):
         # The memberships give each point's latent position for the next
-        # iteration: they carry over when the rows are the same points.
+        # iteration. Points are known only by their rows, so they carry over
+        # while the number of rows stays the same, row i being the same point.
         return P if len(P) == len(data.X) else None
 
     def view(loop):

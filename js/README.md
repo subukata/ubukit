@@ -44,9 +44,10 @@ requestAnimationFrame(frame);
 
 The data are an input of every iteration: `run.next(points)` runs the next
 iteration on new points and keeps everything else the run has learned
-(prototypes, schedules, and SOM-OLP's memberships while the points are the
-same ones), so the map follows data that move. `maxIter: Infinity` lets it
-run for as long as data keep coming:
+(prototypes, schedules, and SOM-OLP's memberships while the number of points
+stays the same, point i being the same one as before), so the map follows
+data that move. `maxIter: Infinity` lets it run for as long as data keep
+coming:
 
 ```js
 const run = ub.steps.somOlp(currentPoints(), [10, 10], { lam: 0.5, gamma: 1, maxIter: Infinity });

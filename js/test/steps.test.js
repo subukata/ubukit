@@ -92,8 +92,9 @@ test('new data continue from the current prototypes', () => {
 });
 
 test('somOlp keeps memberships for the same points', () => {
-  // The latent positions come from the previous memberships of the same
-  // points; with other points there are none, as in the first iteration.
+  // The latent positions come from the previous memberships while the number
+  // of rows stays the same; with another number there are none, as in the
+  // first iteration.
   const options = { lam: 0.5, gamma: 1 };
   const run = ub.steps.somOlp(X, [3, 3], options);
   const first = run.next().value.result(), kept = run.next(X).value.result();

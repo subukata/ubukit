@@ -127,8 +127,9 @@ def test_new_data_continue_from_the_current_prototypes(blobs, name):
 
 
 def test_som_olp_keeps_memberships_for_the_same_points(blobs):
-    # The latent positions come from the previous memberships of the same
-    # points; with other points there are none, as in the first iteration.
+    # The latent positions come from the previous memberships while the number
+    # of rows stays the same; with another number there are none, as in the
+    # first iteration.
     X, _ = blobs
     args, options = CONVERGING["som_olp"]
     run = ub.steps.som_olp(X, *args, **options)
