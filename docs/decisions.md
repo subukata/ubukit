@@ -4,6 +4,18 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Fixtures hold exactly what the code produces (#68)
+
+The fixtures are regenerated, and a speed-only change that moves their last
+digits commits the regenerated file and says so. *Why:* #60 reordered the
+FCM membership and AMI arithmetic, which moved two FCM cases and one AMI
+value by at most 2.2e-16; the tests compare to 1e-10, so the file was left
+as it was, and from then on regenerating it always showed a diff. The check
+that a refactor leaves the results alone, "regenerate and see no diff", no
+longer worked: the review of #65 had to rebuild `main` to tell that diff
+from its own. *Rejected:* comparing regenerated fixtures with a tolerance
+(a second rule beside the tests, and it would hide which cases moved).
+
 ## 2026-10-06 JavaScript keeps the shared step for speed (#67)
 
 FCM, EFCM and SOM-OLP in JavaScript stay in stages (all distances, then all
