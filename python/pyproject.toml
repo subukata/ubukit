@@ -23,6 +23,10 @@ classifiers = [
   "Typing :: Typed",
 ]
 
+[project.optional-dependencies]
+# Compiled kernels for engine="numba"; 0.61.2 is the first to support NumPy 2.2.
+numba = ["numba>=0.61.2"]
+
 [project.urls]
 Homepage = "https://github.com/subukata/ubukit"
 Documentation = "https://github.com/subukata/ubukit/blob/main/docs/algorithms.md"
@@ -30,8 +34,9 @@ Issues = "https://github.com/subukata/ubukit/issues"
 
 [dependency-groups]
 # ruff and mypy stay within one minor series so that new rules and styles
-# arrive only through a deliberate bump, not as a surprise failure.
-dev = ["mypy~=2.4.0", "pytest>=8", "ruff~=0.16.10", "scikit-learn>=1.6"]
+# arrive only through a deliberate bump, not as a surprise failure. Numba is
+# here so that the checks always test engine="numba".
+dev = ["mypy~=2.4.0", "numba>=0.61.2", "pytest>=8", "ruff~=0.16.10", "scikit-learn>=1.6"]
 
 [tool.hatch.version]
 path = "src/ubukit/__init__.py"
@@ -49,9 +54,9 @@ select = ["E", "F", "W", "I", "B", "UP", "NPY", "SIM", "RUF"]
 [tool.mypy]
 files = ["src"]
 
-# SciPy ships no type information.
+# SciPy and Numba ship no type information.
 [[tool.mypy.overrides]]
-module = ["scipy", "scipy.*"]
+module = ["scipy", "scipy.*", "numba", "numba.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

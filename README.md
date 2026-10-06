@@ -15,7 +15,8 @@ and TPE search, for Python and JavaScript.
 | Search | multivariate Tree-structured Parzen Estimator |
 
 Both packages share names, parameters and equations ([docs/algorithms.md](docs/algorithms.md)).
-Python depends only on NumPy and SciPy; JavaScript has no dependencies.
+Python depends only on NumPy and SciPy (Numba optionally, for compiled
+kernels); JavaScript has no dependencies.
 
 ## Python
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
+from types import ModuleType
 from typing import Literal
 
 import numpy as np
@@ -11,7 +12,7 @@ from numpy.typing import ArrayLike
 from scipy.spatial.distance import cdist
 from scipy.special import gammaln
 
-from ._core import as_matrix, check_int
+from ._core import Engine, as_matrix, check_int, numba_kernels
 
 type Average = Literal["arithmetic", "geometric", "min", "max"]
 
@@ -36,33 +37,41 @@ def ari(labels_true: ArrayLike, labels_pred: ArrayLike) -> float:
 
 
 def ami(
-    labels_true: ArrayLike, labels_pred: ArrayLike, *, average: Average = "arithmetic"
+    labels_true: ArrayLike,
+    labels_pred: ArrayLike,
+    *,
+    average: Average = "arithmetic",
+    engine: Engine = "numpy",
 ) -> float:
     """Adjusted mutual information (Vinh, Epps & Bailey, 2010).
 
     ``average`` normalizes by the arithmetic, geometric, min or max of the
-    two label entropies.
+    two label entropies. ``engine="numba"`` computes the expected mutual
+    information, the costly part, in parallel compiled loops.
     """
     if average not in _AVERAGES:
         raise ValueError(f"average must be one of {sorted(_AVERAGES)}")
+    kernels = numba_kernels(engine)
     n, a, b, rows, cols, nij = _contingency(labels_true, labels_pred)
     if len(a) == len(b) <= 1:
         return 1.0
     mi = float(np.sum(nij / n * (np.log(nij) + np.log(n) - np.log(a[rows]) - np.log(b[cols]))))
-    emi = _expected_mutual_information(n, a, b)
+    emi = _expected_mutual_information(n, a, b, kernels)
     denominator = _AVERAGES[average](_entropy(a, n), _entropy(b, n)) - emi
     eps = np.finfo(np.float64).eps
     denominator = min(denominator, -eps) if denominator < 0 else max(denominator, eps)
     return (mi - emi) / denominator
 
 
-def trustworthiness(X: ArrayLike, Y: ArrayLike, k: int = 5) -> float:
+def trustworthiness(X: ArrayLike, Y: ArrayLike, k: int = 5, *, engine: Engine = "numpy") -> float:
     """Trustworthiness of embedding Y of X (Venna & Kaski, 2001).
 
     Penalizes points that are among the k nearest neighbors in Y but not in X,
     by their rank in X. Distances are computed from direct differences, so
     exact ties (e.g. SOM grid coordinates) stay exact and are ordered by index.
+    ``engine="numba"`` computes the same penalties in parallel compiled loops.
     """
+    kernels = numba_kernels(engine)
     X, Y = as_matrix(X), as_matrix(Y, "Y")
     n = len(X)
     if len(Y) != n:
@@ -70,6 +79,21 @@ def trustworthiness(X: ArrayLike, Y: ArrayLike, k: int = 5) -> float:
     k = check_int(k, "k", 1)
     if not 2 * k < n:
         raise ValueError("k must satisfy 1 <= k < n / 2")
+    if kernels:
+        penalty = int(kernels.trustworthiness_penalties(X, Y, k).sum())
+    else:
+        penalty = _penalty(X, Y, k)
+    return 1.0 - 2.0 * penalty / (n * k * (2.0 * n - 3.0 * k - 1.0))
+
+
+def continuity(X: ArrayLike, Y: ArrayLike, k: int = 5, *, engine: Engine = "numpy") -> float:
+    """Continuity of embedding Y of X: trustworthiness with the roles swapped."""
+    return trustworthiness(Y, X, k, engine=engine)
+
+
+def _penalty(X: np.ndarray, Y: np.ndarray, k: int) -> int:
+    """Sum over points of max(rank in X - k, 0) for their k nearest neighbors in Y."""
+    n = len(X)
     index = np.arange(n)
     block = max(1, (1 << 22) // (n * (k + 2)))
     penalty = 0
@@ -85,12 +109,7 @@ def trustworthiness(X: ArrayLike, Y: ArrayLike, k: int = 5) -> float:
         rank = 1 + (dx[:, None, :] < target).sum(axis=2)
         rank += ((dx[:, None, :] == target) & (index < neighbors[:, :, None])).sum(axis=2)
         penalty += int(np.maximum(rank - k, 0).sum())
-    return 1.0 - 2.0 * penalty / (n * k * (2.0 * n - 3.0 * k - 1.0))
-
-
-def continuity(X: ArrayLike, Y: ArrayLike, k: int = 5) -> float:
-    """Continuity of embedding Y of X: trustworthiness with the roles swapped."""
-    return trustworthiness(Y, X, k)
+    return penalty
 
 
 def _nearest(d: np.ndarray, k: int) -> np.ndarray:
@@ -121,7 +140,9 @@ def _entropy(counts: np.ndarray, n: int) -> float:
     return float(-np.sum(p * np.log(p)))
 
 
-def _expected_mutual_information(n: int, a: np.ndarray, b: np.ndarray) -> float:
+def _expected_mutual_information(
+    n: int, a: np.ndarray, b: np.ndarray, kernels: ModuleType | None = None
+) -> float:
     """E[MI] under the hypergeometric model, grouped by distinct marginal sizes.
 
     Each sum runs over n_ij within sqrt(35 min(x, y)) of its mean x y / n;
@@ -130,6 +151,8 @@ def _expected_mutual_information(n: int, a: np.ndarray, b: np.ndarray) -> float:
     """
     av, ac = np.unique(a, return_counts=True)
     bv, bc = np.unique(b, return_counts=True)
+    if kernels:
+        return float(kernels.expected_mi_terms(float(n), av, ac, bv, bc).sum())
     lg_n = gammaln(n + 1)
     emi = 0.0
     for x, cx in zip(av.tolist(), ac.tolist(), strict=True):

@@ -33,6 +33,10 @@ minor series; bump them in pull requests of their own.
   speed-only change alters them, the math changed.
 - A pull request that changes an algorithm includes benchmark tables; see
   below. A new algorithm also gets a case in `bench/cases.py`.
+- A change to a loop that has a Numba kernel (`python/src/ubukit/_numba.py`)
+  changes the kernel too; `tests/test_numba.py` fails until they agree. A
+  new kernel needs a large measured gain over NumPy on few cores as well as
+  many, a test against its reference there, and a "numba" benchmark case.
 - A design decision (a new principle, an exception to one, a choice between
   approaches) gets a short entry in `docs/decisions.md`.
 

@@ -15,6 +15,7 @@ from scipy.special import xlogy
 
 from ._core import (
     TINY,
+    Engine,
     Grid,
     MapInit,
     Result,
@@ -25,6 +26,7 @@ from ._core import (
     iterate,
     label_sums,
     lloyd,
+    numba_kernels,
     softmax_rows,
     sq_norms,
     sqdist,
@@ -46,14 +48,18 @@ def som(
     init: MapInit = "pca",
     shuffle: bool = True,
     seed: int | None = None,
+    engine: Engine = "numpy",
 ) -> Steps:
     """Online (sequential) SOM.
 
     Each sample moves every prototype by lr_t * h_t(j, bmu) * (x - w_j) with a
     Gaussian neighborhood h_t. sigma and lr decay geometrically over all
     epochs * N updates. ``grid`` is (rows, cols) or a (K, Q) array of unit
-    coordinates. ``batch_som`` is much faster for large data.
+    coordinates. ``batch_som`` is much faster for large data; so is
+    ``engine="numba"``, which runs each epoch as a compiled loop with the same
+    result (``pip install 'ubukit[numba]'``).
     """
+    kernels = numba_kernels(engine)
     X, mean, R, W = _setup(X, grid, init)
     epochs = check_int(epochs, "epochs", 1)
     s0, s1 = _sigmas(sigma, sigma_end, R)
@@ -66,8 +72,11 @@ def som(
     steps = epochs * n
 
     def epoch(W, _, e):
+        order = rng.permutation(n) if shuffle else np.arange(n)
+        if kernels:
+            return kernels.som_epoch(X, W, R, order, e * n, steps, s0, s1, lr, lr_end), None, None
         W = W.copy()
-        for j, i in enumerate(rng.permutation(n) if shuffle else range(n)):
+        for j, i in enumerate(order):
             f = (e * n + j) / (steps - 1) if steps > 1 else 0.0
             s, eta = s0 * (s1 / s0) ** f, lr * (lr_end / lr) ** f
             diff = X[i] - W

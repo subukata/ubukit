@@ -176,6 +176,8 @@ class _Runner:
         return self.tmp / f"data-{size}"
 
     def work(self, impl, src, size, cases, repeat, seeds, memory=False) -> dict:
+        if impl != "python":  # engines are Python's
+            cases = [c for c in cases if "engine" not in c.options]
         self.calls += 1
         request = self.tmp / f"request-{self.calls}.json"
         payload = {"impl": impl, "src": str(src), "data": str(self.data_dir(size))}
@@ -256,7 +258,8 @@ def _print(report: dict, opts) -> None:
         iters = "/".join(f"{d['n_iter']:g}" for d in (py, js, sk or {}) if "n_iter" in d)
         mb = f"{py['peak_mb']:.0f}" if "peak_mb" in py else ""
         mark = " **(differs)**" if r.get("parity") is False else ""
-        cells = [r["case"], r["n"] or "", _time(py), _time(js), _time(sk) if sk else "", iters, mb]
+        times = [_time(d) if d else "" for d in (js, sk)]  # Numba cases have only Python
+        cells = [r["case"], r["n"] or "", _time(py), *times, iters, mb]
         cells += [_quality_text(py), _quality_text(js) + mark]
         print("| " + " | ".join(map(str, cells)) + " |")
     _print_growth(report["rows"])

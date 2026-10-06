@@ -58,6 +58,25 @@ CASES = [
     Case("trustworthiness", "trustworthiness", "embed", ("X", "Y", 10), quality=("value",)),
     Case("ami", "ami", "labels", ("a", "b"), quality=("value",)),
     Case("tpe", "tpe_sphere", "none", (200,), {"seed": 0}, ("value",), parity=False),
+    # Python's compiled kernels (engine="numba"); only Python runs these.
+    Case(
+        "som numba",
+        "som",
+        "small",
+        ("X", (10, 10)),
+        {"epochs": 2, "seed": 0, "engine": "numba"},
+        parity=False,
+        seeded=True,
+    ),
+    Case(
+        "trustworthiness numba",
+        "trustworthiness",
+        "embed",
+        ("X", "Y", 10),
+        {"engine": "numba"},
+        ("value",),
+    ),
+    Case("ami numba", "ami", "labels", ("a", "b"), {"engine": "numba"}, ("value",)),
 ]
 
 

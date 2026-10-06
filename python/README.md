@@ -44,5 +44,24 @@ recorded, without rerunning:
 frames = [p.result().embedding for p in ub.steps.som_olp(X, (8, 8), lam=0.5, gamma=1.0)]
 ```
 
+`som`, `trustworthiness`, `continuity` and `ami` also take `engine="numba"`,
+which runs their loops compiled, with the same results: the online SOM
+about 8 times faster, trustworthiness and continuity about 3 times per core
+(25 times on 16 cores), and `ami` most when the labels have many distinct
+cluster sizes.
+
+```sh
+pip install "ubukit[numba]"
+```
+
+```python
+m = ub.som(X, (8, 8), engine="numba")
+ub.trustworthiness(X, m.embedding, k=5, engine="numba")
+```
+
+Each kernel compiles on its first call in a process (0.3 to 1.3 s). The
+parallel ones (trustworthiness, continuity, ami) use every core unless
+`NUMBA_NUM_THREADS` limits them; their results do not depend on it.
+
 Equations, defaults and references: <https://github.com/subukata/ubukit/blob/main/docs/algorithms.md>.
 A JavaScript package with the same API is available as `ubukit` on npm.
