@@ -5,7 +5,7 @@ every such change is listed under "Changed results" or "Changed API". Patch
 versions keep the API and change results only to fix bugs, listed under
 "Fixed".
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-10-06)
 
 First release of the rewritten library, for Python (PyPI) and JavaScript
 (npm): k-means, fuzzy c-means, entropy-regularized FCM, rough c-means
