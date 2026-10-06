@@ -30,8 +30,7 @@ export function* som(X, grid = [10, 10], {
   checkNumber(lr, 'lr', 0, true);
   checkNumber(lrEnd, 'lrEnd', 0, true);
   if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
-  // Squared grid distances between all units; each update reads its winner's row.
-  const { data, W } = setup(X, R, init), k = R.rows, G2 = sqdist(R, R).data, rand = random(seed);
+  const { data, W } = setup(X, R, init), k = R.rows, q = R.cols, rand = random(seed);
   const epoch = (data, W, _, e) => {
     const { rows: n, cols: d, data: x } = data.X, steps = epochs * n;
     const w = W.data.slice(), diff = new Float64Array(k * d), order = Int32Array.from({ length: n }, (_, i) => i);
@@ -41,7 +40,7 @@ export function* som(X, grid = [10, 10], {
     }
     for (let r = 0; r < n; r++) {
       const i = order[r], f = steps > 1 ? (e * n + r) / (steps - 1) : 0;
-      const sg = s0 * (s1 / s0) ** f, eta = lr * (lrEnd / lr) ** f;
+      const sg = geometric(s0, s1, f), eta = geometric(lr, lrEnd, f);
       let bmu = 0, best = Infinity;
       for (let j = 0; j < k; j++) {
         let dist = 0;
@@ -49,9 +48,14 @@ export function* som(X, grid = [10, 10], {
         if (dist < best) best = dist, bmu = j;
       }
       for (let j = 0; j < k; j++) {
-        // Dividing twice by sg, not once by sg * sg, which underflows to 0 for
-        // a tiny width: the winner keeps h = 1 and the others reach 0.
-        const h = eta * Math.exp(-0.5 * (G2[bmu * k + j] / sg) / sg);
+        // The grid differences are divided by sg before squaring: a tiny width
+        // keeps h = 1 for the winner and sends the others to 0, as in the limit.
+        let g = 0;
+        for (let c = 0; c < q; c++) {
+          const t = (R.data[j * q + c] - R.data[bmu * q + c]) / sg;
+          g += t * t;
+        }
+        const h = eta * Math.exp(-0.5 * g);
         for (let c = 0; c < d; c++) w[j * d + c] += h * diff[j * d + c];
       }
     }
@@ -77,7 +81,7 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
   });
   const step = (data, W, _, t) => {
     const labels = nearest(data.X, W);
-    const sg = epochs > 1 ? s0 * (s1 / s0) ** (t / (epochs - 1)) : s0;
+    const sg = epochs > 1 ? geometric(s0, s1, t / (epochs - 1)) : s0;
     const Kr = kernel(rows, sg), Kc = kernel(cols, sg);
     const { sums, counts } = labelSums(data.X, labels, k);
     // Smooth (sums | counts) along rows, then along columns.
@@ -167,6 +171,15 @@ function setup(X, R, init, pcaScale = 2) {
   const W = matrix(init, 'init');
   if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
   return { data, W: shift(W, data.mean.map(v => -v)) };
+}
+
+/**
+ * The point f of the geometric schedule from a to b, as a^(1-f) b^f: no ratio
+ * b / a is formed, which overflows or underflows for far-apart ends; f = 0, 1
+ * give a, b.
+ */
+function geometric(a, b, f) {
+  return a ** (1 - f) * b ** f;
 }
 
 function sigmas(sigma, sigmaEnd, R) {

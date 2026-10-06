@@ -48,6 +48,8 @@ CASES = [
     Case(
         "som", "som", "small", ("X", (10, 10)), {"epochs": 2, "seed": 0}, parity=False, seeded=True
     ),
+    # A large map: memory or time that grows with the square of the units shows here.
+    Case("som 40x40", "som", "small", ("X", (40, 40)), {"epochs": 1, "seed": 0}, parity=False),
     Case(
         "som_olp",
         "som_olp",

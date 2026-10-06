@@ -18,19 +18,16 @@ from numba import njit, prange
 
 
 @njit(cache=False)
-def som_epoch(X, W, G2, order, start, steps, s0, s1, lr, lr_end):
-    """One epoch of ``som``: update the prototypes W by the samples in ``order``.
-
-    ``G2`` holds the squared grid distances between the units.
-    """
+def som_epoch(X, W, R, order, start, steps, s0, s1, lr, lr_end):
+    """One epoch of ``som``: update the prototypes W by the samples in ``order``."""
     d = X.shape[1]
-    k = G2.shape[0]
+    k, q = R.shape
     W = W.copy()
     diff = np.empty((k, d))
     for j in range(order.shape[0]):
         i = order[j]
         f = (start + j) / (steps - 1) if steps > 1 else 0.0
-        s, eta = s0 * (s1 / s0) ** f, lr * (lr_end / lr) ** f
+        s, eta = s0 ** (1.0 - f) * s1**f, lr ** (1.0 - f) * lr_end**f
         bmu, best = 0, np.inf
         for u in range(k):
             dist = 0.0
@@ -40,7 +37,11 @@ def som_epoch(X, W, G2, order, start, steps, s0, s1, lr, lr_end):
             if dist < best:
                 bmu, best = u, dist
         for u in range(k):
-            h = eta * math.exp(-0.5 * (G2[bmu, u] / s) / s)
+            g = 0.0
+            for c in range(q):
+                t = (R[u, c] - R[bmu, c]) / s
+                g += t * t
+            h = eta * math.exp(-0.5 * g)
             for c in range(d):
                 W[u, c] += h * diff[u, c]
     return W

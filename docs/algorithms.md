@@ -162,9 +162,12 @@ JavaScript uses Rayleigh–Ritz on a Krylov basis of at most 64 vectors, which
 is exact for $D \le 64$ and never forms the $D \times D$ covariance.
 The neighborhood is $h_t(b, j) = \exp(-\lVert r_b - r_j \rVert^2 / 2\sigma_t^2)$
 with $\sigma_t$ decaying geometrically from `sigma` (half the grid extent) to
-`sigma_end`. It is evaluated by dividing by $\sigma_t$ twice (or squaring
-$\lVert r_b - r_j \rVert / \sigma_t$), never by $\sigma_t^2$, which underflows
-for a tiny width: such a width gives its limit, the winner alone.
+`sigma_end`. It is evaluated as $\exp(-\lVert (r_b - r_j)/\sigma_t \rVert^2 / 2)$,
+the grid differences divided by $\sigma_t$ before squaring, never by
+$\sigma_t^2$, which underflows for a tiny width: such a width gives its
+limit, the winner alone. Each geometric schedule from $a$ to $b$ is
+evaluated as $a^{1-f} b^f$, never through the ratio $b/a$, which over- or
+underflows when the ends are far apart.
 
 - `som`: per sample, $w_j \leftarrow w_j + \eta_t h_t(\mathrm{bmu}, j)(x - w_j)$
   with $\eta_t$ decaying geometrically from `lr` to `lr_end`.

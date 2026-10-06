@@ -72,28 +72,25 @@ def som(
         raise ValueError("lr and lr_end must be at most 1")
     data, W = _setup(X, R, init)
     rng = np.random.default_rng(seed)
-    # Squared grid distances between all units, from direct differences as in
-    # the Numba kernel; each update reads the row of its winner.
-    G = R[:, None] - R[None]
-    G2 = np.einsum("ijk,ijk->ij", G, G)
 
     def epoch(data, W, _, e):
         X, n = data.X, len(data.X)
         steps = epochs * n
         order = rng.permutation(n) if shuffle else np.arange(n)
         if kernels:
-            return kernels.som_epoch(X, W, G2, order, e * n, steps, s0, s1, lr, lr_end), None, None
+            return kernels.som_epoch(X, W, R, order, e * n, steps, s0, s1, lr, lr_end), None, None
         W = W.copy()
-        # Dividing twice by s, not once by s * s, which underflows to 0 for a
-        # tiny width: the winner keeps h = 1 and the others reach 0 (through an
-        # overflow to inf, as in the limit).
+        # The grid differences are divided by s before squaring, as in
+        # batch_som: a tiny width keeps h = 1 for the winner and sends the
+        # others to 0 through an overflow to inf, as in the limit.
         with np.errstate(over="ignore"):
             for j, i in enumerate(order):
                 f = (e * n + j) / (steps - 1) if steps > 1 else 0.0
-                s, eta = s0 * (s1 / s0) ** f, lr * (lr_end / lr) ** f
+                s, eta = _geometric(s0, s1, f), _geometric(lr, lr_end, f)
                 diff = X[i] - W
                 bmu = np.einsum("ij,ij->i", diff, diff).argmin()
-                h = np.exp(-0.5 * (G2[bmu] / s) / s)
+                g = (R - R[bmu]) / s
+                h = np.exp(-0.5 * np.einsum("ij,ij->i", g, g))
                 W += (eta * h)[:, None] * diff
         return W, None, None
 
@@ -123,7 +120,7 @@ def batch_som(
 
     def step(data, W, _, t):
         labels = nearest(data.X, W, data.xx)
-        s = s0 * (s1 / s0) ** (t / (epochs - 1)) if epochs > 1 else s0
+        s = _geometric(s0, s1, t / (epochs - 1)) if epochs > 1 else s0
         # exp(-(d / s)^2 / 2): finite for any width, the identity in its limit.
         with np.errstate(over="ignore"):
             Kr = np.exp(-0.5 * ((gr[:, None] - gr) / s) ** 2)
@@ -245,6 +242,15 @@ def _pca_init(X: np.ndarray, R: np.ndarray, scale: float) -> np.ndarray:
     G = R[:, :q] - R[:, :q].mean(axis=0)
     G /= np.maximum(np.abs(G).max(axis=0), 1e-12)
     return (G * (scale * np.sqrt(np.maximum(eigval, 0.0)))) @ axes
+
+
+def _geometric(a: float, b: float, f: float) -> float:
+    """The point f of the geometric schedule from a to b, as a^(1-f) b^f.
+
+    No ratio b / a is formed, which overflows or underflows for far-apart
+    ends; the factors stay between 1 and the ends, and f = 0, 1 give a, b.
+    """
+    return a ** (1.0 - f) * b**f
 
 
 def _sigmas(sigma: float | None, sigma_end: float, R: np.ndarray) -> tuple[float, float]:

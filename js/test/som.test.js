@@ -80,3 +80,13 @@ test('tiny widths and temperatures reach their limits', () => {
   const olp = ub.somOlp(X, [3, 3], { lam: 1e-320, gamma: 1, init: W0, maxIter: 3 });
   assert.ok(olp.membership.data.every(p => p === 0 || p === 1));
 });
+
+test('far-apart schedule ends stay finite', () => {
+  // sigma from 1e200 to 1e-200 (and lr from 1e-320 to 1): the ratio of the
+  // ends over- or underflows, but the schedule never forms it.
+  for (const r of [
+    ub.som(X, [3, 3], { epochs: 2, sigma: 1e200, sigmaEnd: 1e-200, seed: 0 }),
+    ub.som(X, [3, 3], { epochs: 2, lr: 1e-320, lrEnd: 1, seed: 0 }),
+    ub.batchSom(X, [3, 3], { epochs: 3, sigma: 1e200, sigmaEnd: 1e-200 }),
+  ]) assert.ok(r.centers.data.every(Number.isFinite) && r.converged);
+});
