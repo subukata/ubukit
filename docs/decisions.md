@@ -4,6 +4,37 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Numba kernels for the online SOM, trustworthiness and AMI
+
+`som`, `trustworthiness`, `continuity` and `ami` take `engine="numba"`
+(`pip install "ubukit[numba]"`; Numba is in the dev group so the checks
+always test it). Every method and metric was prototyped as a Numba kernel
+and timed on the benchmark data (16 cores; NumPy uses all of them through
+BLAS). Kept, because they gain on one core as well as many (AMI on one core
+only where it is slow, with many distinct cluster sizes); the final kernels:
+
+| | NumPy s | Numba s (16 threads) | Numba s (1 thread) |
+|---|---:|---:|---:|
+| online SOM, N = 5000, 10x10, 2 epochs | 0.153 | 0.019 (serial) | 0.020 |
+| trustworthiness, N = 3000, k = 10 | 0.288 | 0.012 | 0.093 |
+| AMI, 400 distinct cluster sizes, N = 80,200 | 3.64 | 0.148 | 1.24 |
+| AMI, 50 x 40 clusters, N = 1,000,000 | 0.189 | 0.074 | 0.197 |
+
+*Why:* these are loops that NumPy cannot vectorize (one sample after
+another; ranks by (distance, index); a sum per pair of cluster sizes). The
+kernels transcribe the reference loops and give the same results (the SOM
+and trustworthiness exactly); parallel kernels split work only by
+independent rows, so results do not depend on the thread count. Nothing is
+cached on disk (the library does no file access), so each kernel compiles
+on its first call in a process, 0.3-1.3 s. *Rejected:* kernels for som_olp
+(4.3x on 16 threads, none on one), efcm (2.8x), batch_som (2.8x, slower
+on one thread), rcm (2.0x), fcm (1.7x, slower on one thread), k-means
+(1.3-1.9x, slower at K = 100), rmcm (1.0x): their work is BLAS products and
+elementwise functions that NumPy already runs well, so the gain depends on
+the core count and does not pay for a second implementation. ARI spends its
+time encoding arbitrary labels (`np.unique`), and TPE 0.4 ms per trial;
+neither benefits.
+
 ## 2026-10-06 Release files built apart from the tests; PyPI before npm
 
 `release.yml` runs the tests in one job and builds the packages in another

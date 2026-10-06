@@ -19,6 +19,7 @@ from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from functools import wraps
 from numbers import Integral, Real
+from types import ModuleType
 from typing import Any, Literal, NamedTuple
 
 import numpy as np
@@ -29,6 +30,7 @@ from scipy import sparse
 type Init = Literal["k-means++"] | ArrayLike  # k-means++ seeding or (k, D) centers
 type MapInit = Literal["pca"] | ArrayLike  # principal-plane start or (K, D) prototypes
 type Grid = tuple[int, int] | ArrayLike  # (rows, cols) or (K, Q) unit coordinates
+type Engine = Literal["numpy", "numba"]  # NumPy reference or its compiled Numba kernel
 
 TINY = np.finfo(np.float64).tiny
 # "Ordinary scale": row norms below 1e150 keep every squared distance between
@@ -100,6 +102,19 @@ def check_float(value: Any, name: str, low: float = -np.inf, *, strict: bool = F
     if not (math.isfinite(v) and (v > low if strict else v >= low)):
         raise ValueError(f"{name} must be a finite number {'>' if strict else '>='} {low}")
     return v
+
+
+def numba_kernels(engine: Engine) -> ModuleType | None:
+    """None for ``engine="numpy"``; for ``"numba"``, the kernels, importing Numba on first use."""
+    if engine == "numpy":
+        return None
+    if engine != "numba":
+        raise ValueError("engine must be 'numpy' or 'numba'")
+    try:
+        from . import _numba
+    except ImportError as error:
+        raise ImportError("engine='numba' needs Numba: pip install 'ubukit[numba]'") from error
+    return _numba
 
 
 def sq_norms(X: np.ndarray) -> np.ndarray:

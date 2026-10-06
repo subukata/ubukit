@@ -12,3 +12,5 @@ JavaScript), `trustworthiness`/`continuity` cost O(N^2 (D + k)) time, and
 `ami` grows with the number of distinct cluster sizes in the labels (seconds
 for N = 80,000 with 400 distinct sizes on each side). Bound N, K, D, k, the
 number of clusters and the iteration counts before passing untrusted data.
+With `engine="numba"`, `trustworthiness`, `continuity` and `ami` use every
+core unless `NUMBA_NUM_THREADS` limits them.

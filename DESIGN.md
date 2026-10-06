@@ -108,7 +108,14 @@ How the principles are realized today. This section changes with the code.
   non-finite input and data outside the scale bounds.
 - **Implementations:** Python is vectorized NumPy/SciPy; JavaScript is plain
   loops on `Float64Array`, with `runAsync` driving a generator without
-  blocking the event loop. There is no Numba kernel yet.
+  blocking the event loop.
+- **Numba kernels:** `_numba.py` holds the kernels behind `engine="numba"`:
+  the online SOM epoch, the trustworthiness penalties and the expected mutual
+  information, the loops that NumPy cannot vectorize. Each transcribes its
+  NumPy reference loop for loop and `tests/test_numba.py` requires the same
+  results. The module is imported on first use and caches nothing on disk;
+  the parallel kernels split the work by independent rows and leave sums to
+  NumPy, so results do not depend on the thread count.
 - **Cross-language reference:** `fixtures/generate.py` writes Python results
   to `fixtures/fixtures.json` (one case per line); the JavaScript tests
   reproduce them.
@@ -119,7 +126,7 @@ How the principles are realized today. This section changes with the code.
   commit with the same harness.
 
 ```
-python/src/ubukit/  _core.py cluster.py som.py metrics.py tpe.py
+python/src/ubukit/  _core.py cluster.py som.py metrics.py tpe.py _numba.py
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
 bench/              cases.py run.py worker.py worker.mjs

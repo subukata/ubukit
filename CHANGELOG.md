@@ -10,4 +10,6 @@ versions keep the API and change results only to fix bugs, listed under
 First release of the rewritten library, for Python (PyPI) and JavaScript
 (npm): k-means, fuzzy c-means, entropy-regularized FCM, rough c-means
 (RCM/ExRCM), rough membership c-means, online and batch SOM, SOM-OLP, ARI,
-AMI, trustworthiness, continuity and multivariate TPE.
+AMI, trustworthiness, continuity and multivariate TPE. In Python, the online
+SOM, trustworthiness, continuity and AMI can run as Numba kernels
+(`engine="numba"`, with `pip install "ubukit[numba]"`).
