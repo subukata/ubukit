@@ -27,17 +27,19 @@ def distinct_sizes(m):
     return a, np.random.default_rng(m).permutation(a)
 
 
-@pytest.mark.parametrize("sigma", [None, 1e-200])
+# Default widths; a width whose square underflows (the winner-only limit);
+# far-apart ends whose ratio underflows.
+WIDTHS = [(None, 0.5), (1e-200, 1e-200), (1e200, 1e-200)]
+
+
+@pytest.mark.parametrize(("sigma", "sigma_end"), WIDTHS)
 @pytest.mark.parametrize("shuffle", [False, True])
 @pytest.mark.parametrize("grid", [(4, 5), "coordinates"])
-def test_som_kernel_reproduces_the_reference(numba, blobs, shuffle, grid, sigma):
-    # sigma = 1e-200: a width whose square underflows, the winner-only limit.
+def test_som_kernel_reproduces_the_reference(numba, blobs, shuffle, grid, sigma, sigma_end):
     X, _ = blobs
     if grid == "coordinates":
         grid = np.random.default_rng(0).uniform(size=(7, 3))
-    options = {"epochs": 3, "seed": 4, "shuffle": shuffle, "sigma": sigma}
-    if sigma is not None:
-        options["sigma_end"] = sigma
+    options = {"epochs": 3, "seed": 4, "shuffle": shuffle, "sigma": sigma, "sigma_end": sigma_end}
     ref = ub.som(X, grid, **options)
     new = ub.som(X, grid, engine="numba", **options)
     np.testing.assert_allclose(new.centers, ref.centers, rtol=0, atol=1e-12)

@@ -1,3 +1,5 @@
+import tracemalloc
+
 import numpy as np
 import pytest
 from scipy.spatial.distance import cdist
@@ -155,6 +157,33 @@ def test_tiny_widths_and_temperatures_reach_their_limits(blobs):
         ref[b] += eta * (x - ref[b])
     np.testing.assert_allclose(online.centers, ref, atol=1e-12)
     assert set(np.unique(olp.membership)) == {0.0, 1.0}
+
+
+def test_far_apart_schedule_ends_stay_finite(blobs):
+    # sigma from 1e200 to 1e-200 (and lr from 1e-320 to 1): the ratio of the
+    # ends over- or underflows, but the schedule never forms it. (Updates of
+    # size lr = 1e-320 underflow, correctly.)
+    X, _ = blobs
+    with np.errstate(divide="raise", invalid="raise", over="raise"):
+        runs = [
+            ub.som(X, (3, 3), epochs=2, sigma=1e200, sigma_end=1e-200, seed=0),
+            ub.som(X, (3, 3), epochs=2, lr=1e-320, lr_end=1.0, seed=0),
+            ub.batch_som(X, (3, 3), epochs=3, sigma=1e200, sigma_end=1e-200),
+        ]
+    for r in runs:
+        assert np.isfinite(r.centers).all() and r.converged
+
+
+def test_online_som_memory_grows_with_the_units_not_their_square():
+    # 4096 units: a table of all grid distances would take 128 MB.
+    X = np.random.default_rng(0).normal(size=(20, 3))
+    tracemalloc.start()
+    try:
+        ub.som(X, (64, 64), epochs=1, seed=0)
+        peak = tracemalloc.get_traced_memory()[1]
+    finally:
+        tracemalloc.stop()
+    assert peak < 4 * 2**20
 
 
 @pytest.mark.parametrize(
