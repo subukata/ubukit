@@ -57,7 +57,7 @@ export function matrix(values, name = 'X') {
     const rows = values.length;
     const cols = rows ? values[0]?.length : 0;
     for (const row of values) {
-      if (!isRow(row)) throw new TypeError(`${name} rows must be arrays of numbers`);
+      if (!isList(row)) throw new TypeError(`${name} rows must be arrays of numbers`);
       if (row.length !== cols) throw new RangeError(`${name} rows must have equal length`);
     }
     out = { data: new Float64Array(rows * cols), rows, cols };
@@ -67,10 +67,8 @@ export function matrix(values, name = 'X') {
   } else {
     throw new TypeError(`${name} must be an array of rows or {data, rows, cols}`);
   }
+  if (!isMatrix(out)) throw new RangeError(`${name} must be a non-empty rows x cols matrix`);
   const { rows, cols, data } = out;
-  if (!(Number.isSafeInteger(rows) && Number.isSafeInteger(cols) && rows > 0 && cols > 0) || data.length !== rows * cols) {
-    throw new RangeError(`${name} must be a non-empty rows x cols matrix`);
-  }
   const lo = new Float64Array(cols).fill(Infinity), hi = new Float64Array(cols).fill(-Infinity);
   for (let i = 0; i < rows; i++) {
     let norm = 0;
@@ -89,9 +87,24 @@ export function matrix(values, name = 'X') {
   return out;
 }
 
-/** What a row of a matrix may be: an array or a typed array. @param {unknown} row */
-function isRow(row) {
-  return Array.isArray(row) || (ArrayBuffer.isView(row) && !(row instanceof DataView));
+/**
+ * Whether a value is a list whose length is its own: an array or a typed
+ * array, as a matrix row or a labeling must be. An object merely claiming a
+ * length is not one, so no allocation is sized by it.
+ * @param {unknown} value
+ */
+export function isList(value) {
+  return Array.isArray(value) || (ArrayBuffer.isView(value) && !(value instanceof DataView));
+}
+
+/**
+ * Whether M is a {data, rows, cols} matrix whose data hold exactly
+ * rows x cols >= 1 values.
+ * @param {any} M
+ */
+function isMatrix(M) {
+  return Boolean(M) && ArrayBuffer.isView(M.data) && Number.isSafeInteger(M.rows) && Number.isSafeInteger(M.cols)
+    && M.rows > 0 && M.cols > 0 && M.data.length === M.rows * M.cols;
 }
 
 /**
@@ -100,6 +113,7 @@ function isRow(row) {
  * @returns {number[][]}
  */
 export function toRows(m) {
+  if (!isMatrix(m)) throw new TypeError('toRows needs a {data, rows, cols} matrix');
   return Array.from({ length: m.rows }, (_, i) => Array.from(m.data.subarray(i * m.cols, (i + 1) * m.cols)));
 }
 

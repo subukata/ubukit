@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 No JavaScript allocation sized by a claimed length (#80)
+
+`ari`, `ami` and `toRows` check their input as `matrix` does since #76: a
+labeling must be an array or a typed array (one shared check, `isList`),
+and `toRows` needs a matrix whose data hold exactly its rows (one shared
+check with `matrix`, `isMatrix`). *Why:* the second external review found
+that `{"length": 1e9}` as labels made `ari` and `ami` ask for a 4 GB array,
+and that two `{"length": 3}` scored as identical; `toRows` had the same
+entry. A sweep of every exported function found no other: the rest take
+data through `matrix`, or sizes the caller states (`k`, the grid, iteration
+and trial counts), which `SECURITY.md` asks services to bound. *Rejected:*
+size limits in the library (the same reasons as in #76).
+
 ## 2026-10-06 The online SOM back to O(K) memory; schedules as a^(1-f) b^f (#79)
 
 The online SOM computes its winner's grid differences again for each
