@@ -44,6 +44,18 @@ recorded, without rerunning:
 frames = [p.result().embedding for p in ub.steps.som_olp(X, (8, 8), lam=0.5, gamma=1.0)]
 ```
 
+The data are an input of every iteration: `run.send(X_new)` runs the next
+iteration on new rows and keeps everything else the run has learned
+(prototypes, schedules, and SOM-OLP's memberships while the rows are the same
+points). With `max_iter=None` a run goes on for as long as data keep coming:
+
+```python
+run = ub.steps.som_olp(X, (8, 8), lam=0.5, gamma=1.0, max_iter=None)
+p = next(run)
+for t in range(1, 50):
+    p = run.send(X + 0.05 * t)  # the data drift; the map follows from where it is
+```
+
 `som`, `trustworthiness`, `continuity` and `ami` also take `engine="numba"`,
 which runs their loops compiled, with the same results: the online SOM
 about 8 times faster, trustworthiness and continuity about 3 times per core

@@ -102,11 +102,17 @@ Each principle states a rule and the failure it prevents.
 
 How the principles are realized today. This section changes with the code.
 
-- **Engine:** `iterate(X, V, step, max_iter, tol, view)` in
-  `python/src/ubukit/_core.py` and `js/src/core.js`, a generator in both; a
-  step maps `(V, state, t)` to `(V, state, objective)`. The standard step is
-  `lloyd(assign, update, objective)`; k-means uses an exact accelerated
-  step with Hamerly's bounds, and the online SOM's step is one epoch. Each
+- **Engine:** `iterate(data, V, step, max_iter, tol, view, prepare, keep)`
+  in `python/src/ubukit/_core.py` and `js/src/core.js`, a generator in both;
+  a step maps `(data, V, state, t)` to `(V, state, objective)`. The data are
+  an input of every step, never kept by it: rows sent into the generator
+  (`send` in Python, `next(X)` in JavaScript) are prepared by `prepare`
+  (centering, and for `rmcm` its neighborhood graph), the prototypes carry
+  over, and the state carries over only through the method's `keep`
+  (SOM-OLP's memberships); other state is a cache of the old data. The
+  standard step is `lloyd(assign, update, objective)`; k-means uses an exact
+  accelerated step with Hamerly's bounds, and the online SOM's step is one
+  epoch. Each
   method passes the loop its `view`, the function that turns the loop's state
   into its Result, so every yielded iteration can build, on demand, the
   Result the run would return had it stopped there; steps therefore never

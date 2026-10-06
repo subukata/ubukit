@@ -23,6 +23,18 @@ of the centered data (`tol = 0` means an exact fixed point), or after
 `max_iter` iterations; stopping says nothing about the quality of the
 partition (see "Degenerate solutions").
 
+The data are an input of every iteration, so a run can go on with new data,
+for example points that move. The prototypes keep their positions, and the
+method keeps what belongs to its model: the schedule and random state of
+the maps, and the memberships of `som_olp` while the rows are the same
+points (they give the latent positions; with other points the next
+iteration starts without them, as the first does). What belongs to the old
+data only, such as Hamerly's bounds or the neighborhood graph of `rmcm`, is
+built again. The run then ends when it converges on unchanged data, or after
+`max_iter` iterations (`None` in Python and `Infinity` in JavaScript for no
+limit). For maps that follow moving data, a constant neighborhood width
+(`sigma = sigma_end`) keeps the schedule from narrowing over time.
+
 The default initialization, shared by the clustering methods, is greedy
 k-means++ seeding (each seed is the best, by the resulting sum of squared
 distances, of $2 + \lfloor \ln K \rfloor$ points drawn in proportion to the

@@ -14,14 +14,17 @@ from scipy.linalg import eigh
 
 from ._core import (
     TINY,
+    Data,
     Engine,
     Grid,
     MapInit,
     Result,
     Steps,
+    as_data,
     as_matrix,
     check_float,
     check_int,
+    check_max_iter,
     iterate,
     label_sums,
     lloyd,
@@ -60,7 +63,7 @@ def som(
     result (``pip install 'ubukit[numba]'``).
     """
     kernels = numba_kernels(engine)
-    X, mean, R, W = _setup(X, grid, init)
+    data, R, W = _setup(X, grid, init)
     epochs = check_int(epochs, "epochs", 1)
     s0, s1 = _sigmas(sigma, sigma_end, R)
     lr = check_float(lr, "lr", 0.0, strict=True)
@@ -68,10 +71,10 @@ def som(
     if max(lr, lr_end) > 1:
         raise ValueError("lr and lr_end must be at most 1")
     rng = np.random.default_rng(seed)
-    n = len(X)
-    steps = epochs * n
 
-    def epoch(W, _, e):
+    def epoch(data, W, _, e):
+        X, n = data.X, len(data.X)
+        steps = epochs * n
         order = rng.permutation(n) if shuffle else np.arange(n)
         if kernels:
             return kernels.som_epoch(X, W, R, order, e * n, steps, s0, s1, lr, lr_end), None, None
@@ -86,9 +89,7 @@ def som(
             W += (eta * h)[:, None] * diff
         return W, None, None
 
-    return (
-        yield from iterate(X, W, epoch, max_iter=epochs, tol=None, view=_map(X, mean, R, epochs))
-    )
+    return (yield from iterate(data, W, epoch, max_iter=epochs, tol=None, view=_map(R, epochs)))
 
 
 @stepwise
@@ -107,32 +108,25 @@ def batch_som(
     grid, so an epoch costs O(N K D + K (rows + cols) D) with no K x K kernel.
     """
     rows, cols = _shape(grid)
-    X, mean, R, W = _setup(X, grid, init)
+    data, R, W = _setup(X, grid, init)
     epochs = check_int(epochs, "epochs", 1)
     s0, s1 = _sigmas(sigma, sigma_end, R)
     gr, gc = np.arange(rows), np.arange(cols)
 
-    def update(labels, W, t):
+    def step(data, W, _, t):
+        labels = nearest(data.X, W, data.xx)
         s = s0 * (s1 / s0) ** (t / (epochs - 1)) if epochs > 1 else s0
         Kr = np.exp(-((gr[:, None] - gr) ** 2) / (2 * s * s))
         Kc = np.exp(-((gc[:, None] - gc) ** 2) / (2 * s * s))
-        sums, counts = label_sums(X, labels, len(W))
+        sums, counts = label_sums(data.X, labels, len(W))
         num = Kc @ (Kr @ sums.reshape(rows, -1)).reshape(rows, cols, -1)
         den = (Kr @ counts.reshape(rows, cols) @ Kc.T).ravel()
         out = W.copy()
         ok = den > 0
         out[ok] = num.reshape(len(W), -1)[ok] / den[ok, None]
-        return out
+        return out, labels, None
 
-    xx = sq_norms(X)
-
-    def step(W, _, t):
-        labels = nearest(X, W, xx)
-        return update(labels, W, t), labels, None
-
-    return (
-        yield from iterate(X, W, step, max_iter=epochs, tol=None, view=_map(X, mean, R, epochs))
-    )
+    return (yield from iterate(data, W, step, max_iter=epochs, tol=None, view=_map(R, epochs)))
 
 
 @stepwise
@@ -144,7 +138,7 @@ def som_olp(
     gamma: float,
     init: MapInit = "pca",
     pca_scale: float = 2.0,
-    max_iter: int = 100,
+    max_iter: int | None = 100,
     tol: float = 1e-6,
 ) -> Steps:
     """SOM with optimized latent positions (SOM-OLP, Ubukata).
@@ -160,11 +154,12 @@ def som_olp(
     """
     lam = check_float(lam, "lam", 0.0, strict=True)
     gamma = check_float(gamma, "gamma", 0.0)
-    X, mean, R, W = _setup(X, grid, init, check_float(pca_scale, "pca_scale", 0.0, strict=True))
+    pca_scale = check_float(pca_scale, "pca_scale", 0.0, strict=True)
+    data, R, W = _setup(X, grid, init, pca_scale)
     rr = sq_norms(R)
     cost = None
 
-    def assign(D, P, t):
+    def assign(data, D, P, t):
         nonlocal cost
         cost = D if P is None else D + gamma * sqdist(P @ R, R, cc=rr)
         return softmax_rows(cost * (-1.0 / lam))
@@ -174,14 +169,19 @@ def som_olp(
         # equals cost_min + lam log p_max for each point: N logarithms, not N K.
         return float(np.sum(cost.min(axis=1) + lam * np.log(P.max(axis=1))))
 
-    step = lloyd(X, assign, update=lambda P, W, t: weighted_mean(X, P, W), objective=objective)
+    step = lloyd(assign, lambda data, P, W, t: weighted_mean(data.X, P, W), objective)
+
+    def keep(P, data):
+        # The memberships give each point's latent position for the next
+        # iteration: they carry over when the rows are the same points.
+        return P if len(P) == len(data.X) else None
 
     def view(loop):
         P = loop.state.copy()  # the next step reads it
-        return Result(loop.V + mean, P.argmax(axis=1), P, *loop[2:], P @ R)
+        return Result(loop.V + loop.data.mean, P.argmax(axis=1), P, *loop[3:], P @ R)
 
-    max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
-    return (yield from iterate(X, W, step, max_iter=max_iter, tol=tol, view=view))
+    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
+    return (yield from iterate(data, W, step, max_iter=max_iter, tol=tol, view=view, keep=keep))
 
 
 def _shape(grid: Any) -> tuple[int, int]:
@@ -201,21 +201,18 @@ def _grid(grid: Grid) -> np.ndarray:
 
 def _setup(
     X: ArrayLike, grid: Grid, init: MapInit, pca_scale: float = 2.0
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    X = as_matrix(X)
-    mean = X.mean(axis=0)
-    X = X - mean
+) -> tuple[Data, np.ndarray, np.ndarray]:
+    """The data, the unit coordinates and the initial prototypes (centered like the data)."""
+    data = as_data(X)
     R = _grid(grid)
     if isinstance(init, str):
         if init != "pca":
             raise ValueError("init must be 'pca' or a (n_units, n_features) array")
-        W = _pca_init(X, R, pca_scale)
-    else:
-        W = as_matrix(init, "init")
-        if W.shape != (len(R), X.shape[1]):
-            raise ValueError(f"init must have shape ({len(R)}, {X.shape[1]})")
-        W = W - mean
-    return X, mean, R, W
+        return data, R, _pca_init(data.X, R, pca_scale)
+    W = as_matrix(init, "init")
+    if W.shape != (len(R), data.X.shape[1]):
+        raise ValueError(f"init must have shape ({len(R)}, {data.X.shape[1]})")
+    return data, R, W - data.mean
 
 
 def _pca_init(X: np.ndarray, R: np.ndarray, scale: float) -> np.ndarray:
@@ -254,13 +251,14 @@ def _sigmas(sigma, sigma_end, R):
     )
 
 
-def _map(X, mean, R, epochs):
+def _map(R, epochs):
     """The view of a map: best-matching units of the prototypes reached; the schedule
     is complete after ``epochs``."""
 
     def view(loop):
-        labels = nearest(X, loop.V)
+        data = loop.data
+        labels = nearest(data.X, loop.V, data.xx)
         done = loop.n_iter == epochs
-        return Result(loop.V + mean, labels, None, loop.n_iter, done, np.empty(0), R[labels])
+        return Result(loop.V + data.mean, labels, None, loop.n_iter, done, np.empty(0), R[labels])
 
     return view

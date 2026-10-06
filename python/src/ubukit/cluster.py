@@ -6,6 +6,8 @@ See docs/algorithms.md for the update equations.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 from numpy.typing import ArrayLike
 from scipy import sparse
@@ -13,18 +15,21 @@ from scipy.spatial import cKDTree
 
 from ._core import (
     TINY,
+    Data,
     Init,
     Result,
     Steps,
+    as_data,
     check_float,
     check_int,
+    check_max_iter,
     iterate,
     label_mean,
     lloyd,
-    prepare,
     softmax_rows,
     sq_norms,
     sqdist,
+    start,
     stepwise,
     weighted_mean,
 )
@@ -32,7 +37,12 @@ from ._core import (
 
 @stepwise
 def kmeans(
-    X: ArrayLike, k: int, *, init: Init = "k-means++", max_iter: int = 300, seed: int | None = None
+    X: ArrayLike,
+    k: int,
+    *,
+    init: Init = "k-means++",
+    max_iter: int | None = 300,
+    seed: int | None = None,
 ) -> Steps:
     """Lloyd's k-means; distance ties go to the lowest center index.
 
@@ -43,22 +53,19 @@ def kmeans(
         X: (N, D) data.
         k: number of clusters.
         init: ``"k-means++"`` or a (k, D) array of initial centers.
-        max_iter: iteration limit; stops earlier at a fixed point.
+        max_iter: iteration limit (None: none); stops earlier at a fixed point.
         seed: seed for k-means++.
     """
-    X, mean, V = prepare(X, k, init, seed)
+    data, V = start(X, k, init, seed)
 
     def view(loop):
-        return Result(loop.V + mean, loop.state[0].copy(), None, *loop[2:])
+        return Result(loop.V + loop.data.mean, loop.state[0].copy(), None, *loop[3:])
 
-    return (
-        yield from iterate(
-            X, V, _hamerly(X), max_iter=check_int(max_iter, "max_iter", 1), tol=0.0, view=view
-        )
-    )
+    max_iter = check_max_iter(max_iter)
+    return (yield from iterate(data, V, _hamerly, max_iter=max_iter, tol=0.0, view=view))
 
 
-def _hamerly(X: np.ndarray):
+def _hamerly(data: Data, V: np.ndarray, state, t: int):
     """Lloyd's step with Hamerly's bounds; the state is (labels, lower bounds).
 
     A point keeps its label without computing its other distances when its
@@ -67,39 +74,36 @@ def _hamerly(X: np.ndarray):
     labeling) and a lower bound on its distance to every other center: the
     second-nearest distance when last computed, minus how far the other
     centers have moved since. Points within 1e-9 of a bound are recomputed,
-    so rounding never decides a label.
+    so rounding never decides a label. The bounds hold for one data set, so
+    new data start them again (iterate keeps no state by default).
     """
-    xx = sq_norms(X)
-
-    def step(V, state, t):
-        n, k = len(X), len(V)
-        # Copies: a state once returned is never modified (see iterate).
-        labels, lower = (
-            (state[0].copy(), state[1].copy()) if state else (np.zeros(n, np.intp), np.zeros(n))
-        )
-        vv = sq_norms(V)
-        # Exact squared distances to the assigned centers: the objective, and
-        # the quantity the bounds are compared with.
-        own = xx + vv[labels] - 2.0 * np.einsum("ij,ij->i", X, V[labels])
-        np.maximum(own, 0.0, out=own)
-        C = sqdist(V, V, vv, vv)
-        np.fill_diagonal(C, np.inf)
-        bound = np.maximum(0.5 * np.sqrt(C.min(axis=1))[labels], lower)
-        far = np.flatnonzero(own >= (bound * (1.0 - 1e-9)) ** 2)
-        if len(far):
-            D = sqdist(X[far], V, xx[far], vv)
-            nearest, rows = D.argmin(axis=1), np.arange(len(far))
-            labels[far], own[far] = nearest, D[rows, nearest]
-            D[rows, nearest] = np.inf  # the second-nearest distance is what remains
-            lower[far] = np.sqrt(D.min(axis=1))
-        V_new = label_mean(X, labels, V)
-        if k > 1:
-            moved = np.sqrt(sq_norms(V_new - V))
-            top = int(moved.argmax())
-            lower = lower - np.where(labels == top, np.partition(moved, -2)[-2], moved[top])
-        return V_new, (labels, lower), float(own.sum())
-
-    return step
+    X, xx = data.X, data.xx
+    n, k = len(X), len(V)
+    # Copies: a state once returned is never modified (see iterate).
+    labels, lower = (
+        (state[0].copy(), state[1].copy()) if state else (np.zeros(n, np.intp), np.zeros(n))
+    )
+    vv = sq_norms(V)
+    # Exact squared distances to the assigned centers: the objective, and
+    # the quantity the bounds are compared with.
+    own = xx + vv[labels] - 2.0 * np.einsum("ij,ij->i", X, V[labels])
+    np.maximum(own, 0.0, out=own)
+    C = sqdist(V, V, vv, vv)
+    np.fill_diagonal(C, np.inf)
+    bound = np.maximum(0.5 * np.sqrt(C.min(axis=1))[labels], lower)
+    far = np.flatnonzero(own >= (bound * (1.0 - 1e-9)) ** 2)
+    if len(far):
+        D = sqdist(X[far], V, xx[far], vv)
+        nearest, rows = D.argmin(axis=1), np.arange(len(far))
+        labels[far], own[far] = nearest, D[rows, nearest]
+        D[rows, nearest] = np.inf  # the second-nearest distance is what remains
+        lower[far] = np.sqrt(D.min(axis=1))
+    V_new = label_mean(X, labels, V)
+    if k > 1:
+        moved = np.sqrt(sq_norms(V_new - V))
+        top = int(moved.argmax())
+        lower = lower - np.where(labels == top, np.partition(moved, -2)[-2], moved[top])
+    return V_new, (labels, lower), float(own.sum())
 
 
 @stepwise
@@ -109,7 +113,7 @@ def fcm(
     *,
     m: float = 2.0,
     init: Init = "k-means++",
-    max_iter: int = 300,
+    max_iter: int | None = 300,
     tol: float = 1e-6,
     seed: int | None = None,
 ) -> Steps:
@@ -123,9 +127,9 @@ def fcm(
     solutions" in docs/algorithms.md.
     """
     m = check_float(m, "m", 1.0, strict=True)
-    X, mean, V = prepare(X, k, init, seed)
+    data, V = start(X, k, init, seed)
 
-    def assign(D, _, t):
+    def assign(data, D, _, t):
         # (d_min / d)^(2/(m-1)), normalized: the softmax of -log d^2 / (m - 1)
         # without logarithms or exponentials (none at all for m = 2).
         D = np.maximum(D, TINY)
@@ -134,19 +138,19 @@ def fcm(
         U /= U.sum(axis=1, keepdims=True)
         return U
 
-    def update(U, V, t):
+    def update(data, U, V, t):
         # Scaling each column by its maximum leaves the means unchanged and
         # keeps u^m from underflowing to all zeros for large m.
-        return weighted_mean(X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
+        return weighted_mean(data.X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
     def objective(D, U):
         # At the memberships of these distances, sum_c u_ic^m d_ic^2 equals
         # d_min^2 u_max^(m-1) for each point.
         return float(D.min(axis=1) @ U.max(axis=1) ** (m - 1.0))
 
-    step = lloyd(X, assign, update, objective)
-    max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
-    return (yield from iterate(X, V, step, max_iter=max_iter, tol=tol, view=_soft(mean)))
+    step = lloyd(assign, update, objective)
+    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
+    return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
 
 @stepwise
@@ -156,7 +160,7 @@ def efcm(
     *,
     tau: float = 1.0,
     init: Init = "k-means++",
-    max_iter: int = 300,
+    max_iter: int | None = 300,
     tol: float = 1e-6,
     seed: int | None = None,
 ) -> Steps:
@@ -167,7 +171,7 @@ def efcm(
     the mean of X; see "Degenerate solutions" in docs/algorithms.md.
     """
     tau = check_float(tau, "tau", 0.0, strict=True)
-    X, mean, V = prepare(X, k, init, seed)
+    data, V = start(X, k, init, seed)
 
     def objective(D, U):
         # At the memberships of these distances, sum_c u_ic d_ic^2 + tau u_ic log u_ic
@@ -175,13 +179,12 @@ def efcm(
         return float(np.sum(D.min(axis=1) + tau * np.log(U.max(axis=1))))
 
     step = lloyd(
-        X,
-        assign=lambda D, _, t: softmax_rows(D * (-1.0 / tau)),
-        update=lambda U, V, t: weighted_mean(X, U, V),
+        assign=lambda data, D, _, t: softmax_rows(D * (-1.0 / tau)),
+        update=lambda data, U, V, t: weighted_mean(data.X, U, V),
         objective=objective,
     )
-    max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
-    return (yield from iterate(X, V, step, max_iter=max_iter, tol=tol, view=_soft(mean)))
+    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
+    return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
 
 @stepwise
@@ -193,7 +196,7 @@ def rcm(
     beta: float = 0.0,
     p: float = 1.0,
     init: Init = "k-means++",
-    max_iter: int = 300,
+    max_iter: int | None = 300,
     seed: int | None = None,
 ) -> Steps:
     """Rough c-means; ``p != 1`` gives the extended ExRCM.
@@ -205,9 +208,9 @@ def rcm(
     alpha = check_float(alpha, "alpha", 1.0)
     beta = check_float(beta, "beta", 0.0)
     p = check_float(p, "p", 0.0, strict=True)
-    X, mean, V = prepare(X, k, init, seed)
+    data, V = start(X, k, init, seed)
 
-    def assign(D, _, t):
+    def assign(data, D, _, t):
         d = np.sqrt(D)
         a = alpha * d.min(axis=1, keepdims=True)
         # radius = ((alpha d_min)^p + beta^p)^(1/p), scaled to avoid under/overflow.
@@ -218,9 +221,9 @@ def rcm(
         mask = d <= radius
         return mask / mask.sum(axis=1, keepdims=True)
 
-    step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
-    max_iter = check_int(max_iter, "max_iter", 1)
-    return (yield from iterate(X, V, step, max_iter=max_iter, tol=0.0, view=_soft(mean)))
+    step = lloyd(assign, update=lambda data, U, V, t: weighted_mean(data.X, U, V))
+    max_iter = check_max_iter(max_iter)
+    return (yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft))
 
 
 @stepwise
@@ -230,7 +233,7 @@ def rmcm(
     delta: float,
     *,
     init: Init = "k-means++",
-    max_iter: int = 300,
+    max_iter: int | None = 300,
     max_edges: int = 10_000_000,
     seed: int | None = None,
 ) -> Steps:
@@ -244,27 +247,38 @@ def rmcm(
         max_edges: refuse graphs with more directed edges than this.
     """
     delta = check_float(delta, "delta", 0.0)
-    X, mean, V = prepare(X, k, init, seed)
-    P = _neighborhood(X, delta, check_int(max_edges, "max_edges", 1))
-    n, rows = len(X), np.arange(len(X) + 1)
+    max_edges = check_int(max_edges, "max_edges", 1)
 
-    def assign(D, _, t):
-        H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), rows), shape=(n, len(V)))
-        return (P @ H).toarray()
+    def prepare(rows, n_features=None):
+        data = as_data(rows, n_features)
+        P = _neighborhood(data.X, delta, max_edges)
+        return _Neighbors(data.X, data.mean, data.xx, data.radius, P)
 
-    step = lloyd(X, assign, update=lambda U, V, t: weighted_mean(X, U, V))
-    max_iter = check_int(max_iter, "max_iter", 1)
-    return (yield from iterate(X, V, step, max_iter=max_iter, tol=0.0, view=_soft(mean)))
+    data, V = start(X, k, init, seed, prepare)
+
+    def assign(data, D, _, t):
+        n = len(D)
+        H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), np.arange(n + 1)), shape=D.shape)
+        return (data.P @ H).toarray()
+
+    step = lloyd(assign, update=lambda data, U, V, t: weighted_mean(data.X, U, V))
+    max_iter = check_max_iter(max_iter)
+    return (
+        yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft, prepare=prepare)
+    )
 
 
-def _soft(mean: np.ndarray):
+@dataclass(frozen=True, slots=True, eq=False)
+class _Neighbors(Data):
+    """The data of rmcm with their row-normalized delta-neighborhood graph P."""
+
+    P: sparse.csr_matrix
+
+
+def _soft(loop):
     """The view of soft and rough clusterings: memberships are the state."""
-
-    def view(loop):
-        U = loop.state.copy()
-        return Result(loop.V + mean, U.argmax(axis=1), U, *loop[2:])
-
-    return view
+    U = loop.state.copy()
+    return Result(loop.V + loop.data.mean, U.argmax(axis=1), U, *loop[3:])
 
 
 def _neighborhood(X: np.ndarray, delta: float, max_edges: int) -> sparse.csr_matrix:

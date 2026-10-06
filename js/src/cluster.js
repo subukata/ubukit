@@ -4,8 +4,8 @@
  * Every function here is a generator: use run()/runAsync() or the wrappers in index.js.
  */
 import {
-  argmaxRows, argminRows, checkInt, checkNumber, copyMatrix, iterate, labelMean, lloyd, mapMatrix,
-  prepare, shift, softmaxRows, sumMinMax, TINY, weightedMean,
+  argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, iterate, labelMean,
+  lloyd, mapMatrix, shift, softmaxRows, start, sumMinMax, TINY, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -14,9 +14,9 @@ import {
 /** @typedef {{ init?: 'k-means++' | MatrixLike, maxIter?: number, seed?: number }} Common */
 
 /** The Result of a clustering; it copies the state (see iterate). @returns {import('./core.js').Result} */
-function result(mean, { V, state: U, nIter, converged, history }, hard = false) {
+function result({ data, V, state: U, nIter, converged, history }, hard = false) {
   return {
-    centers: shift(V, mean), labels: hard ? U.slice() : argmaxRows(U), membership: hard ? null : copyMatrix(U),
+    centers: shift(V, data.mean), labels: hard ? U.slice() : argmaxRows(U), membership: hard ? null : copyMatrix(U),
     nIter, converged, history, embedding: null,
   };
 }
@@ -26,12 +26,12 @@ function result(mean, { V, state: U, nIter, converged, history }, hard = false) 
  * Hamerly's (2010) bounds, which skip only distance computations that cannot
  * change a label, so the iterates are Lloyd's.
  * @param {MatrixLike} X @param {number} k @param {Common} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
-  const p = prepare(X, k, init, seed);
-  const view = loop => result(p.mean, { ...loop, state: loop.state.labels }, true);
-  return yield* iterate(p.X, p.V, hamerly(p.X), { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0, view });
+  const { data, V } = start(X, k, init, seed);
+  const view = loop => result({ ...loop, state: loop.state.labels }, true);
+  return yield* iterate(data, V, hamerly, { maxIter: checkMaxIter(maxIter), tol: 0, view });
 }
 
 /**
@@ -42,12 +42,13 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) 
  * and a lower bound on its distance to every other center: the second-nearest
  * distance when last computed, minus how far the other centers have moved
  * since. Points within 1e-9 of a bound are recomputed, so rounding never
- * decides a label.
- * @returns {import('./core.js').Step}
+ * decides a label. The bounds hold for one data set, so new data start them
+ * again (iterate keeps no state by default).
+ * @type {import('./core.js').Step}
  */
-function hamerly(X) {
-  const { rows: n, cols: d, data: x } = X;
-  return (V, state) => {
+function hamerly(data, V, state) {
+  const X = data.X, { rows: n, cols: d, data: x } = X;
+  {
     const k = V.rows, v = V.data;
     // Fresh arrays: a state once returned is never modified (see iterate).
     const labels = Int32Array.from(state?.labels ?? new Int32Array(n));
@@ -95,7 +96,7 @@ function hamerly(X) {
       for (let i = 0; i < n; i++) lower[i] -= labels[i] === top ? second : first;
     }
     return { V: W, state: { labels, lower }, value: objective };
-  };
+  }
 }
 
 /**
@@ -103,19 +104,18 @@ function hamerly(X) {
  * In high dimensions a large m (from about D/(D-2) for isotropic data) can draw every center to
  * the mean of X; see "Degenerate solutions" in docs/algorithms.md.
  * @param {MatrixLike} X @param {number} k @param {Common & { m?: number, tol?: number }} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
   checkNumber(m, 'm', 1, true);
-  const p = prepare(X, k, init, seed);
-  const step = lloyd(p.X, {
-    assign: D => fuzzyMemberships(D, m),
-    update: (U, V) => weightedMean(p.X, fuzzyWeights(U, m), V),
+  const { data, V } = start(X, k, init, seed);
+  const step = lloyd({
+    assign: (_, D) => fuzzyMemberships(D, m),
+    update: (data, U, V) => weightedMean(data.X, fuzzyWeights(U, m), V),
     // At the memberships of these distances, sum_c u^m d^2 = d_min^2 u_max^(m-1) per point.
     objective: (D, U) => sumMinMax(D, U, (d, u) => d * u ** (m - 1)),
   });
-  const view = loop => result(p.mean, loop);
-  return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: result });
 }
 
 /**
@@ -148,33 +148,32 @@ function fuzzyWeights(U, m) {
  * Entropy-regularized fuzzy c-means: u_ic = softmax_c(-d_ic^2 / tau). A tau of at least twice the
  * largest variance of X can draw every center to the mean of X; see docs/algorithms.md.
  * @param {MatrixLike} X @param {number} k @param {Common & { tau?: number, tol?: number }} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
   checkNumber(tau, 'tau', 0, true);
-  const p = prepare(X, k, init, seed);
-  const step = lloyd(p.X, {
-    assign: D => softmaxRows(mapMatrix(D, d => -d / tau)),
-    update: (U, V) => weightedMean(p.X, U, V),
+  const { data, V } = start(X, k, init, seed);
+  const step = lloyd({
+    assign: (_, D) => softmaxRows(mapMatrix(D, d => -d / tau)),
+    update: (data, U, V) => weightedMean(data.X, U, V),
     // At the memberships of these distances, sum_c u d^2 + tau u log u = d_min^2 + tau log u_max per point.
     objective: (D, U) => sumMinMax(D, U, (d, u) => d + tau * Math.log(u)),
   });
-  const view = loop => result(p.mean, loop);
-  return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: result });
 }
 
 /**
  * Rough c-means (p = 1) and ExRCM: cluster c is admissible when
  * d_ic^p <= (alpha d_min)^p + beta^p; membership is shared equally.
  * @param {MatrixLike} X @param {number} k @param {Common & { alpha?: number, beta?: number, p?: number }} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', maxIter = 300, seed } = {}) {
   checkNumber(alpha, 'alpha', 1);
   checkNumber(beta, 'beta', 0);
   checkNumber(p, 'p', 0, true);
-  const prep = prepare(X, k, init, seed);
-  const assign = D => {
+  const { data, V } = start(X, k, init, seed);
+  const assign = (_, D) => {
     const { rows: n, cols: kk } = D, U = { data: new Float64Array(n * kk), rows: n, cols: kk };
     for (let i = 0; i < n; i++) {
       let dmin = Infinity;
@@ -187,32 +186,35 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
     }
     return U;
   };
-  const step = lloyd(prep.X, { assign, update: (U, V) => weightedMean(prep.X, U, V) });
-  const view = loop => result(prep.mean, loop);
-  return yield* iterate(prep.X, prep.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0, view });
+  const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: result });
 }
 
 /**
  * Rough membership c-means: R = P H with P the row-normalized
  * delta-neighborhood graph (self included) and H the nearest-center one-hot.
  * @param {MatrixLike} X @param {number} k @param {number} delta @param {Common & { maxEdges?: number }} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed } = {}) {
   checkNumber(delta, 'delta', 0);
-  const p = prepare(X, k, init, seed);
-  const graph = neighborhood(p.X, delta, checkInt(maxEdges, 'maxEdges', 1));
-  const assign = D => {
+  checkInt(maxEdges, 'maxEdges', 1);
+  // The data with their neighborhood graph, built again for new data.
+  const prepare = (rows, nFeatures) => {
+    const d = asData(rows, nFeatures);
+    return { ...d, graph: neighborhood(d.X, delta, maxEdges) };
+  };
+  const { data, V } = start(X, k, init, seed, prepare);
+  const assign = ({ graph }, D) => {
     const labels = argminRows(D), n = labels.length, R = { data: new Float64Array(n * k), rows: n, cols: k };
     for (let i = 0; i < n; i++) {
-      const start = graph.offsets[i], end = graph.offsets[i + 1];
-      for (let e = start; e < end; e++) R.data[i * k + labels[graph.neighbors[e]]] += 1 / (end - start);
+      const first = graph.offsets[i], end = graph.offsets[i + 1];
+      for (let e = first; e < end; e++) R.data[i * k + labels[graph.neighbors[e]]] += 1 / (end - first);
     }
     return R;
   };
-  const step = lloyd(p.X, { assign, update: (U, V) => weightedMean(p.X, U, V) });
-  const view = loop => result(p.mean, loop);
-  return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: 0, view });
+  const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: result, prepare });
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */
