@@ -65,7 +65,8 @@ Each principle states a rule and the failure it prevents.
    (row-stochastic memberships, non-increasing objectives, fixed points),
    transcribed reference loops, and scikit-learn where it defines the same
    quantity. Every bug fix comes with a test that fails without it, and the
-   fixtures change only when the math is meant to change.
+   fixtures hold exactly what the code produces, changing beyond rounding
+   only when the math is meant to change.
    *Why:* a test that only repeats the implementation's own output certifies
    its bugs; a test seen failing before the fix is known to test the bug.
 7. **Speed from algorithms, measured.** Algorithmic gains (BLAS products,

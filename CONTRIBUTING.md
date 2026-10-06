@@ -27,12 +27,16 @@ minor series; bump them in pull requests of their own.
 | Change | Languages | Fixtures | CHANGELOG |
 |---|---|---|---|
 | Math, defaults or API | both, plus `docs/algorithms.md` | regenerate | "Changed results" / "Changed API" |
-| Speed only | one is fine | must not change | not needed |
+| Speed only | one is fine | regenerate; only the last digits may change | not needed |
 | Bug fix | wherever the bug is | regenerate only if results were wrong | "Fixed" |
 
 - Regenerate the fixtures with `python fixtures/generate.py`. The file has
-  one case per line, so the diff names the cases whose results changed. If a
-  speed-only change alters them, the math changed.
+  one case per line, so the diff names the cases whose results changed. A
+  speed-only change may reorder floating-point operations and so change the
+  last digits (differences below about 1e-15 times the scale of the data or
+  value); commit them with the change and say so in the pull request, so
+  that the file stays exactly what the code produces. A larger change means
+  the math changed.
 - A pull request that changes an algorithm includes benchmark tables; see
   below. A new algorithm also gets a case in `bench/cases.py`.
 - A change to a loop that has a Numba kernel (`python/src/ubukit/_numba.py`)
