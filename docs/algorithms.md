@@ -26,11 +26,15 @@ partition (see "Degenerate solutions").
 The data are an input of every iteration, so a run can go on with new data,
 for example points that move. The prototypes keep their positions, and the
 method keeps what belongs to its model: the schedule and random state of
-the maps, and the memberships of `som_olp` while the rows are the same
-points (they give the latent positions; with other points the next
-iteration starts without them, as the first does). What belongs to the old
-data only, such as Hamerly's bounds or the neighborhood graph of `rmcm`, is
-built again. The run then ends when it converges on unchanged data, or after
+the maps, and the memberships of `som_olp`, which give each point its latent
+position. Points are known only by their rows, so `som_olp` keeps the
+memberships while the number of rows stays the same, taking row $i$ to be
+the same point as before; when it changes, the next iteration starts
+without them, as the first does. Rows that are other points, such as
+batches of equal size, must therefore not be sent to `som_olp`, whose next
+iteration would give them the latent positions of the old points. What
+belongs to the old data only, such as Hamerly's bounds or the neighborhood
+graph of `rmcm`, is built again. The run then ends when it converges on unchanged data, or after
 `max_iter` iterations (`None` in Python and `Infinity` in JavaScript for no
 limit). For maps that follow moving data, a constant neighborhood width
 (`sigma = sigma_end`) keeps the schedule from narrowing over time.

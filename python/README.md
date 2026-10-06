@@ -46,8 +46,9 @@ frames = [p.result().embedding for p in ub.steps.som_olp(X, (8, 8), lam=0.5, gam
 
 The data are an input of every iteration: `run.send(X_new)` runs the next
 iteration on new rows and keeps everything else the run has learned
-(prototypes, schedules, and SOM-OLP's memberships while the rows are the same
-points). With `max_iter=None` a run goes on for as long as data keep coming:
+(prototypes, schedules, and SOM-OLP's memberships while the number of rows
+stays the same, row i being the same point as before). With `max_iter=None`
+a run goes on for as long as data keep coming:
 
 ```python
 run = ub.steps.som_olp(X, (8, 8), lam=0.5, gamma=1.0, max_iter=None)

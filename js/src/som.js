@@ -127,8 +127,9 @@ export function* somOlp(X, grid = [10, 10], options) {
     const value = sumMinMax(cost, P, (c, p) => c + lam * Math.log(p));
     return { V: weightedMean(data.X, P, W), state: P, value };
   };
-  // The memberships give each point's latent position for the next iteration:
-  // they carry over when the rows are the same points.
+  // The memberships give each point's latent position for the next iteration.
+  // Points are known only by their rows, so they carry over while the number
+  // of rows stays the same, row i being the same point.
   const keep = (P, data) => (P.rows === data.X.rows ? P : null);
   // A copy of the memberships: the next step reads them.
   const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, s.R));
