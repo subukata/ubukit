@@ -1,5 +1,5 @@
 /** External agreement (ARI, AMI) and neighborhood preservation (trustworthiness, continuity). */
-import { checkInt, matrix } from './core.js';
+import { checkInt, isList, matrix } from './core.js';
 
 const AVERAGES = {
   arithmetic: (a, b) => (a + b) / 2,
@@ -105,11 +105,8 @@ function distances(M, i, out) {
 }
 
 function contingency(labelsTrue, labelsPred) {
-  for (const labels of [labelsTrue, labelsPred]) {
-    if (typeof labels !== 'object' || labels === null || !Number.isSafeInteger(labels.length)) {
-      throw new TypeError('labels must be arrays');
-    }
-  }
+  // Arrays only: the length of anything else would size the encoding unchecked.
+  if (!isList(labelsTrue) || !isList(labelsPred)) throw new TypeError('labels must be arrays');
   const n = labelsTrue.length;
   if (n !== labelsPred.length) throw new RangeError('labels must have equal length');
   const encode = labels => {
