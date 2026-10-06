@@ -123,13 +123,14 @@ How the principles are realized today. This section changes with the code.
   writes the data as binary files and runs it in a process per implementation
   (`worker.py` for Python and scikit-learn, `worker.mjs` for JavaScript),
   each importing the source tree it is given, so `--compare` times another
-  commit with the same harness.
+  commit with the same harness. `baseline.py` holds the textbook form of
+  each method, which `--baseline` times against UbuKit.
 
 ```
 python/src/ubukit/  _core.py cluster.py som.py metrics.py tpe.py _numba.py
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
-bench/              cases.py run.py worker.py worker.mjs
+bench/              cases.py run.py worker.py worker.mjs baseline.py
 docs/               algorithms.md (the equations), decisions.md (the reasons)
 ```
 
