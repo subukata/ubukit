@@ -91,6 +91,30 @@ test('history is the objective of the memberships', () => {
   }
 });
 
+test('a point on a center gets all of its membership, shared among centers on it', () => {
+  const P = [[0, 0], [0, 0], [1, 1], [1, 1]];
+  const U = ub.toRows(ub.fcm(P, 3, { init: [P[0], P[0], P[2]], maxIter: 1 }).membership);
+  const expected = [[0.5, 0.5, 0], [0.5, 0.5, 0], [0, 0, 1], [0, 0, 1]];
+  U.forEach((row, i) => row.forEach((u, c) => assert.ok(Math.abs(u - expected[i][c]) <= 1e-300, `${i},${c}: ${u}`)));
+});
+
+test('fewer distinct points than clusters', () => {
+  // k-means++ must repeat a seed; its empty cell keeps it and the centers stay on the data
+  // (efcm's soft weights, e^-20 from the other point, leave them about 1e-8 away).
+  const P = [...Array(6).fill([0, 0]), ...Array(4).fill([1, 1])];
+  for (const k of [3, 5]) {
+    for (const [name, fit] of [
+      ['kmeans', () => ub.kmeans(P, k, { seed: 0 })], ['fcm', () => ub.fcm(P, k, { seed: 0 })],
+      ['efcm', () => ub.efcm(P, k, { seed: 0, tau: 0.1 })], ['rcm', () => ub.rcm(P, k, { seed: 0 })],
+      ['rmcm', () => ub.rmcm(P, k, 0.5, { seed: 0 })],
+    ]) {
+      const r = fit();
+      for (const c of ub.toRows(r.centers)) assert.ok(Math.min(Math.hypot(c[0], c[1]), Math.hypot(c[0] - 1, c[1] - 1)) < 1e-6, `${name} k=${k}: ${c}`);
+      if (r.membership) for (const row of ub.toRows(r.membership)) assert.ok(Math.abs(row.reduce((a, b) => a + b) - 1) < 1e-12);
+    }
+  }
+});
+
 test('objective never increases', () => {
   for (const r of [ub.kmeans(X, 4, { seed: 1 }), ub.fcm(X, 4, { m: 1.7, seed: 1 }), ub.efcm(X, 4, { tau: 0.5, seed: 1 })]) {
     for (let t = 1; t < r.history.length; t++) assert.ok(r.history[t] <= r.history[t - 1] * (1 + 1e-12));

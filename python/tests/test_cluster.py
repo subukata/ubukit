@@ -207,6 +207,54 @@ def test_coincident_points_and_centers():
     r = ub.fcm(X, 2, init=X[[0, 2]])
     np.testing.assert_allclose(np.sort(r.centers, axis=0), [[0, 0], [1, 1]])
     assert np.isfinite(r.membership).all()
+    # Bezdek's rule for d = 0: membership 1, shared equally among centers on the point.
+    r = ub.fcm(X, 3, init=X[[0, 0, 2]], max_iter=1)
+    np.testing.assert_allclose(
+        r.membership, [[0.5, 0.5, 0], [0.5, 0.5, 0], [0, 0, 1], [0, 0, 1]], atol=1e-300
+    )
+
+
+@pytest.mark.parametrize("k", [3, 5])
+def test_fewer_distinct_points_than_clusters(k):
+    # k-means++ must repeat a seed; the repeated seed's empty cell keeps it,
+    # nothing divides by zero, and the centers stay on the data (efcm's soft
+    # weights, e^-20 from the other point, leave them about 1e-8 away).
+    X = np.array([[0.0, 0.0]] * 6 + [[1.0, 1.0]] * 4)
+    methods = [
+        (ub.kmeans, {}),
+        (ub.fcm, {}),
+        (ub.efcm, {"tau": 0.1}),
+        (ub.rcm, {}),
+        (ub.rmcm, {"delta": 0.5}),
+    ]
+    with np.errstate(divide="raise", invalid="raise", over="raise"):
+        for method, options in methods:
+            r = fit(method, X, k, {"seed": 0, **options})
+            assert cdist(r.centers, [[0, 0], [1, 1]]).min(axis=1).max() < 1e-6, method
+            if r.membership is not None:
+                np.testing.assert_allclose(r.membership.sum(axis=1), 1.0)
+
+
+def test_collapse_to_the_mean_follows_the_thresholds():
+    # The mean is a fixed point; it attracts fcm from m* = 1 / (1 - 2 lambda_max(M))
+    # on and efcm from tau* = 2 lambda_max(covariance) on ("Degenerate solutions"
+    # in docs/algorithms.md). Start next to the mean on either side of each.
+    rng = np.random.default_rng(0)
+    X = rng.uniform(-3, 3, (4, 8))[rng.integers(0, 4, 400)] + rng.normal(size=(400, 8))
+    Y = X - X.mean(axis=0)
+    directions = Y / np.linalg.norm(Y, axis=1, keepdims=True)
+    m_star = 1.0 / (1.0 - 2.0 * np.linalg.eigvalsh(directions.T @ directions / len(Y))[-1])
+    tau_star = 2.0 * np.linalg.eigvalsh(Y.T @ Y / len(Y))[-1]
+    near = X.mean(axis=0) + 1e-3 * rng.normal(size=(4, 8))
+    radius = np.sqrt((Y**2).sum(axis=1).mean())
+
+    def spread(r):
+        return np.median(np.linalg.norm(r.centers - X.mean(axis=0), axis=1)) / radius
+
+    assert spread(ub.fcm(X, 4, init=near, m=0.8 * m_star, tol=0, max_iter=300)) > 0.5
+    assert spread(ub.fcm(X, 4, init=near, m=1.25 * m_star, tol=0, max_iter=300)) < 1e-6
+    assert spread(ub.efcm(X, 4, init=near, tau=0.5 * tau_star, tol=0, max_iter=300)) > 0.5
+    assert spread(ub.efcm(X, 4, init=near, tau=2.0 * tau_star, tol=0, max_iter=300)) < 1e-6
 
 
 @pytest.mark.parametrize(

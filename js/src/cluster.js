@@ -100,6 +100,8 @@ function hamerly(X) {
 
 /**
  * Fuzzy c-means: u_ic proportional to d_ic^(-2/(m-1)), as powers of the ratios d_min / d_ic <= 1.
+ * In high dimensions a large m (from about D/(D-2) for isotropic data) can draw every center to
+ * the mean of X; see "Degenerate solutions" in docs/algorithms.md.
  * @param {MatrixLike} X @param {number} k @param {Common & { m?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result>}
  */
@@ -143,7 +145,8 @@ function fuzzyWeights(U, m) {
 }
 
 /**
- * Entropy-regularized fuzzy c-means: u_ic = softmax_c(-d_ic^2 / tau).
+ * Entropy-regularized fuzzy c-means: u_ic = softmax_c(-d_ic^2 / tau). A tau of at least twice the
+ * largest variance of X can draw every center to the mean of X; see docs/algorithms.md.
  * @param {MatrixLike} X @param {number} k @param {Common & { tau?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result>}
  */

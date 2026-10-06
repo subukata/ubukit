@@ -118,7 +118,9 @@ def fcm(
     Memberships u_ic are proportional to d_ic^(-2/(m-1)), evaluated as powers
     of the ratios d_min / d_ic <= 1, so every fuzzifier m > 1 uses the same
     stable path. Stops when no center moves more than ``tol`` times the RMS
-    radius of X.
+    radius of X. In high dimensions a large m (from about D/(D-2) for
+    isotropic data) can draw every center to the mean of X; see "Degenerate
+    solutions" in docs/algorithms.md.
     """
     m = check_float(m, "m", 1.0, strict=True)
     X, mean, V = prepare(X, k, init, seed)
@@ -161,6 +163,8 @@ def efcm(
     """Entropy-regularized fuzzy c-means (Miyamoto).
 
     Minimizes sum u d^2 + tau * sum u log u, giving u_ic = softmax_c(-d_ic^2 / tau).
+    A tau of at least twice the largest variance of X can draw every center to
+    the mean of X; see "Degenerate solutions" in docs/algorithms.md.
     """
     tau = check_float(tau, "tau", 0.0, strict=True)
     X, mean, V = prepare(X, k, init, seed)
