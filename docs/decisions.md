@@ -4,6 +4,33 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Faster default paths without new code paths
+
+Without Numba, in both languages: FCM memberships as powers of
+d_min^2 / d^2 (the same softmax, without logarithms); the FCM, EFCM and
+SOM-OLP histories by the closed forms that the objectives take at the
+memberships of the same distances (N logarithms instead of N K); the
+expected MI from one table of log-factorials (Python also vectorizes the
+inner sum); nearest prototypes without the (N, K) matrix (Python in
+cache-sized row blocks, JavaScript fused); and Python's `sqdist` doubling the
+prototypes instead of the result (exact, so bit for bit the same). The
+results match the old code to rounding, and tests now check the histories
+against the definitions. Best times on 16 cores (Python with one BLAS
+thread), main -> new: Python batch_som 2.0x, ami with 400 distinct cluster
+sizes 11.6x (3.69 -> 0.32 s), ami 50 x 40 clusters 1.3x, fcm 1.2x (m = 2) to
+1.5x (m = 1.5), som_olp 1.4x, efcm 1.1x; JavaScript ami 3.0x and 6.6x, fcm
+1.4x (m = 1.5), efcm 1.2x, batchSom 1.1x, somOlp 1.1x. *Why:* each replaces
+code rather than adding a path, and the Numba kernels follow the same table.
+The cost: building the table is O(N), so `ami` with two clusters and large
+N is slower (N = 1,000,000: Python 44 -> 55 ms, JavaScript 33 -> 53 ms),
+where the label encoding already dominates. *Rejected:* choosing between a
+table and per-term log-gamma by size (two paths for one sum), the
+vectorized sum without a table (no regression, but 1.6x less gain and
+slower at 50 x 40 clusters), label sums by `bincount` or sorting (slower than
+the sparse product), rmcm memberships by `bincount` (no gain), and ranks by
+sorting in trustworthiness (30x at k = 1000 but 2x slower at the usual k =
+5-10).
+
 ## 2026-10-06 Numba kernels for the online SOM, trustworthiness and AMI
 
 `som`, `trustworthiness`, `continuity` and `ami` take `engine="numba"`

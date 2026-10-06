@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 from scipy.spatial.distance import cdist
-from scipy.special import softmax
+from scipy.special import softmax, xlogy
 
 import ubukit as ub
 from ubukit.som import _grid, _pca_init
@@ -63,6 +63,24 @@ def test_som_olp_matches_original_update_order(blobs):
     np.testing.assert_allclose(r.membership, P, atol=1e-9)
     np.testing.assert_allclose(r.embedding, P @ R, atol=1e-9)
     np.testing.assert_allclose(r.centers, P.T @ X / P.sum(axis=0)[:, None], atol=1e-9)
+
+
+def test_som_olp_history_is_the_objective(blobs):
+    # Two iterations from given prototypes, against the definition (the
+    # history uses an identity that holds at the memberships of the costs).
+    X, _ = blobs
+    lam, gamma = 0.7, 0.5
+    R = _grid((3, 4))
+    W0 = np.random.default_rng(2).normal(2, 2, (12, 2))
+    cost = cdist(X, W0, "sqeuclidean")
+    P = softmax(-cost / lam, axis=1)
+    expected = [np.sum(P * cost) + lam * np.sum(xlogy(P, P))]
+    W = P.T @ X / P.sum(axis=0)[:, None]
+    cost = cdist(X, W, "sqeuclidean") + gamma * cdist(P @ R, R, "sqeuclidean")
+    P = softmax(-cost / lam, axis=1)
+    expected.append(np.sum(P * cost) + lam * np.sum(xlogy(P, P)))
+    r = ub.som_olp(X, (3, 4), lam=lam, gamma=gamma, init=W0, max_iter=2, tol=0)
+    np.testing.assert_allclose(r.history, expected, rtol=1e-12)
 
 
 def test_som_olp_accepts_arbitrary_unit_coordinates(blobs):

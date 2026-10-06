@@ -4,8 +4,8 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, argminRows, center, checkInt, checkNumber, copyMatrix, iterate, labelSums, lloyd, mapMatrix,
-  matrix, random, shift, softmaxRows, sqdist, weightedMean,
+  argmaxRows, center, checkInt, checkNumber, copyMatrix, iterate, labelSums, lloyd, mapMatrix, matrix,
+  nearest, random, shift, softmaxRows, sqdist, sumMinMax, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -99,8 +99,11 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     }
     return { data: out, rows: k, cols: d };
   };
-  const view = loop => finish(s, loop, epochs);
-  return yield* iterate(s.X, s.W, lloyd(s.X, { assign: argminRows, update }), { maxIter: epochs, tol: null, view });
+  const step = (W, _, t) => {
+    const labels = nearest(s.X, W);
+    return { V: update(labels, W, t), state: labels, value: null };
+  };
+  return yield* iterate(s.X, s.W, step, { maxIter: epochs, tol: null, view: loop => finish(s, loop, epochs) });
 }
 
 /**
@@ -127,14 +130,8 @@ export function* somOlp(X, grid = [10, 10], options) {
   };
   const step = lloyd(s.X, {
     assign, update: (P, W) => weightedMean(s.X, P, W),
-    objective: (D, P) => {
-      let J = 0;
-      for (let i = 0; i < P.data.length; i++) {
-        const p = P.data[i];
-        J = J + p * cost.data[i] + (p > 0 ? lam * p * Math.log(p) : 0);
-      }
-      return J;
-    },
+    // At the memberships of these costs, sum_j p cost + lam p log p = cost_min + lam log p_max per point.
+    objective: (D, P) => sumMinMax(cost, P, (c, p) => c + lam * Math.log(p)),
   });
   const view = ({ V, state: P, nIter, converged, history }) => ({
     // A copy: the next step reads P.
@@ -195,7 +192,7 @@ function sigmas(sigma, sigmaEnd, R) {
 
 /** A map's Result for the prototypes the loop has reached; its schedule is complete after `epochs`. */
 function finish(s, { V, nIter }, epochs) {
-  const labels = argminRows(sqdist(s.X, V)), q = s.R.cols, emb = new Float64Array(labels.length * q);
+  const labels = nearest(s.X, V), q = s.R.cols, emb = new Float64Array(labels.length * q);
   labels.forEach((j, i) => emb.set(s.R.data.subarray(j * q, (j + 1) * q), i * q));
   return {
     centers: shift(V, s.mean), labels, membership: null, nIter, converged: nIter === epochs,

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from collections.abc import Callable
 from types import ModuleType
 from typing import Literal
@@ -151,29 +150,30 @@ def _expected_mutual_information(
     """
     av, ac = np.unique(a, return_counts=True)
     bv, bc = np.unique(b, return_counts=True)
+    lf = gammaln(np.arange(n + 1) + 1.0)  # log t! for t = 0..n, looked up below
     if kernels:
-        return float(kernels.expected_mi_terms(float(n), av, ac, bv, bc).sum())
-    lg_n = gammaln(n + 1)
+        return float(kernels.expected_mi_terms(n, av, ac, bv, bc, lf).sum())
     emi = 0.0
     for x, cx in zip(av.tolist(), ac.tolist(), strict=True):
-        for y, cy in zip(bv.tolist(), bc.tolist(), strict=True):
-            mean, width = x * y / n, math.sqrt(35 * min(x, y))
-            low = max(1, x + y - n, math.ceil(mean - width))
-            high = min(x, y, math.floor(mean + width))
-            nij = np.arange(low, high + 1, dtype=np.float64)
-            if not len(nij):
-                continue
-            log_p = (
-                gammaln(x + 1)
-                + gammaln(y + 1)
-                + gammaln(n - x + 1)
-                + gammaln(n - y + 1)
-                - lg_n
-                - gammaln(nij + 1)
-                - gammaln(x - nij + 1)
-                - gammaln(y - nij + 1)
-                - gammaln(n - x - y + nij + 1)
-            )
-            terms = nij / n * np.log(n * nij / (x * y)) * np.exp(log_p)
-            emi += cx * cy * float(terms.sum())
+        # The windows of x with every size y, flattened into one array of n_ij.
+        mean, width = x * bv / n, np.sqrt(35 * np.minimum(x, bv))
+        low = np.maximum(np.maximum(1, x + bv - n), np.ceil(mean - width)).astype(np.intp)
+        high = np.minimum(np.minimum(x, bv), np.floor(mean + width)).astype(np.intp)
+        size = np.maximum(high - low + 1, 0)
+        pair = np.repeat(np.arange(len(bv)), size)
+        nij = low[pair] + np.arange(len(pair)) - np.repeat(np.cumsum(size) - size, size)
+        y = bv[pair]
+        log_p = (
+            lf[x]
+            + lf[y]
+            + lf[n - x]
+            + lf[n - y]
+            - lf[n]
+            - lf[nij]
+            - lf[x - nij]
+            - lf[y - nij]
+            - lf[n - x - y + nij]
+        )
+        terms = nij / n * np.log(n * nij / (x * y)) * np.exp(log_p)
+        emi += cx * float(np.bincount(pair, terms, minlength=len(bv)) @ bc)
     return emi

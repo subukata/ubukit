@@ -74,6 +74,23 @@ test('fcm with a large fuzzifier keeps moving', () => {
   }
 });
 
+test('history is the objective of the memberships', () => {
+  // The history uses an identity that holds at the memberships of the
+  // distances; one iteration from given centers checks it against the definition.
+  const init = [[1, 1], [4, 1], [1, 4]];
+  const D = X.map(x => init.map(v => (x[0] - v[0]) ** 2 + (x[1] - v[1]) ** 2));
+  for (const [fit, options, term] of [
+    [ub.fcm, { m: 1.5 }, (u, d) => u ** 1.5 * d],
+    [ub.fcm, { m: 2 }, (u, d) => u * u * d],
+    [ub.fcm, { m: 3 }, (u, d) => u ** 3 * d],
+    [ub.efcm, { tau: 0.7 }, (u, d) => u * d + (u > 0 ? 0.7 * u * Math.log(u) : 0)],
+  ]) {
+    const r = fit(X, 3, { init, maxIter: 1, ...options });
+    const J = ub.toRows(r.membership).reduce((s, row, i) => s + row.reduce((t, u, c) => t + term(u, D[i][c]), 0), 0);
+    assert.ok(Math.abs(r.history[0] - J) <= 1e-10 * J, `${fit.name} ${JSON.stringify(options)}: ${r.history[0]} vs ${J}`);
+  }
+});
+
 test('objective never increases', () => {
   for (const r of [ub.kmeans(X, 4, { seed: 1 }), ub.fcm(X, 4, { m: 1.7, seed: 1 }), ub.efcm(X, 4, { tau: 0.5, seed: 1 })]) {
     for (let t = 1; t < r.history.length; t++) assert.ok(r.history[t] <= r.history[t - 1] * (1 + 1e-12));

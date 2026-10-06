@@ -95,34 +95,23 @@ def trustworthiness_penalties(X, Y, k):
 
 
 @njit(parallel=True, cache=False)
-def expected_mi_terms(n, av, ac, bv, bc):
-    """The terms of ``_expected_mutual_information``, one per distinct size in ``av``."""
-    lg_n = math.lgamma(n + 1.0)
+def expected_mi_terms(n, av, ac, bv, bc, lf):
+    """The terms of ``_expected_mutual_information``, one per distinct size in ``av``.
+
+    ``lf[t]`` is log t! for t = 0..n.
+    """
     terms = np.zeros(av.shape[0])
     for a in prange(av.shape[0]):
-        x = float(av[a])
+        x = av[a]
         for b in range(bv.shape[0]):
-            y = float(bv[b])
+            y = bv[b]
             mean, width = x * y / n, math.sqrt(35 * min(x, y))
-            low = max(1.0, x + y - n, math.ceil(mean - width))
+            low = max(1, x + y - n, math.ceil(mean - width))
             high = min(x, y, math.floor(mean + width))
-            base = (
-                math.lgamma(x + 1)
-                + math.lgamma(y + 1)
-                + math.lgamma(n - x + 1)
-                + math.lgamma(n - y + 1)
-                - lg_n
-            )
-            total, nij = 0.0, low
-            while nij <= high:
-                log_p = (
-                    base
-                    - math.lgamma(nij + 1)
-                    - math.lgamma(x - nij + 1)
-                    - math.lgamma(y - nij + 1)
-                    - math.lgamma(n - x - y + nij + 1)
-                )
+            base = lf[x] + lf[y] + lf[n - x] + lf[n - y] - lf[n]
+            total = 0.0
+            for nij in range(low, high + 1):
+                log_p = base - lf[nij] - lf[x - nij] - lf[y - nij] - lf[n - x - y + nij]
                 total += nij / n * math.log(n * nij / (x * y)) * math.exp(log_p)
-                nij += 1.0
             terms[a] += ac[a] * bc[b] * total
     return terms

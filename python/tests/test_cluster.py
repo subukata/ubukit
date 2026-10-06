@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from conftest import match_centers
 from scipy.spatial.distance import cdist
+from scipy.special import xlogy
 from sklearn.cluster import KMeans
 
 import ubukit as ub
@@ -102,6 +103,26 @@ def test_objective_never_increases(blobs, method, options):
     h = method(X, 4, seed=2, **options).history
     assert len(h) > 1
     assert np.all(np.diff(h) <= 1e-9 * abs(h[0]))
+
+
+@pytest.mark.parametrize(
+    ("method", "options", "criterion"),
+    [
+        (ub.fcm, {"m": 1.5}, lambda U, D: np.sum(U**1.5 * D)),
+        (ub.fcm, {"m": 2.0}, lambda U, D: np.sum(U**2 * D)),
+        (ub.fcm, {"m": 3.0}, lambda U, D: np.sum(U**3 * D)),
+        (ub.efcm, {"tau": 0.7}, lambda U, D: np.sum(U * D) + 0.7 * np.sum(xlogy(U, U))),
+    ],
+)
+def test_history_is_the_objective_of_the_memberships(blobs, method, options, criterion):
+    # The history is computed by an identity that holds at the memberships of
+    # the distances; one iteration from given centers checks it against the
+    # definition.
+    X, _ = blobs
+    init = np.array([[1.0, 1.0], [4.0, 1.0], [1.0, 4.0]])
+    r = method(X, 3, init=init, max_iter=1, **options)
+    D = cdist(X, init, "sqeuclidean")
+    assert r.history[0] == pytest.approx(criterion(r.membership, D), rel=1e-12)
 
 
 @pytest.mark.parametrize("m", [1.0 + 1e-6, 1.01, 3.0, 50.0, 1000.0])

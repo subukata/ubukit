@@ -40,17 +40,24 @@ alone.
 ## Fuzzy c-means (`fcm`)
 
 Minimizes $J_m = \sum_{i,c} u_{ic}^m d_{ic}^2$ subject to $\sum_c u_{ic} = 1$
-(Bezdek, 1981). The membership update is evaluated as a softmax of
-$-\log d_{ic}^2 / (m-1)$, which is stable for every $m > 1$: as $m \to 1$ it
-tends to k-means, and coincident points and centers get the largest weight
-without special cases. Each column of $u^m$ is evaluated as
-$(u_{ic} / \max_j u_{jc})^m$, which leaves the weighted means unchanged and
-cannot underflow to all zeros for large $m$. `history` holds $J_m$ per iteration.
+(Bezdek, 1981). The membership update is evaluated as
+$u_{ic} \propto (d_{i,\min}^2 / d_{ic}^2)^{1/(m-1)}$, the softmax of
+$-\log d_{ic}^2 / (m-1)$ without logarithms: the ratios lie in $(0, 1]$, so it
+is stable for every $m > 1$, tends to k-means as $m \to 1$, and gives
+coincident points and centers the largest weight without special cases. Each
+column of $u^m$ is evaluated as $(u_{ic} / \max_j u_{jc})^m$, which leaves the
+weighted means unchanged and cannot underflow to all zeros for large $m$.
+`history` holds $J_m$ per iteration, computed as
+$\sum_i d_{i,\min}^2\, u_{i,\max}^{m-1}$, which equals it at the memberships
+of the same distances.
 
 ## Entropy-regularized FCM (`efcm`)
 
 Minimizes $\sum u_{ic} d_{ic}^2 + \tau \sum u_{ic} \log u_{ic}$ (Miyamoto &
 Mukaidono, 1997), giving a softmax of $-d^2/\tau$ with linear center weights.
+`history` holds the objective, computed as
+$\sum_i (d_{i,\min}^2 + \tau \log u_{i,\max})$, which equals it at the
+memberships of the same distances (and likewise for `som_olp` with its costs).
 
 ## Rough c-means (`rcm`)
 
@@ -103,7 +110,8 @@ with $\sigma_t$ decaying geometrically from `sigma` (half the grid extent) to
   hypergeometric expectation; `average` selects the entropy normalization.
   Each expectation sum runs over $n_{ij}$ within $\sqrt{35\min(a_i, b_j)}$ of
   its mean $a_i b_j / N$; by Hoeffding's inequality the omitted probability
-  mass is below $2e^{-70}$, so the value equals the full sum to rounding.
+  mass is below $2e^{-70}$, so the value equals the full sum to rounding. The
+  log-factorials come from one table of $\log t!$, $t = 0..N$.
 - `trustworthiness(X, Y, k)` (Venna & Kaski, 2001):
   $1 - \frac{2}{Nk(2N-3k-1)} \sum_i \sum_{j \in U_k(i)} (r_{ij} - k)$, where
   $U_k(i)$ are the $k$ nearest neighbors of $i$ in $Y$ that are not among its

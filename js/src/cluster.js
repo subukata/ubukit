@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, argminRows, checkInt, checkNumber, copyMatrix, iterate, labelMean, lloyd, mapMatrix,
-  prepare, shift, softmaxRows, TINY, weightedMean,
+  prepare, shift, softmaxRows, sumMinMax, TINY, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -99,7 +99,7 @@ function hamerly(X) {
 }
 
 /**
- * Fuzzy c-means: u_ic proportional to d_ic^(-2/(m-1)), as a log-domain softmax.
+ * Fuzzy c-means: u_ic proportional to d_ic^(-2/(m-1)), as powers of the ratios d_min / d_ic <= 1.
  * @param {MatrixLike} X @param {number} k @param {Common & { m?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result>}
  */
@@ -107,16 +107,28 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
   checkNumber(m, 'm', 1, true);
   const p = prepare(X, k, init, seed);
   const step = lloyd(p.X, {
-    assign: D => softmaxRows(mapMatrix(D, d => Math.log(Math.max(d, TINY)) / (1 - m))),
+    assign: D => fuzzyMemberships(D, m),
     update: (U, V) => weightedMean(p.X, fuzzyWeights(U, m), V),
-    objective: (D, U) => {
-      let J = 0;
-      for (let i = 0; i < U.data.length; i++) J += U.data[i] ** m * D.data[i];
-      return J;
-    },
+    // At the memberships of these distances, sum_c u^m d^2 = d_min^2 u_max^(m-1) per point.
+    objective: (D, U) => sumMinMax(D, U, (d, u) => d * u ** (m - 1)),
   });
   const view = loop => result(p.mean, loop);
   return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
+}
+
+/**
+ * (d_min / d)^(2/(m-1)) per row, normalized: the softmax of -log d^2 / (m - 1)
+ * without logarithms or exponentials (none at all for m = 2).
+ */
+function fuzzyMemberships(D, m) {
+  const { rows: n, cols: k, data } = D, a = 1 / (m - 1), out = new Float64Array(n * k);
+  for (let i = 0; i < n; i++) {
+    let low = Infinity, sum = 0;
+    for (let j = 0; j < k; j++) low = Math.min(low, Math.max(data[i * k + j], TINY));
+    for (let j = 0; j < k; j++) sum += out[i * k + j] = (low / Math.max(data[i * k + j], TINY)) ** a;
+    for (let j = 0; j < k; j++) out[i * k + j] /= sum;
+  }
+  return { data: out, rows: n, cols: k };
 }
 
 /**
@@ -141,14 +153,8 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
   const step = lloyd(p.X, {
     assign: D => softmaxRows(mapMatrix(D, d => -d / tau)),
     update: (U, V) => weightedMean(p.X, U, V),
-    objective: (D, U) => {
-      let J = 0;
-      for (let i = 0; i < U.data.length; i++) {
-        const u = U.data[i];
-        J = J + u * D.data[i] + (u > 0 ? tau * u * Math.log(u) : 0);
-      }
-      return J;
-    },
+    // At the memberships of these distances, sum_c u d^2 + tau u log u = d_min^2 + tau log u_max per point.
+    objective: (D, U) => sumMinMax(D, U, (d, u) => d + tau * Math.log(u)),
   });
   const view = loop => result(p.mean, loop);
   return yield* iterate(p.X, p.V, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
