@@ -26,5 +26,9 @@ Never:
 
 - Reviews cover every file in scope, or a scope agreed first, and say what
   was read. Confirm a suspicion by running code before reporting it.
+- Choose a design by how the library should look in the long run
+  (`DESIGN.md`, principle 9), not by the size of the change or what is
+  easiest to build on today; a smaller diff is a reason only between designs
+  that are equally sound.
 - Keep the repository in English: code, comments, documents and commit
   messages.

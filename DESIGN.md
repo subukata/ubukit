@@ -86,6 +86,17 @@ Each principle states a rule and the failure it prevents.
    *Why:* a package is only as trustworthy as the path from source to
    registry: no third-party code may run where a publishing token can be
    minted, and only the build tools where the published files are made.
+9. **Designs follow the model, not the shortest path.** A change is designed
+   from what the library should be in the long run. When a feature does not
+   fit, the abstraction that keeps it out is changed, even if a workaround
+   would be smaller today. Signs of a workaround: an existing concept made to
+   carry something else (an output passed back as state), a special case for
+   one method, or code that rebuilds what an abstraction should have kept.
+   Every design proposal names the alternatives and why they lost.
+   *Why:* a workaround is cheap once and costs on every later change, since
+   each one constrains the next and adds cases to test, while a fitting
+   abstraction makes later features small (one engine made per-iteration
+   results and Numba kernels a few lines each).
 
 ## Current architecture
 

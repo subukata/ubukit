@@ -4,6 +4,30 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Designs follow the model, not the shortest path
+
+`DESIGN.md` gains principle 9, and `AGENTS.md` asks agents to choose designs
+by it. *Why:* asked to let the browser demo keep learning while its points
+move, the agent first proposed passing the previous Result back as `init`,
+because the current code could rebuild everything from it each frame. That
+would have made an output carry the state of the next iteration, mixed
+starting a run with continuing one, and lost the schedule and random state
+on every frame; the fitting design makes the data an input of each
+iteration. The proposal was chosen for the size of the change, which is the
+failure the principle names. *Rejected:* leaving it to review (the same
+choice recurs with every feature).
+
+## 2026-10-06 Seeds stay language-specific
+
+Python keeps NumPy's generator and JavaScript its Mulberry32; equal results
+across the languages come from passing the same initial prototypes.
+*Why:* the same seed in both would need one generator in both, and the one
+that is easy in JavaScript (Mulberry32: 32-bit state, period 2^32) is
+clearly weaker than NumPy's PCG64; lowering Python's to it buys only
+convenience. *Rejected:* Mulberry32 in Python, and for now a stronger
+JavaScript generator such as sfc32 or xoshiro128** (Mulberry32 serves its
+uses, seeding, shuffling and TPE draws, far below its period).
+
 ## 2026-10-06 The k-means++ start kept; degenerate FCM documented
 
 The clustering methods keep starting from greedy k-means++ seeds moved to
