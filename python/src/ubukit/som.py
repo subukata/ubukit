@@ -11,7 +11,6 @@ from typing import Any
 import numpy as np
 from numpy.typing import ArrayLike
 from scipy.linalg import eigh
-from scipy.special import xlogy
 
 from ._core import (
     TINY,
@@ -26,6 +25,7 @@ from ._core import (
     iterate,
     label_sums,
     lloyd,
+    nearest,
     numba_kernels,
     softmax_rows,
     sq_norms,
@@ -124,7 +124,12 @@ def batch_som(
         out[ok] = num.reshape(len(W), -1)[ok] / den[ok, None]
         return out
 
-    step = lloyd(X, lambda D, _, t: D.argmin(axis=1), update)
+    xx = sq_norms(X)
+
+    def step(W, _, t):
+        labels = nearest(X, W, xx)
+        return update(labels, W, t), labels, None
+
     return (
         yield from iterate(X, W, step, max_iter=epochs, tol=None, view=_map(X, mean, R, epochs))
     )
@@ -164,12 +169,12 @@ def som_olp(
         cost = D if P is None else D + gamma * sqdist(P @ R, R, cc=rr)
         return softmax_rows(cost * (-1.0 / lam))
 
-    step = lloyd(
-        X,
-        assign,
-        update=lambda P, W, t: weighted_mean(X, P, W),
-        objective=lambda D, P: float(np.sum(P * cost) + lam * np.sum(xlogy(P, P))),
-    )
+    def objective(D, P):
+        # At the memberships of these costs, sum_j p_ij cost_ij + lam p_ij log p_ij
+        # equals cost_min + lam log p_max for each point: N logarithms, not N K.
+        return float(np.sum(cost.min(axis=1) + lam * np.log(P.max(axis=1))))
+
+    step = lloyd(X, assign, update=lambda P, W, t: weighted_mean(X, P, W), objective=objective)
 
     def view(loop):
         P = loop.state.copy()  # the next step reads it
@@ -254,7 +259,7 @@ def _map(X, mean, R, epochs):
     is complete after ``epochs``."""
 
     def view(loop):
-        labels = sqdist(X, loop.V).argmin(axis=1)
+        labels = nearest(X, loop.V)
         done = loop.n_iter == epochs
         return Result(loop.V + mean, labels, None, loop.n_iter, done, np.empty(0), R[labels])
 

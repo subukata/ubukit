@@ -123,11 +123,26 @@ def sq_norms(X: np.ndarray) -> np.ndarray:
 
 def sqdist(X: np.ndarray, C: np.ndarray, xx=None, cc=None) -> np.ndarray:
     """Squared Euclidean distances (N, K) via the Gram identity, clipped at zero."""
-    D = X @ C.T
-    D *= -2.0
+    D = X @ (-2.0 * C).T  # scaling C rather than the (N, K) result; doubling is exact
     D += (sq_norms(X) if xx is None else xx)[:, None]
     D += sq_norms(C) if cc is None else cc
     return np.maximum(D, 0.0, out=D)
+
+
+def nearest(X: np.ndarray, C: np.ndarray, xx=None) -> np.ndarray:
+    """Index of the nearest row of C for each row of X, ties to the lowest index.
+
+    The same arithmetic as ``sqdist(X, C).argmin(axis=1)``, in blocks of rows
+    small enough to stay in cache, which is up to twice as fast.
+    """
+    xx = sq_norms(X) if xx is None else xx
+    cc = sq_norms(C)
+    block = max(1, 2**15 // len(C))
+    out = np.empty(len(X), np.intp)
+    for start in range(0, len(X), block):
+        rows = slice(start, start + block)
+        out[rows] = sqdist(X[rows], C, xx[rows], cc).argmin(axis=1)
+    return out
 
 
 def softmax_rows(L: np.ndarray) -> np.ndarray:
@@ -204,7 +219,7 @@ def prepare(
         # Start from the seeds' cell means, so a center sits exactly on a data
         # point (which then gets full weight in fuzzy updates) only when its
         # cell holds that point alone.
-        V = label_mean(Xc, sqdist(Xc, V).argmin(axis=1), V)
+        V = label_mean(Xc, nearest(Xc, V), V)
     else:
         V = as_matrix(init, "init")
         if V.shape != (k, X.shape[1]):

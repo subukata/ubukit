@@ -139,15 +139,17 @@ function entropy(counts, n) {
  */
 function expectedMutualInformation(n, a, b) {
   const histogram = counts => counts.reduce((m, c) => m.set(c, (m.get(c) ?? 0) + 1), new Map());
-  const ha = histogram(a), hb = histogram(b), lgN = lgamma(n + 1);
+  const ha = histogram(a), hb = histogram(b);
+  const lf = new Float64Array(n + 1); // log t! for t = 0..n, looked up below
+  for (let t = 0; t <= n; t++) lf[t] = lgamma(t + 1);
   let emi = 0;
   for (const [x, cx] of ha) for (const [y, cy] of hb) {
-    const base = lgamma(x + 1) + lgamma(y + 1) + lgamma(n - x + 1) + lgamma(n - y + 1) - lgN;
+    const base = lf[x] + lf[y] + lf[n - x] + lf[n - y] - lf[n];
     const mean = (x * y) / n, width = Math.sqrt(35 * Math.min(x, y));
     const high = Math.min(x, y, Math.floor(mean + width));
     let sum = 0;
     for (let nij = Math.max(1, x + y - n, Math.ceil(mean - width)); nij <= high; nij++) {
-      const logP = base - lgamma(nij + 1) - lgamma(x - nij + 1) - lgamma(y - nij + 1) - lgamma(n - x - y + nij + 1);
+      const logP = base - lf[nij] - lf[x - nij] - lf[y - nij] - lf[n - x - y + nij];
       sum += (nij / n) * Math.log((n * nij) / (x * y)) * Math.exp(logP);
     }
     emi += cx * cy * sum;

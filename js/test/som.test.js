@@ -14,6 +14,31 @@ test('maps produce grid embeddings', () => {
   assert.equal(ub.somOlp(X, undefined, { lam: 0.5, gamma: 1, maxIter: 2 }).centers.rows, 100);
 });
 
+test('somOlp history is the objective', () => {
+  // Two iterations from given prototypes, against the definition (the history
+  // uses an identity that holds at the memberships of the costs).
+  const lam = 0.7, gamma = 0.5, R = Array.from({ length: 12 }, (_, j) => [Math.floor(j / 4), j % 4]);
+  const W0 = R.map(([a, b]) => [a + 0.3, b - 0.2]);
+  const sq = (a, b) => a.reduce((s, v, f) => s + (v - b[f]) ** 2, 0);
+  const softmax = row => {
+    const top = Math.max(...row), e = row.map(v => Math.exp(v - top)), s = e.reduce((a, b) => a + b);
+    return e.map(v => v / s);
+  };
+  const J = (P, C) => P.reduce((s, row, i) => s + row.reduce((t, p, j) => t + p * C[i][j] + (p > 0 ? lam * p * Math.log(p) : 0), 0), 0);
+  let C = X.map(x => W0.map(w => sq(x, w))), P = C.map(row => softmax(row.map(c => -c / lam)));
+  const expected = [J(P, C)];
+  const W = R.map((_, j) => {
+    const mass = P.reduce((s, row) => s + row[j], 0);
+    return [0, 1].map(f => P.reduce((s, row, i) => s + row[j] * X[i][f], 0) / mass);
+  });
+  const V = P.map(row => [0, 1].map(c => row.reduce((s, p, j) => s + p * R[j][c], 0)));
+  C = X.map((x, i) => W.map((w, j) => sq(x, w) + gamma * sq(V[i], R[j])));
+  P = C.map(row => softmax(row.map(c => -c / lam)));
+  expected.push(J(P, C));
+  const r = ub.somOlp(X, [3, 4], { lam, gamma, init: W0, maxIter: 2, tol: 0 });
+  expected.forEach((e, t) => assert.ok(Math.abs(r.history[t] - e) <= 1e-9 * Math.abs(e), `${r.history[t]} vs ${e}`));
+});
+
 test('pca orientation does not depend on rounding', () => {
   // Standardized 2-D data have axes (1, +-1)/sqrt(2) whose components tie in
   // magnitude; reordering the rows changes only the rounding.

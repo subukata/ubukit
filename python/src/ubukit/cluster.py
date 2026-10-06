@@ -10,7 +10,6 @@ import numpy as np
 from numpy.typing import ArrayLike
 from scipy import sparse
 from scipy.spatial import cKDTree
-from scipy.special import xlogy
 
 from ._core import (
     TINY,
@@ -116,24 +115,34 @@ def fcm(
 ) -> Steps:
     """Fuzzy c-means (Bezdek).
 
-    Memberships u_ic are proportional to d_ic^(-2/(m-1)), evaluated as a softmax
-    of log-distances, so every fuzzifier m > 1 uses the same stable path.
-    Stops when no center moves more than ``tol`` times the RMS radius of X.
+    Memberships u_ic are proportional to d_ic^(-2/(m-1)), evaluated as powers
+    of the ratios d_min / d_ic <= 1, so every fuzzifier m > 1 uses the same
+    stable path. Stops when no center moves more than ``tol`` times the RMS
+    radius of X.
     """
     m = check_float(m, "m", 1.0, strict=True)
     X, mean, V = prepare(X, k, init, seed)
 
     def assign(D, _, t):
-        L = np.log(np.maximum(D, TINY))
-        L *= -1.0 / (m - 1.0)
-        return softmax_rows(L)
+        # (d_min / d)^(2/(m-1)), normalized: the softmax of -log d^2 / (m - 1)
+        # without logarithms or exponentials (none at all for m = 2).
+        D = np.maximum(D, TINY)
+        U = D.min(axis=1, keepdims=True) / D
+        U **= 1.0 / (m - 1.0)
+        U /= U.sum(axis=1, keepdims=True)
+        return U
 
     def update(U, V, t):
         # Scaling each column by its maximum leaves the means unchanged and
         # keeps u^m from underflowing to all zeros for large m.
         return weighted_mean(X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
-    step = lloyd(X, assign, update, objective=lambda D, U: float(np.sum(U**m * D)))
+    def objective(D, U):
+        # At the memberships of these distances, sum_c u_ic^m d_ic^2 equals
+        # d_min^2 u_max^(m-1) for each point.
+        return float(D.min(axis=1) @ U.max(axis=1) ** (m - 1.0))
+
+    step = lloyd(X, assign, update, objective)
     max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
     return (yield from iterate(X, V, step, max_iter=max_iter, tol=tol, view=_soft(mean)))
 
@@ -155,11 +164,17 @@ def efcm(
     """
     tau = check_float(tau, "tau", 0.0, strict=True)
     X, mean, V = prepare(X, k, init, seed)
+
+    def objective(D, U):
+        # At the memberships of these distances, sum_c u_ic d_ic^2 + tau u_ic log u_ic
+        # equals d_min^2 + tau log u_max for each point: N logarithms, not N K.
+        return float(np.sum(D.min(axis=1) + tau * np.log(U.max(axis=1))))
+
     step = lloyd(
         X,
         assign=lambda D, _, t: softmax_rows(D * (-1.0 / tau)),
         update=lambda U, V, t: weighted_mean(X, U, V),
-        objective=lambda D, U: float(np.sum(U * D) + tau * np.sum(xlogy(U, U))),
+        objective=objective,
     )
     max_iter, tol = check_int(max_iter, "max_iter", 1), check_float(tol, "tol", 0.0)
     return (yield from iterate(X, V, step, max_iter=max_iter, tol=tol, view=_soft(mean)))

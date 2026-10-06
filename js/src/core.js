@@ -167,6 +167,41 @@ export function sqdist(X, C) {
   return { data: out, rows: n, cols: k };
 }
 
+/**
+ * Index of the nearest row of C for each row of X, ties to the lowest index:
+ * argminRows(sqdist(X, C)) without the (N, K) matrix.
+ */
+export function nearest(X, C) {
+  const { rows: n, cols: d } = X, k = C.rows, x = X.data, c = C.data, out = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    let best = Infinity;
+    for (let j = 0; j < k; j++) {
+      let s = 0;
+      for (let f = 0, a = i * d, b = j * d; f < d; f++) {
+        const t = x[a + f] - c[b + f];
+        s += t * t;
+      }
+      if (s < best) best = s, out[i] = j;
+    }
+  }
+  return out;
+}
+
+/**
+ * The sum over rows of f(smallest entry of the row of D, largest of the row
+ * of U): an objective at the memberships U of the distances or costs D.
+ */
+export function sumMinMax(D, U, f) {
+  const { rows: n, cols: k } = D;
+  let total = 0;
+  for (let i = 0; i < n; i++) {
+    let low = Infinity, high = -Infinity;
+    for (let j = 0; j < k; j++) low = Math.min(low, D.data[i * k + j]), high = Math.max(high, U.data[i * k + j]);
+    total += f(low, high);
+  }
+  return total;
+}
+
 /** Index of the smallest entry per row; ties go to the lowest index. */
 export function argminRows(D) {
   const { rows: n, cols: k, data } = D, out = new Int32Array(n);
@@ -294,7 +329,7 @@ export function prepare(X, k, init = 'k-means++', seed) {
     // Start from the seeds' cell means, so a center sits exactly on a data
     // point (which then gets full weight in fuzzy updates) only when its
     // cell holds that point alone.
-    V = labelMean(Xc, argminRows(sqdist(Xc, V)), V);
+    V = labelMean(Xc, nearest(Xc, V), V);
   } else if (typeof init === 'string') {
     throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");
   } else {
