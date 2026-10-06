@@ -9,16 +9,20 @@ whose ``result()`` is the Result as if the run had stopped there:
         draw(p.result())
 """
 
-from types import SimpleNamespace
-
-from ._core import STEPS, Progress, Result
-from .cluster import efcm, fcm, kmeans, rcm, rmcm
+from . import steps
+from ._core import Progress, Result, stepwise
 from .metrics import ami, ari, continuity, trustworthiness
-from .som import batch_som, som, som_olp
 from .tpe import TPE, TPEResult, choice, integer, loguniform, minimize, uniform
 
-steps = SimpleNamespace(**STEPS)
-"""The fitting functions as generators, e.g. ``steps.kmeans(X, 3)``."""
+# The fitting functions: each runs its generator in ``steps`` to the end.
+kmeans = stepwise(steps.kmeans)
+fcm = stepwise(steps.fcm)
+efcm = stepwise(steps.efcm)
+rcm = stepwise(steps.rcm)
+rmcm = stepwise(steps.rmcm)
+som = stepwise(steps.som)
+batch_som = stepwise(steps.batch_som)
+som_olp = stepwise(steps.som_olp)
 
 __version__ = "0.1.0"
 

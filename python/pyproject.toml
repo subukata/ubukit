@@ -52,7 +52,10 @@ target-version = "py312"
 select = ["E", "F", "W", "I", "B", "UP", "NPY", "SIM", "RUF"]
 
 [tool.mypy]
-files = ["src"]
+# The library, and in tests/typing_api.py how typed code calls it.
+files = ["src", "tests/typing_api.py"]
+check_untyped_defs = true
+warn_unused_ignores = true
 
 # SciPy and Numba ship no type information.
 [[tool.mypy.overrides]]
