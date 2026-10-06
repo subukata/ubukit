@@ -152,17 +152,22 @@ def nearest(X: np.ndarray, C: np.ndarray, xx: np.ndarray | None = None) -> np.nd
 def softmin(C: np.ndarray, temperature: float) -> tuple[np.ndarray, float]:
     """Memberships p_ij proportional to exp(-c_ij / T), and the sum of the rows' soft minima.
 
-    The soft minimum -T log sum_j exp(-c_ij / T) equals sum_j p_ij c_ij +
-    T p_ij log p_ij at these memberships, the entropy-regularized objective;
-    it comes from the row maxima and sums that the normalization computes.
+    The soft minimum c_min - T log sum_j exp(-(c_ij - c_min) / T) equals
+    sum_j p_ij c_ij + T p_ij log p_ij at these memberships, the
+    entropy-regularized objective; it comes from the row minima and sums that
+    the normalization computes. Each row's minimum is subtracted before the
+    division, so every exponent lies in [-inf, 0] and any T > 0, however
+    small against the costs, gives finite memberships: the hard ones of its
+    limit.
     """
-    P = C * (-1.0 / temperature)
-    top = P.max(axis=1, keepdims=True)
-    P -= top
+    low = C.min(axis=1, keepdims=True)
+    P = C - low
+    with np.errstate(over="ignore"):  # exponents of -inf for a tiny T, as in the limit
+        P /= -temperature
     np.exp(P, out=P)
     total = P.sum(axis=1, keepdims=True)
     P /= total
-    return P, -temperature * float(np.sum(top) + np.sum(np.log(total)))
+    return P, float(np.sum(low) - temperature * np.sum(np.log(total)))
 
 
 def weighted_mean(X: np.ndarray, W: np.ndarray, V: np.ndarray) -> np.ndarray:

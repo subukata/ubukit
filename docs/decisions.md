@@ -4,6 +4,27 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Small temperatures and widths reach their limits (#77)
+
+`softmin` subtracts each row's minimum before dividing by the temperature,
+and the SOM neighborhoods divide by the width twice instead of by its
+square; intended overflows to infinity are silenced, and the online SOM
+reads its grid distances from a table computed once (NumPy, Numba and
+JavaScript alike). *Why:* an external security review found EFCM returning
+NaN memberships marked converged for `tau = 1e-320`; the same happens for
+data of the largest allowed scale (1e148) with `tau = 1e-12`, inside the
+input contract, and for SOM-OLP's `lam`. A width whose square underflows
+(`sigma = 1e-200`) made the online SOM raise `ZeroDivisionError` (NumPy,
+Numba) or return NaN (JavaScript), and left the batch SOM silently at its
+start. Principle 3 asks for stability from the formulation: now each limit
+is the method's own (k-means, hard memberships, the winner alone). The
+results move only in their last digits (fixtures: 4e-16 and 9e-15), and the
+benchmark finds the online SOM 1.15x faster in Python and the rest the
+same. *Rejected:* lower bounds on `tau`, `lam` and `sigma` (arbitrary, and
+the overflow depends on the data's scale) and a check for non-finite
+results in the loop (it finds the symptom, not the cause, and misses the
+batch SOM, whose result was finite).
+
 ## 2026-10-06 Input checked before it is copied; no size limit (#76)
 
 JavaScript's `matrix` checks that every row is an array of equal length

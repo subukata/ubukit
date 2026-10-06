@@ -72,22 +72,29 @@ def som(
         raise ValueError("lr and lr_end must be at most 1")
     data, W = _setup(X, R, init)
     rng = np.random.default_rng(seed)
+    # Squared grid distances between all units, from direct differences as in
+    # the Numba kernel; each update reads the row of its winner.
+    G = R[:, None] - R[None]
+    G2 = np.einsum("ijk,ijk->ij", G, G)
 
     def epoch(data, W, _, e):
         X, n = data.X, len(data.X)
         steps = epochs * n
         order = rng.permutation(n) if shuffle else np.arange(n)
         if kernels:
-            return kernels.som_epoch(X, W, R, order, e * n, steps, s0, s1, lr, lr_end), None, None
+            return kernels.som_epoch(X, W, G2, order, e * n, steps, s0, s1, lr, lr_end), None, None
         W = W.copy()
-        for j, i in enumerate(order):
-            f = (e * n + j) / (steps - 1) if steps > 1 else 0.0
-            s, eta = s0 * (s1 / s0) ** f, lr * (lr_end / lr) ** f
-            diff = X[i] - W
-            bmu = np.einsum("ij,ij->i", diff, diff).argmin()
-            g = R - R[bmu]
-            h = np.exp(np.einsum("ij,ij->i", g, g) * (-0.5 / (s * s)))
-            W += (eta * h)[:, None] * diff
+        # Dividing twice by s, not once by s * s, which underflows to 0 for a
+        # tiny width: the winner keeps h = 1 and the others reach 0 (through an
+        # overflow to inf, as in the limit).
+        with np.errstate(over="ignore"):
+            for j, i in enumerate(order):
+                f = (e * n + j) / (steps - 1) if steps > 1 else 0.0
+                s, eta = s0 * (s1 / s0) ** f, lr * (lr_end / lr) ** f
+                diff = X[i] - W
+                bmu = np.einsum("ij,ij->i", diff, diff).argmin()
+                h = np.exp(-0.5 * (G2[bmu] / s) / s)
+                W += (eta * h)[:, None] * diff
         return W, None, None
 
     return (yield from iterate(data, W, epoch, max_iter=epochs, tol=None, view=_map(R)))
@@ -117,8 +124,10 @@ def batch_som(
     def step(data, W, _, t):
         labels = nearest(data.X, W, data.xx)
         s = s0 * (s1 / s0) ** (t / (epochs - 1)) if epochs > 1 else s0
-        Kr = np.exp(-((gr[:, None] - gr) ** 2) / (2 * s * s))
-        Kc = np.exp(-((gc[:, None] - gc) ** 2) / (2 * s * s))
+        # exp(-(d / s)^2 / 2): finite for any width, the identity in its limit.
+        with np.errstate(over="ignore"):
+            Kr = np.exp(-0.5 * ((gr[:, None] - gr) / s) ** 2)
+            Kc = np.exp(-0.5 * ((gc[:, None] - gc) / s) ** 2)
         sums, counts = label_sums(data.X, labels, len(W))
         num = Kc @ (Kr @ sums.reshape(rows, -1)).reshape(rows, cols, -1)
         den = (Kr @ counts.reshape(rows, cols) @ Kc.T).ravel()

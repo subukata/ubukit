@@ -222,10 +222,12 @@ export function argmaxRows(U) {
 
 /**
  * Memberships p_ij proportional to exp(-c_ij / T), and the sum of the rows'
- * soft minima -T log sum_j exp(-c_ij / T). A soft minimum equals
- * sum_j p_ij c_ij + T p_ij log p_ij at these memberships, the
- * entropy-regularized objective; it comes from the row maxima and sums that
- * the normalization computes.
+ * soft minima c_min - T log sum_j exp(-(c_ij - c_min) / T). A soft minimum
+ * equals sum_j p_ij c_ij + T p_ij log p_ij at these memberships, the
+ * entropy-regularized objective; it comes from the row minima and sums that
+ * the normalization computes. Each row's minimum is subtracted before the
+ * division, so every exponent lies in [-inf, 0] and any T > 0, however small
+ * against the costs, gives finite memberships: the hard ones of its limit.
  * @param {Matrix} C @param {number} temperature
  * @returns {{ U: Matrix, value: number }}
  */
@@ -233,13 +235,13 @@ export function softmin(C, temperature) {
   const { rows: n, cols: k, data: c } = C, out = new Float64Array(n * k);
   let value = 0;
   for (let i = 0; i < n; i++) {
-    let max = -Infinity, sum = 0;
-    for (let j = 0; j < k; j++) max = Math.max(max, out[i * k + j] = -c[i * k + j] / temperature);
-    for (let j = 0; j < k; j++) sum += out[i * k + j] = Math.exp(out[i * k + j] - max);
+    let low = Infinity, sum = 0;
+    for (let j = 0; j < k; j++) low = Math.min(low, c[i * k + j]);
+    for (let j = 0; j < k; j++) sum += out[i * k + j] = Math.exp(-(c[i * k + j] - low) / temperature);
     for (let j = 0; j < k; j++) out[i * k + j] /= sum;
-    value += max + Math.log(sum);
+    value += low - temperature * Math.log(sum);
   }
-  return { U: { data: out, rows: n, cols: k }, value: -temperature * value };
+  return { U: { data: out, rows: n, cols: k }, value };
 }
 
 /** Map every entry (new matrix). */

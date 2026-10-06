@@ -120,3 +120,15 @@ test('objective never increases', () => {
     for (let t = 1; t < r.history.length; t++) assert.ok(r.history[t] <= r.history[t - 1] * (1 + 1e-12));
   }
 });
+
+test('efcm reaches k-means as tau vanishes', () => {
+  // Costs over tau beyond float64 (data of the largest allowed scale, or a
+  // subnormal tau) give hard memberships, the limit, not NaN marked converged.
+  const init = [[1, 1], [4, 1], [1, 4]];
+  for (const [scale, tau] of [[1, 1e-320], [1e148, 1e-12]]) {
+    const Y = X.map(r => r.map(v => v * scale)), start = init.map(r => r.map(v => v * scale));
+    const r = ub.efcm(Y, 3, { tau, init: start }), hard = ub.kmeans(Y, 3, { init: start });
+    assert.ok(r.membership.data.every(u => u === 0 || u === 1) && r.history.every(Number.isFinite), `scale ${scale}`);
+    r.centers.data.forEach((c, i) => assert.ok(Math.abs(c - hard.centers.data[i]) <= 1e-12 * Math.abs(hard.centers.data[i]), `scale ${scale}`));
+  }
+});
