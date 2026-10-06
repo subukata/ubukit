@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 One required check, "All checks" (#74)
+
+CI ends with a job, "All checks", that fails when any other job failed or
+was cancelled, and the `main` ruleset requires only that one. *Why:* the
+ruleset matches checks by name, and the job names carry the Python and Node
+versions, so each yearly version change would have left every pull request
+waiting for checks that no longer report until the ruleset was edited by
+hand. The job runs even when others fail (`always()`), so a cancelled run
+cannot pass, and it is skipped with the rest while the repository is
+private, which GitHub counts as passed. *Rejected:* requiring the six jobs
+by name (the yearly edit) and a third-party action for the same summary
+(an action to trust for one comparison).
+
 ## 2026-10-06 CI on every pull request, on Ubuntu, once public (#73)
 
 CI runs its six Ubuntu jobs on every pull request, and a new push cancels

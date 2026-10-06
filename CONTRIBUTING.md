@@ -95,7 +95,9 @@ closes the pull requests that target it.
 - CI (`.github/workflows/ci.yml`) runs on every pull request on Ubuntu:
   Python 3.12 and 3.14, the oldest supported NumPy and SciPy, Node 22 and 24,
   the package builds and the benchmark's parity check, in about two minutes.
-  A new push to the pull request cancels the earlier run. Windows and macOS
+  A new push to the pull request cancels the earlier run. The `main` ruleset
+  requires one check, "All checks", which fails when any other job fails, so
+  changing the jobs (a new Python or Node version) needs no ruleset change. Windows and macOS
   run when the maintainer starts CI by hand (Actions > CI > Run workflow),
   once each before a release. Standard runners cost nothing in a public
   repository; while the repository is private, where minutes are paid
