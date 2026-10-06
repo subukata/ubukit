@@ -111,8 +111,10 @@ How the principles are realized today. This section changes with the code.
   (centering, and for `rmcm` its neighborhood graph), the prototypes carry
   over, and the state carries over only through the method's `keep`
   (SOM-OLP's memberships); other state is a cache of the old data. The
-  standard step, `lloyd(assign, update, objective)`, serves the fuzzy and
-  rough c-means; k-means (an exact accelerated step with Hamerly's bounds),
+  standard step, `lloyd(assign, update)`, serves the fuzzy and rough
+  c-means, whose `assign` gives the memberships with the objective at them
+  (the history value, from the quantities that normalize the memberships);
+  k-means (an exact accelerated step with Hamerly's bounds),
   the batch SOM (separable smoothing), the online SOM (one epoch) and SOM-OLP
   (memberships that depend on the previous ones) have their own. With
   `tol=None` the loop runs a fixed schedule, which converges when complete.

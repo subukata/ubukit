@@ -76,17 +76,21 @@ membership 1 there, shared equally among prototypes exactly on it, which is
 the limit of the formula (Bezdek's rule for $d_{ic} = 0$). Each
 column of $u^m$ is evaluated as $(u_{ic} / \max_j u_{jc})^m$, which leaves the
 weighted means unchanged and cannot underflow to all zeros for large $m$.
-`history` holds $J_m$ per iteration, computed as
-$\sum_i d_{i,\min}^2\, u_{i,\max}^{m-1}$, which equals it at the memberships
-of the same distances.
+`history` holds $J_m$ per iteration, computed with the memberships as
+$\sum_i d_{i,\min}^2\, s_i^{1-m}$, where
+$s_i = \sum_c (d_{i,\min}^2 / d_{ic}^2)^{1/(m-1)}$ is the sum that normalizes
+them; this equals $J_m$ at the memberships of the same distances, since
+$u_{i,\max} = 1/s_i$.
 
 ## Entropy-regularized FCM (`efcm`)
 
 Minimizes $\sum u_{ic} d_{ic}^2 + \tau \sum u_{ic} \log u_{ic}$ (Miyamoto &
 Mukaidono, 1997), giving a softmax of $-d^2/\tau$ with linear center weights.
-`history` holds the objective, computed as
-$\sum_i (d_{i,\min}^2 + \tau \log u_{i,\max})$, which equals it at the
-memberships of the same distances (and likewise for `som_olp` with its costs).
+`history` holds the objective, computed with the memberships as the sum of
+the soft minima $-\tau \log \sum_c \exp(-d_{ic}^2/\tau)$, from the row maxima
+and sums that the softmax computes; this equals the objective at the
+memberships of the same distances (and likewise for `som_olp` with its
+costs and $\lambda$).
 
 ## Degenerate solutions (`fcm`, `efcm`)
 

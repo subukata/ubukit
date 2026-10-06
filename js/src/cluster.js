@@ -6,7 +6,7 @@
  */
 import {
   argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelMean,
-  lloyd, mapMatrix, softmaxRows, start, sumMinMax, TINY, weightedMean,
+  lloyd, softmin, start, TINY, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -106,25 +106,27 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
   const step = lloyd({
     assign: (_, D) => fuzzyMemberships(D, m),
     update: (data, U, V) => weightedMean(data.X, fuzzyWeights(U, m), V),
-    // At the memberships of these distances, sum_c u^m d^2 = d_min^2 u_max^(m-1) per point.
-    objective: (D, U) => sumMinMax(D, U, (d, u) => d * u ** (m - 1)),
   });
   return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: soft });
 }
 
 /**
  * (d_min / d)^(2/(m-1)) per row, normalized: the softmax of -log d^2 / (m - 1)
- * without logarithms or exponentials (none at all for m = 2).
+ * without logarithms or exponentials (none at all for m = 2). The largest
+ * ratio is 1, so u_max = 1 / sum, and the objective at these memberships,
+ * sum_c u_ic^m d_ic^2, is d_min^2 u_max^(m-1) per point.
  */
 function fuzzyMemberships(D, m) {
   const { rows: n, cols: k, data } = D, a = 1 / (m - 1), out = new Float64Array(n * k);
+  let value = 0;
   for (let i = 0; i < n; i++) {
     let low = Infinity, sum = 0;
     for (let j = 0; j < k; j++) low = Math.min(low, Math.max(data[i * k + j], TINY));
     for (let j = 0; j < k; j++) sum += out[i * k + j] = (low / Math.max(data[i * k + j], TINY)) ** a;
     for (let j = 0; j < k; j++) out[i * k + j] /= sum;
+    value += low * sum ** (1 - m);
   }
-  return { data: out, rows: n, cols: k };
+  return { U: { data: out, rows: n, cols: k }, value };
 }
 
 /**
@@ -148,10 +150,8 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
   checkNumber(tau, 'tau', 0, true);
   const { data, V } = start(X, k, init, seed);
   const step = lloyd({
-    assign: (_, D) => softmaxRows(mapMatrix(D, d => -d / tau)),
+    assign: (_, D) => softmin(D, tau),
     update: (data, U, V) => weightedMean(data.X, U, V),
-    // At the memberships of these distances, sum_c u d^2 + tau u log u = d_min^2 + tau log u_max per point.
-    objective: (D, U) => sumMinMax(D, U, (d, u) => d + tau * Math.log(u)),
   });
   return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: soft });
 }
@@ -178,7 +178,7 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
       for (let j = 0; j < kk; j++) if (Math.sqrt(D.data[i * kk + j]) <= radius) U.data[i * kk + j] = 1, count++;
       for (let j = 0; j < kk; j++) U.data[i * kk + j] /= count;
     }
-    return U;
+    return { U, value: null };
   };
   const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
   return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: soft });
@@ -205,7 +205,7 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
       const first = graph.offsets[i], end = graph.offsets[i + 1];
       for (let e = first; e < end; e++) R.data[i * k + labels[graph.neighbors[e]]] += 1 / (end - first);
     }
-    return R;
+    return { U: R, value: null };
   };
   const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
   return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: soft, prepare });

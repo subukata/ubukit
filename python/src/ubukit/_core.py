@@ -149,12 +149,20 @@ def nearest(X: np.ndarray, C: np.ndarray, xx: np.ndarray | None = None) -> np.nd
     return out
 
 
-def softmax_rows(L: np.ndarray) -> np.ndarray:
-    """Row-wise softmax of the logits L, in place."""
-    L -= L.max(axis=1, keepdims=True)
-    np.exp(L, out=L)
-    L /= L.sum(axis=1, keepdims=True)
-    return L
+def softmin(C: np.ndarray, temperature: float) -> tuple[np.ndarray, float]:
+    """Memberships p_ij proportional to exp(-c_ij / T), and the sum of the rows' soft minima.
+
+    The soft minimum -T log sum_j exp(-c_ij / T) equals sum_j p_ij c_ij +
+    T p_ij log p_ij at these memberships, the entropy-regularized objective;
+    it comes from the row maxima and sums that the normalization computes.
+    """
+    P = C * (-1.0 / temperature)
+    top = P.max(axis=1, keepdims=True)
+    P -= top
+    np.exp(P, out=P)
+    total = P.sum(axis=1, keepdims=True)
+    P /= total
+    return P, -temperature * float(np.sum(top) + np.sum(np.log(total)))
 
 
 def weighted_mean(X: np.ndarray, W: np.ndarray, V: np.ndarray) -> np.ndarray:
@@ -268,9 +276,8 @@ def check_max_iter(value: Any) -> int | None:
 # objective value or None); the state starts as None and is whatever the
 # method carries. Steps read the data from their argument, never keep it.
 Step = Callable[[Data, np.ndarray, Any, int], tuple[np.ndarray, Any, float | None]]
-Assign = Callable[[Data, np.ndarray], np.ndarray]
+Assign = Callable[[Data, np.ndarray], tuple[np.ndarray, float | None]]
 Update = Callable[[Data, np.ndarray, np.ndarray], np.ndarray]
-Objective = Callable[[np.ndarray, np.ndarray], float]
 
 
 @dataclass(frozen=True, slots=True)
@@ -398,16 +405,18 @@ def _result(
     return lambda: view(loop._replace(history=np.asarray(history[:n], dtype=float)))
 
 
-def lloyd(assign: Assign, update: Update, objective: Objective | None = None) -> Step:
-    """The standard step: D = ||x - v||^2, U = assign(data, D), V = update(data, U, V).
+def lloyd(assign: Assign, update: Update) -> Step:
+    """The standard step: D = ||x - v||^2, (U, J) = assign(data, D), V = update(data, U, V).
 
-    The memberships U are the step's state, which the method's view reads;
-    the optional ``objective(D, U)`` gives one history value.
+    ``assign`` gives the memberships U for these distances, the step's state
+    (which the method's view reads), and the method's objective J at them,
+    one history value (None for a method without one). The memberships
+    minimize the objective for the given prototypes, and the quantities that
+    compute them give its value, so it costs almost nothing.
     """
 
     def step(data, V, _, t):
-        D = sqdist(data.X, V, data.xx)
-        U = assign(data, D)
-        return update(data, U, V), U, None if objective is None else objective(D, U)
+        U, value = assign(data, sqdist(data.X, V, data.xx))
+        return update(data, U, V), U, value
 
     return step

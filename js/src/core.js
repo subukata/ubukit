@@ -189,21 +189,6 @@ export function nearest(X, C) {
   return out;
 }
 
-/**
- * The sum over rows of f(smallest entry of the row of D, largest of the row
- * of U): an objective at the memberships U of the distances or costs D.
- */
-export function sumMinMax(D, U, f) {
-  const { rows: n, cols: k } = D;
-  let total = 0;
-  for (let i = 0; i < n; i++) {
-    let low = Infinity, high = -Infinity;
-    for (let j = 0; j < k; j++) low = Math.min(low, D.data[i * k + j]), high = Math.max(high, U.data[i * k + j]);
-    total += f(low, high);
-  }
-  return total;
-}
-
 /** Index of the smallest entry per row; ties go to the lowest index. */
 export function argminRows(D) {
   const { rows: n, cols: k, data } = D, out = new Int32Array(n);
@@ -226,16 +211,26 @@ export function argmaxRows(U) {
   return out;
 }
 
-/** Row-wise softmax of logits, in place. */
-export function softmaxRows(L) {
-  const { rows: n, cols: k, data } = L;
+/**
+ * Memberships p_ij proportional to exp(-c_ij / T), and the sum of the rows'
+ * soft minima -T log sum_j exp(-c_ij / T). A soft minimum equals
+ * sum_j p_ij c_ij + T p_ij log p_ij at these memberships, the
+ * entropy-regularized objective; it comes from the row maxima and sums that
+ * the normalization computes.
+ * @param {Matrix} C @param {number} temperature
+ * @returns {{ U: Matrix, value: number }}
+ */
+export function softmin(C, temperature) {
+  const { rows: n, cols: k, data: c } = C, out = new Float64Array(n * k);
+  let value = 0;
   for (let i = 0; i < n; i++) {
     let max = -Infinity, sum = 0;
-    for (let j = 0; j < k; j++) max = Math.max(max, data[i * k + j]);
-    for (let j = 0; j < k; j++) sum += data[i * k + j] = Math.exp(data[i * k + j] - max);
-    for (let j = 0; j < k; j++) data[i * k + j] /= sum;
+    for (let j = 0; j < k; j++) max = Math.max(max, out[i * k + j] = -c[i * k + j] / temperature);
+    for (let j = 0; j < k; j++) sum += out[i * k + j] = Math.exp(out[i * k + j] - max);
+    for (let j = 0; j < k; j++) out[i * k + j] /= sum;
+    value += max + Math.log(sum);
   }
-  return L;
+  return { U: { data: out, rows: n, cols: k }, value: -temperature * value };
 }
 
 /** Map every entry (new matrix). */
@@ -436,15 +431,18 @@ export function fitted({ data, V, nIter, converged, history }, labels, membershi
 }
 
 /**
- * The standard step: D = ||x - v||^2, U = assign(data, D), V = update(data, U, V).
- * The memberships U are the step's state, which the method's view reads; the
- * optional objective(D, U) gives one history value.
+ * The standard step: D = ||x - v||^2, { U, value } = assign(data, D), V = update(data, U, V).
+ * assign gives the memberships U for these distances, the step's state
+ * (which the method's view reads), and the method's objective at them, one
+ * history value (null for a method without one). The memberships minimize
+ * the objective for the given prototypes, and the quantities that compute
+ * them give its value, so it costs almost nothing.
  * @returns {Step}
  */
-export function lloyd({ assign, update, objective = null }) {
+export function lloyd({ assign, update }) {
   return (data, V) => {
-    const D = sqdist(data.X, V), U = assign(data, D);
-    return { V: update(data, U, V), state: U, value: objective ? objective(D, U) : null };
+    const { U, value } = assign(data, sqdist(data.X, V));
+    return { V: update(data, U, V), state: U, value };
   };
 }
 

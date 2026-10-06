@@ -32,7 +32,7 @@ from ._core import (
     label_sums,
     nearest,
     numba_kernels,
-    softmax_rows,
+    softmin,
     sq_norms,
     sqdist,
     weighted_mean,
@@ -162,10 +162,7 @@ def som_olp(
         cost = sqdist(data.X, W, data.xx)
         if P is not None:
             cost += gamma * sqdist(P @ R, R, cc=rr)
-        P = softmax_rows(cost * (-1.0 / lam))
-        # At these memberships, sum_j p_ij cost_ij + lam p_ij log p_ij equals
-        # cost_min + lam log p_max for each point: N logarithms, not N K.
-        value = float(np.sum(cost.min(axis=1) + lam * np.log(P.max(axis=1))))
+        P, value = softmin(cost, lam)  # value: the objective at these memberships
         return weighted_mean(data.X, P, W), P, value
 
     def keep(P, data):

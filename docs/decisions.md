@@ -4,6 +4,29 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 The objective comes with the memberships (#69)
+
+`lloyd`'s `assign` returns the memberships with the objective at them, and
+a shared `softmin` gives EFCM and SOM-OLP their memberships with the sum of
+the rows' soft minima, which is that objective. FCM takes it from the
+minimum distance and the normalizing sum it already computes. *Why:* the
+history searched the N x K distances and memberships again for each row's
+minimum and maximum, about 20% of FCM's and EFCM's time in Python, while
+the memberships are the minimizer of the objective for the given
+prototypes and their computation already holds those quantities. Asked
+whether the history could be switched off when not needed, we measured
+switching it off at 1.26x for FCM and 1.29x for EFCM, and taking it from the
+memberships at 1.21x and 1.24x, with nothing to switch. `bench/run.py
+--compare main --threads 1`: Python FCM 1.32x, EFCM 1.22x, SOM-OLP 1.11x;
+JavaScript SOM-OLP 1.25x, EFCM 1.11x, FCM 1.07x. Iterates are bit for bit
+unchanged in both languages, and the history moves by at most 3.5e-16
+relative. *Rejected:* an option to skip the history (an argument on eight
+functions in two languages, meaningless for the four without an objective,
+for 5% more than this) and faster row reductions (the second search stays).
+Unlike the costs that #65 stopped passing from `assign` to `objective`
+through a shared variable for one method, this value is a return value,
+the same for every method with an objective.
+
 ## 2026-10-06 Fixtures hold exactly what the code produces (#68)
 
 The fixtures are regenerated, and a speed-only change that moves their last
