@@ -20,12 +20,22 @@ neither overflow nor all vanish; other inputs raise an error, so standardize
 data first. A prototype with no mass keeps its previous position. The loop
 stops when no prototype coordinate moves more than `tol` times the RMS radius
 of the centered data (`tol = 0` means an exact fixed point), or after
-`max_iter` iterations. The default initialization is greedy k-means++
-seeding (each seed is the best, by the resulting sum of squared distances,
-of $2 + \lfloor \ln K \rfloor$ points drawn in proportion to the squared
-distance to the nearest seed) followed by one assignment step, so a
-prototype starts on a data point only when its seed's cell holds that point
-alone.
+`max_iter` iterations; stopping says nothing about the quality of the
+partition (see "Degenerate solutions").
+
+The default initialization, shared by the clustering methods, is greedy
+k-means++ seeding (each seed is the best, by the resulting sum of squared
+distances, of $2 + \lfloor \ln K \rfloor$ points drawn in proportion to the
+squared distance to the nearest seed) followed by one k-means step: each seed
+moves to the mean of the points nearest to it. Seeds are data points, and a
+prototype exactly on a data point gives that point membership 1; with the
+column-scaled weights of `fcm` the point then holds almost all of the
+prototype's weight for large $m$, and the prototype stalls there (with
+$m = 50$ in the benchmark data the prototypes moved less than `tol` and the
+run stopped after one iteration). After the step a prototype sits on a data
+point only when its cell holds that point alone. A cell is empty only when
+seeds coincide, which needs fewer distinct points than $K$; such seeds stay
+where they are, and coincident prototypes stay together.
 
 | Method | `assign(D)` | weight $w(u)$ |
 |---|---|---|
@@ -43,8 +53,11 @@ Minimizes $J_m = \sum_{i,c} u_{ic}^m d_{ic}^2$ subject to $\sum_c u_{ic} = 1$
 (Bezdek, 1981). The membership update is evaluated as
 $u_{ic} \propto (d_{i,\min}^2 / d_{ic}^2)^{1/(m-1)}$, the softmax of
 $-\log d_{ic}^2 / (m-1)$ without logarithms: the ratios lie in $(0, 1]$, so it
-is stable for every $m > 1$, tends to k-means as $m \to 1$, and gives
-coincident points and centers the largest weight without special cases. Each
+is stable for every $m > 1$ and tends to k-means as $m \to 1$. It is the only
+membership rule that divides by a distance: squared distances are clipped
+at the smallest positive normal number, so a point on a prototype gets
+membership 1 there, shared equally among prototypes exactly on it, which is
+the limit of the formula (Bezdek's rule for $d_{ic} = 0$). Each
 column of $u^m$ is evaluated as $(u_{ic} / \max_j u_{jc})^m$, which leaves the
 weighted means unchanged and cannot underflow to all zeros for large $m$.
 `history` holds $J_m$ per iteration, computed as
@@ -58,6 +71,39 @@ Mukaidono, 1997), giving a softmax of $-d^2/\tau$ with linear center weights.
 `history` holds the objective, computed as
 $\sum_i (d_{i,\min}^2 + \tau \log u_{i,\max})$, which equals it at the
 memberships of the same distances (and likewise for `som_olp` with its costs).
+
+## Degenerate solutions (`fcm`, `efcm`)
+
+With every prototype at the mean $\bar x$ of the data, all distances from a
+point are equal, the memberships are $1/K$ and the update returns $\bar x$:
+the mean is a fixed point for every $m$ and $\tau$. Linearizing the update
+around it (Yu, Cheng & Huang, 2004) shows that differences $\delta$ between
+prototypes evolve as $\delta' = \frac{2m}{m-1} M \delta$ for `fcm`, with
+$M = \frac1N \sum_i y_i y_i^\top / \lVert y_i \rVert^2$ and
+$y_i = x_i - \bar x$, and as $\delta' = \frac{2}{\tau} S \delta$ for `efcm`,
+with $S$ the covariance of the data. The collapsed state therefore attracts
+the iteration when
+
+$$
+m \ge m^* = \frac{1}{1 - 2\lambda_{\max}(M)} \;\;(\lambda_{\max}(M) < \tfrac12),
+\qquad \tau \ge \tau^* = 2\lambda_{\max}(S),
+$$
+
+the second being the critical temperature of deterministic annealing (Rose,
+1998), which also applies to $\lambda$ in `som_olp`. The eigenvalues of $M$
+sum to 1, so in two dimensions $\lambda_{\max}(M) \ge \frac12$ and `fcm`
+never collapses, while for $D$ roughly isotropic features $m^* \approx
+D/(D-2)$: already 1.14 for $D = 16$, so the default $m = 2$ can collapse from
+about five dimensions on (Winkler, Klawonn & Kruse, 2011). Above $m^*$ the
+collapse is possible, not certain: the iteration converges to a local
+minimum or saddle point of the objective, and which one depends on the start.
+
+A lower objective is not a better partition. Past $m^*$ the collapsed state
+has the lowest $J_m$ yet labels no better than chance (ARI 0.03 to 0.19 in
+the benchmark data), and `converged` only says that the prototypes stopped
+moving. Keep $m$ below $m^*$ (often 1.2 to 1.5 in high dimensions) and
+$\tau$ below $\tau^*$, and check that the prototypes have not merged, for
+example by their spread around the mean, or compare with known labels.
 
 ## Rough c-means (`rcm`)
 

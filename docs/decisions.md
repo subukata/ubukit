@@ -4,6 +4,29 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 The k-means++ start kept; degenerate FCM documented
+
+The clustering methods keep starting from greedy k-means++ seeds moved to
+their cells' means, and `docs/algorithms.md` now explains why, where zero
+distances are handled, and when FCM and EFCM collapse to the mean. *Why:*
+measured on the benchmark data (16 dimensions, 10 to 20 seeds): with m up to
+5, the start (cell means, raw seeds, or seeds plus noise of 1e-6, 1% or 10%
+of the data radius) changed neither the objective nor the ARI; with
+m = 50, raw seeds and seeds plus small noise stalled after one iteration on
+their data points, while cell means converged. Only FCM divides by a
+distance; clipping it at the smallest normal number already gives Bezdek's
+rule for d = 0, so noise would add a scale parameter for nothing, and EFCM,
+RCM, RMCM and the maps never divide by a distance. The collapse to the mean
+follows the linearized thresholds m* = 1 / (1 - 2 lambda_max(M)) and
+tau* = 2 lambda_max(S) to within 3% (m* = 1.27 for the 100-blob data), and
+past them a lower objective went with an ARI of 0.03 to 0.19 against
+0.96 to 0.99 below; raw seeds scored high there only because they stalled
+on k-means++ seeds. *Rejected:* noise on the seeds (no gain, a scale
+parameter, and both languages would need the same Gaussian draws),
+relocating empty clusters (none in 80 k-means runs; they need fewer distinct
+points than K), and a helper returning m* (new API; the formula is
+documented).
+
 ## 2026-10-06 Faster default paths without new code paths
 
 Without Numba, in both languages: FCM memberships as powers of
