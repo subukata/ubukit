@@ -1,10 +1,12 @@
-# Runs only when started by hand (Actions > CI > Run workflow), one operating
-# system per run: Actions minutes are limited while the repository is private,
-# and macOS counts 10x, Windows 2x. Run it before a release, not for every
-# change; the checks in CONTRIBUTING.md run locally.
+# Runs on every pull request on Ubuntu, and by hand (Actions > CI > Run
+# workflow) on one operating system per run: Windows and macOS once each
+# before a release. Standard runners cost nothing in a public repository;
+# while the repository is private, where Actions minutes are paid (macOS 10x,
+# Windows 2x), pull requests skip every job.
 name: CI
 
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       os:
@@ -12,20 +14,21 @@ on:
         type: choice
         options: [ubuntu-latest, windows-latest, macos-latest]
         default: ubuntu-latest
-      minutes_checked:
-        description: I checked the remaining Actions minutes
-        type: boolean
-        required: true
-        default: false
 
 permissions:
   contents: read
 
+# A new push to a pull request cancels its earlier run; runs started by hand
+# never cancel each other.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   python:
-    if: inputs.minutes_checked
-    name: Python ${{ matrix.python }} (${{ inputs.os }})
-    runs-on: ${{ inputs.os }}
+    if: github.event_name == 'workflow_dispatch' || !github.event.repository.private
+    name: Python ${{ matrix.python }} (${{ inputs.os || 'ubuntu-latest' }})
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +51,9 @@ jobs:
       - run: pytest
 
   python-oldest:
-    if: inputs.minutes_checked && inputs.os == 'ubuntu-latest'
+    if: >-
+      (github.event_name == 'workflow_dispatch' || !github.event.repository.private)
+      && (inputs.os || 'ubuntu-latest') == 'ubuntu-latest'
     name: Python oldest supported dependencies
     runs-on: ubuntu-latest
     defaults:
@@ -66,7 +71,9 @@ jobs:
       - run: pytest
 
   packages:
-    if: inputs.minutes_checked && inputs.os == 'ubuntu-latest'
+    if: >-
+      (github.event_name == 'workflow_dispatch' || !github.event.repository.private)
+      && (inputs.os || 'ubuntu-latest') == 'ubuntu-latest'
     name: Build release artifacts and smoke-run the benchmark
     runs-on: ubuntu-latest
     steps:
@@ -94,9 +101,9 @@ jobs:
       - run: python bench/run.py --size smoke --check
 
   javascript:
-    if: inputs.minutes_checked
-    name: Node ${{ matrix.node }} (${{ inputs.os }})
-    runs-on: ${{ inputs.os }}
+    if: github.event_name == 'workflow_dispatch' || !github.event.repository.private
+    name: Node ${{ matrix.node }} (${{ inputs.os || 'ubuntu-latest' }})
+    runs-on: ${{ inputs.os || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       matrix:

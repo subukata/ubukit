@@ -1,7 +1,7 @@
 # Each ecosystem gets one pull request a month with all its version updates,
 # and only for releases at least a week old: most compromised releases are
-# withdrawn by then. CI does not run on these pull requests; check them as
-# CONTRIBUTING.md says. Python requirements are lower bounds set by policy
+# withdrawn by then. CI runs on these pull requests like any other; check
+# them as CONTRIBUTING.md says. Python requirements are lower bounds set by policy
 # (SPEC 0), not pins, so pip is deliberately not listed.
 version: 2
 updates:

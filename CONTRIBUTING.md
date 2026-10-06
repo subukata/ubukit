@@ -20,9 +20,9 @@ Tests mirror the modules in both languages (`python/tests/test_<module>.py`,
 (checked by `npm run check`, in strict mode against the declarations that
 npm users get) are not run: they call the API as typed code does, so a
 public function that loses its types fails.
-Run them before every pull request: CI does not run on pushes or pull
-requests (see "CI and dependencies"). ruff and mypy are each pinned to one
-minor series; bump them in pull requests of their own.
+Run them before every pull request; CI repeats most of them on Ubuntu (see
+"CI and dependencies"). ruff and mypy are each pinned to one minor series;
+bump them in pull requests of their own.
 
 ## Kinds of change
 
@@ -92,19 +92,22 @@ closes the pull requests that target it.
 
 ## CI and dependencies
 
-- CI (`.github/workflows/ci.yml`) runs only when the maintainer starts it
-  (Actions > CI > Run workflow), on one operating system per run, once per
-  system before a release; the local checks cover each change. Actions
-  minutes are limited while the repository is private (macOS counts 10x and
-  Windows 2x).
+- CI (`.github/workflows/ci.yml`) runs on every pull request on Ubuntu:
+  Python 3.12 and 3.14, the oldest supported NumPy and SciPy, Node 22 and 24,
+  the package builds and the benchmark's parity check, in about two minutes.
+  A new push to the pull request cancels the earlier run. Windows and macOS
+  run when the maintainer starts CI by hand (Actions > CI > Run workflow),
+  once each before a release. Standard runners cost nothing in a public
+  repository; while the repository is private, where minutes are paid
+  (macOS counts 10x and Windows 2x), pull requests skip every job.
 - A new action is pinned to a full commit SHA with the version in a comment,
   gets only the permissions it needs, and checks out with
   `persist-credentials: false`.
 - Dependabot proposes the month's updates to the actions and to the npm
   development dependencies as one pull request per ecosystem, and only
-  versions at least a week old. CI does not run on these pull requests:
-  check out the branch and run the checks before merging, and read the
-  release notes of an updated action, which runs only in CI and releases.
+  versions at least a week old. CI runs on these pull requests like any
+  other; before merging, also read the release notes of an updated action,
+  which runs only in CI and releases.
   The Python requirements are deliberate lower bounds and are not updated.
 
 ## Releasing
