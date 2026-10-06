@@ -18,5 +18,6 @@ test('matrix input accepts {data, rows, cols} and validates', () => {
   assert.throws(() => ub.fcm(X, 3, { m: 1 }), RangeError);
   assert.throws(() => ub.rmcm(X, 3, 100, { maxEdges: 1000 }), /maxEdges/);
   assert.throws(() => ub.kmeans(X, 3, { init: 'random' }), RangeError);
+  assert.throws(() => ub.som(X, [3, 3], { init: 'random' }), /init/);
   assert.throws(() => ub.somOlp(X, [3, 3], { lam: 0, gamma: 1 }), RangeError);
 });

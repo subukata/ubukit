@@ -17,7 +17,7 @@
   "publishConfig": { "access": "public", "provenance": true },
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "check": "tsc -p .",
+    "check": "tsc -p . && npm run build:types && tsc -p tsconfig.typing.json",
     "build:types": "tsc -p . --noEmit false --declaration --emitDeclarationOnly --outDir types",
     "prepack": "npm run build:types"
   },

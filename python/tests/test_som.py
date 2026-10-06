@@ -144,6 +144,7 @@ def test_tiny_values_take_the_ordinary_path():
         lambda X: ub.som_olp(X, (3, 3), lam=1, gamma=-1),
         lambda X: ub.som_olp(X, (3, 3), lam=1, gamma=1, pca_scale=0.0),
         lambda X: ub.batch_som(X, (3, 3), init=np.zeros((4, 2))),
+        lambda X: ub.som(X, (3, 3), init="random"),
     ],
 )
 def test_invalid_arguments(blobs, call):
