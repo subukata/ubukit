@@ -148,4 +148,9 @@ test('runAsync gives the event loop its turn between iterations', async () => {
   const controller = new AbortController();
   setTimeout(() => controller.abort(), 0);
   await assert.rejects(ub.runAsync(ub.steps.som(X, [3, 3], { epochs: 5, seed: 0 }), { budgetMs: 0, signal: controller.signal }), { name: 'AbortError' });
+  // A budget that is not a finite number >= 0 would never let the event loop
+  // in (NaN, Infinity), so it is refused.
+  for (const budgetMs of [NaN, Infinity, -1, '5']) {
+    await assert.rejects(ub.runAsync(ub.steps.som(X, [3, 3], { epochs: 1 }), { budgetMs }), /budgetMs/, String(budgetMs));
+  }
 });
