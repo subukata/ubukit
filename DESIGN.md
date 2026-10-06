@@ -83,7 +83,7 @@ Each principle states a rule and the failure it prevents.
    tests and builds run without credentials and in separate jobs, so the
    published files are made with the build tools alone, and the publishing
    jobs only upload them through trusted publishing. Only the maintainer
-   pushes release tags.
+   pushes release tags, only on commits of `main`, and never moves one.
    *Why:* a package is only as trustworthy as the path from source to
    registry: no third-party code may run where a publishing token can be
    minted, and only the build tools where the published files are made.

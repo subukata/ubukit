@@ -4,6 +4,20 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Releases only from main, with fixed tags (#75)
+
+`release.yml` stops before building when the tag's commit is not on `main`;
+a tag ruleset lets only the maintainer create `v*` tags and nobody move or
+delete them; and the `pypi` and `npm` environments no longer let
+administrators bypass the review. *Why:* an external security review found
+that any commit with a `v*` tag could be published after one approval, that
+a tag could be re-pointed, and that administrators could skip the review;
+a published version can never be replaced. The check on `main` and the tag
+ruleset cover different failures (a wrong commit and a moved tag), so both
+are kept. *Rejected:* building from a branch instead of tags (the
+registries' trusted publishing and provenance are set up for tags) and a
+release environment limited to `main` (a tag run has no branch to match).
+
 ## 2026-10-06 One required check, "All checks" (#74)
 
 CI ends with a job, "All checks", that fails when any other job failed or

@@ -125,8 +125,12 @@ Once, before the first release:
    standard runners is then free. Turn on private vulnerability reporting in
    the security settings, which `SECURITY.md` points to.
 2. Create the `pypi` and `npm` environments, each limited to tags matching
-   `v*` and with the maintainer as required reviewer, so every upload waits
-   for a last confirmation.
+   `v*`, with the maintainer as required reviewer and without the
+   administrators' bypass, so every upload waits for a last confirmation.
+   Add a tag ruleset for `v*` that restricts creations, updates and
+   deletions, with only the repository admin role allowed to bypass it: a
+   release tag is made by the maintainer alone and never moved or removed.
+   `release.yml` also refuses a tag whose commit is not on `main`.
 3. On PyPI, add a pending trusted publisher for `ubukit`: owner `subukata`,
    repository `ubukit`, workflow `release.yml`, environment `pypi`.
 4. npm trusts only an existing package, so the first upload uses a token:
@@ -146,9 +150,10 @@ Every release:
 3. After merging it, tag the merge and push the tag
    (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` tests both
    packages, builds them in a separate job with only the build tools after
-   checking that the tag matches both versions, and, once the environments
-   are approved, publishes them to PyPI and then to npm. If the npm upload
-   fails, fix the cause and re-run that job; PyPI already has the version.
+   checking that the tag is on `main` and matches both versions, and, once
+   the environments are approved, publishes them to PyPI and then to npm. If
+   the npm upload fails, fix the cause and re-run that job; PyPI already has
+   the version.
 4. Install the published versions in a clean environment
    (`pip install ubukit==0.1.0`, `npm install ubukit@0.1.0`) and fit one
    example.
