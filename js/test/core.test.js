@@ -21,3 +21,13 @@ test('matrix input accepts {data, rows, cols} and validates', () => {
   assert.throws(() => ub.som(X, [3, 3], { init: 'random' }), /init/);
   assert.throws(() => ub.somOlp(X, [3, 3], { lam: 0, gamma: 1 }), RangeError);
 });
+
+test('rows are checked before the matrix is allocated', () => {
+  // An object claiming a huge length is refused as a row (TypeError) before
+  // any copy is allocated; allocating first raised RangeError from the typed
+  // array constructor, after asking for 2^40 elements.
+  assert.throws(() => ub.matrix([{ length: 2 ** 40 }]), TypeError);
+  assert.throws(() => ub.matrix([[1, 2], 'ab']), TypeError);
+  assert.throws(() => ub.matrix([null]), TypeError);
+  assert.deepEqual(ub.matrix([Float64Array.of(1, 2), [3, 4]]).data, Float64Array.of(1, 2, 3, 4));
+});

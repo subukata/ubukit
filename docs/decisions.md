@@ -4,6 +4,18 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Input checked before it is copied; no size limit (#76)
+
+JavaScript's `matrix` checks that every row is an array of equal length
+before it allocates the copy, and `runAsync` refuses a `budgetMs` that is not
+a finite number >= 0. *Why:* an external security review found that
+`[{"length": 1e9}]`, a few bytes of JSON, made `matrix` ask for an 8 GB
+array before any check, and that a `NaN` or infinite budget never let the
+event loop run, so an abort never took effect. Checking first ties memory
+to the data actually given. *Rejected:* a size limit in the library (any
+fixed limit would block research use; services that take untrusted input
+set their own, as `SECURITY.md` says).
+
 ## 2026-10-06 Releases only from main, with fixed tags (#75)
 
 `release.yml` stops before building when the tag's commit is not on `main`;

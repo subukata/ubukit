@@ -51,13 +51,17 @@ export function matrix(values, name = 'X') {
   /** @type {Matrix} */
   let out;
   if (Array.isArray(values)) {
+    // Every row is checked before the copy is allocated, so its size never
+    // exceeds that of the rows given (an object claiming a length of 1e9 is
+    // not a row).
     const rows = values.length;
-    const cols = rows ? values[0].length : 0;
-    out = { data: new Float64Array(rows * cols), rows, cols };
-    values.forEach((row, i) => {
+    const cols = rows ? values[0]?.length : 0;
+    for (const row of values) {
+      if (!isRow(row)) throw new TypeError(`${name} rows must be arrays of numbers`);
       if (row.length !== cols) throw new RangeError(`${name} rows must have equal length`);
-      out.data.set(row, i * cols);
-    });
+    }
+    out = { data: new Float64Array(rows * cols), rows, cols };
+    values.forEach((row, i) => out.data.set(row, i * cols));
   } else if (values && ArrayBuffer.isView(values.data)) {
     out = { data: Float64Array.from(values.data), rows: values.rows, cols: values.cols };
   } else {
@@ -83,6 +87,11 @@ export function matrix(values, name = 'X') {
   for (let c = 0; c < cols; c++) span = Math.max(span, hi[c] - lo[c]);
   if (span > 0 && span < MIN_SPAN) throw new RangeError(`${name} is too small in scale for float64 distances; standardize it`);
   return out;
+}
+
+/** What a row of a matrix may be: an array or a typed array. @param {unknown} row */
+function isRow(row) {
+  return Array.isArray(row) || (ArrayBuffer.isView(row) && !(row instanceof DataView));
 }
 
 /**
@@ -467,13 +476,16 @@ export function run(steps) {
 
 /**
  * Run a step generator cooperatively, yielding to the event loop about every
- * budgetMs and stopping when signal aborts.
+ * budgetMs (a finite number >= 0; 0 yields after every iteration) and
+ * stopping when signal aborts. The signal is read between iterations, so an
+ * abort takes effect when the current iteration ends.
  * @template T
  * @param {Generator<Progress, T>} steps
  * @param {{ signal?: AbortSignal, onProgress?: (p: Progress) => void, budgetMs?: number }} [options]
  * @returns {Promise<T>}
  */
 export async function runAsync(steps, { signal, onProgress, budgetMs = 12 } = {}) {
+  checkNumber(budgetMs, 'budgetMs', 0);
   let deadline = performance.now() + budgetMs;
   try {
     for (;;) {
