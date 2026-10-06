@@ -4,6 +4,24 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 npm releases are staged and approved on npmjs.com (#83)
+
+The release job runs `npm stage publish`; the version is published only
+when the maintainer approves it on npmjs.com with npm's two-factor
+authentication, and npm's trusted publisher allows staging only. The `npm`
+environment no longer has a required reviewer, so a release takes two
+approvals: `pypi` on GitHub and the staged version on npm. *Why:* with
+direct publishing, a compromised GitHub account or workflow could publish
+to npm through the trusted publisher; staging puts a second key, the npm
+account, in front of every npm version, lets the maintainer inspect the
+tarball first, and is what npm recommends. The release job's Node 24.21
+bundles npm 11.19, and staging needs 11.15; a dry run of `npm stage
+publish` on the 0.1.0 tarball accepted the same arguments as `npm publish`.
+*Rejected:* keeping the GitHub review of `npm` as well (three approvals, the
+weakest of them redundant) and installing npm in the release job (registry
+code where an OIDC token can be minted, and not needed). PyPI has no staging,
+so its review on GitHub stays.
+
 ## 2026-10-06 0.1.0 released; npm through its trusted publisher only (#82)
 
 UbuKit 0.1.0 is on PyPI and npm, both built by `release.yml` from the
@@ -15,15 +33,10 @@ publisher like PyPI, the token is revoked, and `release.yml` reads no secret.
 *Why:* a stored publishing token is the credential an attacker would want;
 trusted publishing mints one per run, for this workflow and environment
 only. *Rejected:* keeping the token for convenience (it would outlive its
-one use). *Deferred:* npm recommends a stage-only trusted publisher, where
-CI runs `npm stage publish` and a maintainer approves each version on
-npmjs.com with 2FA, a second approval that a compromised GitHub account
-cannot give. It needs npm 11.15.0, newer than the npm of Node 24.15
-(11.14.1) that the release job uses, and installing a newer npm in that job
-would run registry code where an OIDC token can be minted (principle 8). So
-the trusted publisher allows `npm publish` for now; once the Node 24 used in
-CI ships npm 11.15 or newer, the job switches to `npm stage publish` and the
-trusted publisher is recreated stage-only.
+one use). *Deferred, wrongly:* npm's stage-only trusted publisher was put
+off because the npm of Node 24.15 (11.14.1) has no `npm stage`; that was
+the maintainer's machine, while the release job already ran Node 24.21 with
+npm 11.19, so #83 adopted it.
 
 ## 2026-10-06 No JavaScript allocation sized by a claimed length (#80)
 

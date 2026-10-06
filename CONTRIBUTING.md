@@ -125,8 +125,10 @@ Once, before the first release:
    standard runners is then free. Turn on private vulnerability reporting in
    the security settings, which `SECURITY.md` points to.
 2. Create the `pypi` and `npm` environments, each limited to tags matching
-   `v*`, with the maintainer as required reviewer and without the
-   administrators' bypass, so every upload waits for a last confirmation.
+   `v*` and without the administrators' bypass. `pypi` has the maintainer
+   as required reviewer, so its upload waits for a last confirmation; `npm`
+   needs none, since npm itself holds the staged version until the
+   maintainer approves it.
    Add two tag rulesets for `v*`: "release tags: create" restricts
    creations, with only the repository admin role allowed to bypass it, and
    "release tags: fixed" restricts updates and deletions and blocks force
@@ -138,7 +140,8 @@ Once, before the first release:
 3. On PyPI, add a pending trusted publisher for `ubukit`: owner `subukata`,
    repository `ubukit`, workflow `release.yml`, environment `pypi`.
 4. On npmjs.com, add the trusted publisher for `ubukit` (same fields,
-   environment `npm`) and set its publishing access to disallow tokens. npm
+   environment `npm`) for staged publishing only, without "Allow npm
+   publish", and set the package's publishing access to disallow tokens. npm
    trusts only an existing package, so 0.1.0 was uploaded once with a
    short-lived token, revoked right after.
 
@@ -152,10 +155,13 @@ Every release:
 3. After merging it, tag the merge and push the tag
    (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` tests both
    packages, builds them in a separate job with only the build tools after
-   checking that the tag is on `main` and matches both versions, and, once
-   the environments are approved, publishes them to PyPI and then to npm. If
-   the npm upload fails, fix the cause and re-run that job; PyPI already has
-   the version.
+   checking that the tag is on `main` and matches both versions, publishes
+   them to PyPI once `pypi` is approved, and then stages them on npm. Approve
+   the staged version on npmjs.com (the package's Staged Packages tab) or
+   with `npm stage approve <id>` (`npm stage list` shows the id), with npm's
+   two-factor authentication; until then npm does not have the version. If
+   staging fails, fix the cause and re-run that job; PyPI already has the
+   version.
 4. Install the published versions in a clean environment
    (`pip install ubukit==0.1.0`, `npm install ubukit@0.1.0`) and fit one
    example.

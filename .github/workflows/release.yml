@@ -4,7 +4,10 @@
 # published files. Neither job has credentials, and the publish jobs only
 # upload the built files with trusted publishing (OIDC), so no dependency code
 # runs where a publishing token can be minted. npm waits for PyPI, so a
-# failed upload never leaves the new version on npm alone.
+# failed upload never leaves the new version on npm alone. npm only stages
+# the version: it is published when the maintainer approves it on npmjs.com
+# with npm's two-factor authentication, which a compromised GitHub account
+# cannot give.
 # The one-time setup is listed under "Releasing" in CONTRIBUTING.md; the
 # repository must be public, since npm does not generate provenance in
 # private repositories. Both registries trust this workflow and its
@@ -112,5 +115,7 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-      # The ./ prefix keeps npm from reading the path as a GitHub "owner/repo".
-      - run: npm publish ./dist/npm/*.tgz --provenance --access public --ignore-scripts
+      # Staged, not published (npm 11.15 or newer, which Node 24 has bundled
+      # since 24.18). The ./ prefix keeps npm from reading the path as a
+      # GitHub "owner/repo".
+      - run: npm stage publish ./dist/npm/*.tgz --provenance --access public --ignore-scripts
