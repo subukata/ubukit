@@ -7,8 +7,9 @@ step ``lloyd``,
     D = ||x_i - v_c||^2  ->  U = assign(D)  ->  V = update(U),
 
 and differ only in ``assign`` (and, for SOMs, ``update``); a method whose
-iteration has another shape (the online SOM) supplies its own step. Data are
-centered once before fitting, which keeps the Gram-identity distances accurate.
+iteration has another shape (the online SOM) supplies its own step. The data
+are an input of every step (``Data``: centered rows, which keep the
+Gram-identity distances accurate), so a run can go on with new data.
 """
 
 from __future__ import annotations
@@ -204,35 +205,68 @@ def kmeans_plus_plus(X: np.ndarray, k: int, rng: np.random.Generator) -> np.ndar
     return X[chosen].copy()
 
 
-def prepare(
-    X: ArrayLike, k: int, init: Init, seed: int | None
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Validate and center X; return (centered X, mean, initial centers)."""
+@dataclass(frozen=True, slots=True, eq=False)
+class Data:
+    """The input of an iteration: the rows centered on their mean, with what steps reuse.
+
+    Attributes:
+        X: (N, D) centered rows (distances are accurate on centered data).
+        mean: (D,) the mean subtracted from them.
+        xx: (N,) squared norms of the rows of X.
+        radius: RMS norm of the rows of X, the scale of ``tol``.
+    """
+
+    X: np.ndarray
+    mean: np.ndarray
+    xx: np.ndarray
+    radius: float
+
+
+def as_data(X: ArrayLike, n_features: int | None = None) -> Data:
+    """Validate and center X as the input of an iteration."""
     X = as_matrix(X)
-    k = check_int(k, "k", 1, len(X))
+    if n_features is not None and X.shape[1] != n_features:
+        raise ValueError(f"X must have {n_features} features, like the data the run started on")
     mean = X.mean(axis=0)
-    Xc = X - mean
+    X = X - mean
+    xx = sq_norms(X)
+    return Data(X, mean, xx, float(np.sqrt(xx.mean())))
+
+
+def start(
+    X: ArrayLike,
+    k: int,
+    init: Init,
+    seed: int | None,
+    prepare: Callable[..., Data] = as_data,
+) -> tuple[Data, np.ndarray]:
+    """The data and the initial centers (centered like the data) of a clustering."""
+    data = prepare(X)
+    k = check_int(k, "k", 1, len(data.X))
     if isinstance(init, str):
         if init != "k-means++":
             raise ValueError("init must be 'k-means++' or a (k, n_features) array")
-        V = kmeans_plus_plus(Xc, k, np.random.default_rng(seed))
-        # Start from the seeds' cell means, so a center sits exactly on a data
-        # point (which then gets full weight in fuzzy updates) only when its
-        # cell holds that point alone.
-        V = label_mean(Xc, nearest(Xc, V), V)
-    else:
-        V = as_matrix(init, "init")
-        if V.shape != (k, X.shape[1]):
-            raise ValueError(f"init must have shape ({k}, {X.shape[1]})")
-        V = V - mean
-    return Xc, mean, V
+        V = kmeans_plus_plus(data.X, k, np.random.default_rng(seed))
+        # Start from the seeds' cell means: a center on a data point gives that
+        # point full weight, and for large m stalls there (docs/algorithms.md).
+        return data, label_mean(data.X, nearest(data.X, V, data.xx), V)
+    V = as_matrix(init, "init")
+    if V.shape != (k, data.X.shape[1]):
+        raise ValueError(f"init must have shape ({k}, {data.X.shape[1]})")
+    return data, V - data.mean
 
 
-# A step maps (prototypes, state, t) to (new prototypes, new state, objective
-# value or None); the state starts as None and is whatever the method carries.
-Step = Callable[[np.ndarray, Any, int], tuple[np.ndarray, Any, float | None]]
-Assign = Callable[[np.ndarray, np.ndarray | None, int], np.ndarray]
-Update = Callable[[np.ndarray, np.ndarray, int], np.ndarray]
+def check_max_iter(value: Any) -> int | None:
+    """An iteration limit >= 1, or None for none (a run fed new data until it converges)."""
+    return None if value is None else check_int(value, "max_iter", 1)
+
+
+# A step maps (data, prototypes, state, t) to (new prototypes, new state,
+# objective value or None); the state starts as None and is whatever the
+# method carries. Steps read the data from their argument, never keep it.
+Step = Callable[[Data, np.ndarray, Any, int], tuple[np.ndarray, Any, float | None]]
+Assign = Callable[[Data, np.ndarray, Any, int], np.ndarray]
+Update = Callable[[Data, np.ndarray, np.ndarray, int], np.ndarray]
 Objective = Callable[[np.ndarray, np.ndarray], float]
 
 
@@ -243,7 +277,8 @@ class Progress:
     ``result()`` returns the Result the run would return had it stopped at
     this iteration; it costs nothing unless called, stays valid as the run
     goes on, and shares no arrays with the run, so changing it leaves the
-    iterations that follow unchanged.
+    iterations that follow unchanged. Sending new data into the generator
+    (``run.send(X)``) runs the following iterations on them.
     """
 
     iteration: int
@@ -253,6 +288,7 @@ class Progress:
 class Loop(NamedTuple):
     """What the loop has reached; a method's ``view`` turns it into its Result."""
 
+    data: Data
     V: np.ndarray
     state: Any
     n_iter: int
@@ -287,37 +323,54 @@ def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
 
 
 def iterate(
-    X: np.ndarray,
+    data: Data,
     V: np.ndarray,
     step: Step,
     *,
-    max_iter: int,
+    max_iter: int | None,
     tol: float | None,
     view: Callable[[Loop], Result],
+    prepare: Callable[..., Data] = as_data,
+    keep: Callable[[Any, Data], Any] | None = None,
 ) -> Steps:
     """The one loop: repeat ``step`` until the prototypes stop moving, or max_iter.
 
-    The loop stops when no prototype coordinate moves more than ``tol`` times
-    the RMS radius of X; ``tol=0`` therefore means an exact fixed point and
-    ``tol=None`` runs a fixed schedule. It yields a Progress after every step
+    The data are an input of every iteration: rows sent into the generator
+    are prepared by ``prepare`` and used from the next iteration on. The
+    prototypes carry over (shifted to the new data's centering), and so does
+    the state that ``keep(state, data)`` returns; without ``keep`` the state
+    starts again, as caches of the old data must. The schedule (``t``) goes on.
+
+    The run ends when no prototype coordinate moves more than ``tol`` times
+    the RMS radius of the data and no new data arrive (``tol=0``: an exact
+    fixed point; ``tol=None``: a fixed schedule), or after ``max_iter``
+    iterations (``None``: no limit). It yields a Progress after every step
     and returns ``view`` of the final Loop, the method's Result; a Progress
     builds its Result with the same ``view``, which is why steps never modify
     a state they have returned and views copy the state they put in a Result.
     """
-    limit = None if tol is None else tol * float(np.sqrt(sq_norms(X).mean()))
     state = None
     history: list[float] = []
-    for t in range(max_iter):
+    t = 0
+    while True:
         V_prev = V
-        V, state, value = step(V, state, t)
+        V, state, value = step(data, V, state, t)
+        t += 1
         if value is not None:
             history.append(value)
+        limit = None if tol is None else tol * data.radius
         converged = limit is not None and float(np.max(np.abs(V - V_prev))) <= limit
-        result = _result(view, Loop(V, state, t + 1, converged, np.empty(0)), history)
-        yield Progress(t + 1, result)
-        if converged or t + 1 == max_iter:
+        result = _result(view, Loop(data, V, state, t, converged, np.empty(0)), history)
+        rows = yield Progress(t, result)
+        if t == max_iter:
             return result()
-    raise ValueError("max_iter must be at least 1")
+        if rows is not None:
+            new = prepare(rows, V.shape[1])
+            V = V + (data.mean - new.mean)
+            state = keep(state, new) if keep else None
+            data = new
+        elif converged:
+            return result()
 
 
 def _result(view, loop: Loop, history: list[float]) -> Callable[[], Result]:
@@ -326,19 +379,17 @@ def _result(view, loop: Loop, history: list[float]) -> Callable[[], Result]:
     return lambda: view(loop._replace(history=np.asarray(history[:n], dtype=float)))
 
 
-def lloyd(
-    X: np.ndarray, assign: Assign, update: Update, objective: Objective | None = None
-) -> Step:
-    """The standard step, D = ||x - v||^2 -> U = assign(D, U_prev, t) -> V = update(U, V, t).
+def lloyd(assign: Assign, update: Update, objective: Objective | None = None) -> Step:
+    """The standard step: D = ||x - v||^2, U = assign(data, D, U_prev, t), V = update(...).
 
-    ``assign`` returns integer labels or float memberships, which are the
-    step's state; the optional ``objective(D, U)`` gives one history value.
+    ``update(data, U, V, t)`` gives the new prototypes. ``assign`` returns
+    integer labels or float memberships, which are the step's state; the
+    optional ``objective(D, U)`` gives one history value.
     """
-    xx = sq_norms(X)
 
-    def step(V, U, t):
-        D = sqdist(X, V, xx)
-        U = assign(D, U, t)
-        return update(U, V, t), U, None if objective is None else objective(D, U)
+    def step(data, V, U, t):
+        D = sqdist(data.X, V, data.xx)
+        U = assign(data, D, U, t)
+        return update(data, U, V, t), U, None if objective is None else objective(D, U)
 
     return step

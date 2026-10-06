@@ -73,6 +73,90 @@ def test_scheduled_maps_are_complete_at_their_last_epoch(blobs, name, options):
     assert [r.converged for r in results] == [False] * (len(results) - 1) + [True]
 
 
+MAPS = {"som": (((3, 3),), {"epochs": 6, "seed": 2}), "batch_som": (((3, 3),), {"epochs": 6})}
+
+
+def assert_close(a, b, fields=("centers", "labels", "membership", "embedding")):
+    for field in fields:
+        x, y = getattr(a, field), getattr(b, field)
+        if x is None or y is None:
+            assert x is y, field
+        else:
+            np.testing.assert_allclose(x, y, rtol=1e-10, atol=1e-10, err_msg=field)
+
+
+@pytest.mark.parametrize("name", [*CONVERGING, *MAPS])
+def test_sending_the_same_data_changes_nothing(blobs, name):
+    # The data are an input of every iteration; sending them again carries the
+    # prototypes and kept state over, so the iterates are the same.
+    X, _ = blobs
+    args, options = {**CONVERGING, **MAPS}[name]
+    plain = list(getattr(ub.steps, name)(X, *args, **options))
+    run = getattr(ub.steps, name)(X, *args, **options)
+    fed = [next(run)] + [run.send(X) for _ in plain[1:]]
+    for a, b in zip(plain, fed, strict=True):
+        assert_close(a.result(), b.result())
+
+
+# Maps with constant schedules: their next epoch depends only on the prototypes.
+STEADY = {
+    "som": (
+        ((3, 3),),
+        {"sigma": 1.0, "sigma_end": 1.0, "lr": 0.1, "lr_end": 0.1, "shuffle": False},
+    ),
+    "batch_som": (((3, 3),), {"sigma": 1.0, "sigma_end": 1.0}),
+}
+
+
+@pytest.mark.parametrize("name", ["kmeans", "fcm", "efcm", "rcm", "rmcm", *STEADY])
+def test_new_data_continue_from_the_current_prototypes(blobs, name):
+    # These methods carry only their prototypes (other state is recomputed),
+    # so the iteration after new data, here moved and shifted, equals one
+    # iteration on them started from where the run had got to.
+    X, _ = blobs
+    moved = X + np.random.default_rng(5).normal(0, 0.3, X.shape) + [2.0, -1.0]
+    args, options = {**CONVERGING, **STEADY}[name]
+    run = getattr(ub.steps, name)(X, *args, **options)
+    prototypes = next(run).result().centers
+    after = run.send(moved).result()
+    one = {"epochs": 1} if name in STEADY else {"max_iter": 1}
+    once = getattr(ub, name)(moved, *args, **{**options, "init": prototypes, **one})
+    assert_close(after, once)
+
+
+def test_som_olp_keeps_memberships_for_the_same_points(blobs):
+    # The latent positions come from the previous memberships of the same
+    # points; with other points there are none, as in the first iteration.
+    X, _ = blobs
+    args, options = CONVERGING["som_olp"]
+    run = ub.steps.som_olp(X, *args, **options)
+    first = next(run).result()
+    kept = run.send(X).result()
+    once = ub.som_olp(X, *args, **options, init=first.centers, max_iter=1)
+    assert not np.allclose(kept.centers, once.centers)  # the latent term was used
+    fewer = X[:-30]
+    restarted = run.send(fewer).result()
+    once = ub.som_olp(fewer, *args, **options, init=kept.centers, max_iter=1)
+    assert_close(restarted, once)
+
+
+def test_new_data_are_checked(blobs):
+    X, _ = blobs
+    run = ub.steps.fcm(X, 3, seed=0)
+    next(run)
+    with pytest.raises(ValueError, match="features"):
+        run.send(np.ones((10, 3)))
+    run = ub.steps.fcm(X, 3, seed=0)
+    next(run)
+    with pytest.raises(ValueError, match="finite"):
+        run.send(np.full_like(X, np.nan))
+
+
+def test_no_iteration_limit_runs_to_convergence(blobs):
+    X, _ = blobs
+    assert_close(ub.fcm(X, 3, seed=0, max_iter=None), ub.fcm(X, 3, seed=0, max_iter=10_000))
+
+
 def test_steps_lists_every_fitting_function():
     fitting = ["batch_som", "efcm", "fcm", "kmeans", "rcm", "rmcm", "som", "som_olp"]
     assert sorted(vars(ub.steps)) == fitting

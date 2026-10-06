@@ -26,7 +26,8 @@
 /**
  * Yielded after every iteration (epoch for SOMs); result() is the Result the
  * run would return had it stopped there. It shares no arrays with the run,
- * so changing it leaves the iterations that follow unchanged.
+ * so changing it leaves the iterations that follow unchanged. Passing rows to
+ * the generator's next(X) runs the following iterations on them.
  * @typedef {{ iteration: number, result: () => Result }} Progress
  */
 
@@ -316,85 +317,124 @@ export function kmeansPlusPlus(X, k, rand) {
 }
 
 /**
- * Validate and center X; return the centered X, its mean and initial centers.
- * @param {MatrixLike} X @param {number} k @param {'k-means++' | MatrixLike} [init] @param {number} [seed]
+ * The input of an iteration: the rows centered on their mean, and the RMS
+ * norm of the centered rows, the scale of tol.
+ * @typedef {{ X: Matrix, mean: Float64Array, radius: number }} Data
  */
-export function prepare(X, k, init = 'k-means++', seed) {
-  X = matrix(X);
-  checkInt(k, 'k', 1, X.rows);
-  const { X: Xc, mean } = center(X);
-  let V;
-  if (init === 'k-means++') {
-    V = kmeansPlusPlus(Xc, k, random(seed));
-    // Start from the seeds' cell means, so a center sits exactly on a data
-    // point (which then gets full weight in fuzzy updates) only when its
-    // cell holds that point alone.
-    V = labelMean(Xc, nearest(Xc, V), V);
-  } else if (typeof init === 'string') {
-    throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");
-  } else {
-    V = matrix(init, 'init');
-    if (V.rows !== k || V.cols !== X.cols) throw new RangeError(`init must have shape (${k}, ${X.cols})`);
-    V = shift(V, mean.map(v => -v));
+
+/**
+ * Validate and center X as the input of an iteration.
+ * @param {MatrixLike} X @param {number} [nFeatures] the feature count of the data a run started on
+ * @returns {Data}
+ */
+export function asData(X, nFeatures) {
+  const M = matrix(X);
+  if (nFeatures !== undefined && M.cols !== nFeatures) {
+    throw new RangeError(`X must have ${nFeatures} features, like the data the run started on`);
   }
-  return { X: Xc, mean, V };
+  const { X: Xc, mean } = center(M);
+  let s = 0;
+  for (const v of Xc.data) s += v * v;
+  return { X: Xc, mean, radius: Math.sqrt(s / Xc.rows) };
 }
 
 /**
- * A step maps (prototypes, state, t) to { V, state, value }: new prototypes,
- * the state the method carries (null at first) and an objective value or null.
- * @typedef {(V: Matrix, state: any, t: number) => { V: Matrix, state: any, value: number | null }} Step
+ * The data and the initial centers (centered like the data) of a clustering.
+ * @param {MatrixLike} X @param {number} k @param {'k-means++' | MatrixLike} [init] @param {number} [seed]
+ * @param {(X: MatrixLike, nFeatures?: number) => Data} [prepare]
+ * @returns {{ data: Data, V: Matrix }}
+ */
+export function start(X, k, init = 'k-means++', seed, prepare = asData) {
+  const data = prepare(X), Xc = data.X;
+  checkInt(k, 'k', 1, Xc.rows);
+  if (init === 'k-means++') {
+    const V = kmeansPlusPlus(Xc, k, random(seed));
+    // Start from the seeds' cell means: a center on a data point gives that
+    // point full weight, and for large m stalls there (docs/algorithms.md).
+    return { data, V: labelMean(Xc, nearest(Xc, V), V) };
+  }
+  if (typeof init === 'string') throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");
+  const V = matrix(init, 'init');
+  if (V.rows !== k || V.cols !== Xc.cols) throw new RangeError(`init must have shape (${k}, ${Xc.cols})`);
+  return { data, V: shift(V, data.mean.map(v => -v)) };
+}
+
+/** An iteration limit >= 1, or Infinity for none (a run fed new data until it converges). */
+export function checkMaxIter(value) {
+  return value === Infinity ? value : checkInt(value, 'maxIter', 1);
+}
+
+/**
+ * A step maps (data, prototypes, state, t) to { V, state, value }: new
+ * prototypes, the state the method carries (null at first) and an objective
+ * value or null. Steps read the data from their argument, never keep it.
+ * @typedef {(data: Data, V: Matrix, state: any, t: number) => { V: Matrix, state: any, value: number | null }} Step
  */
 
 /**
- * What the loop has reached: prototypes, the step's state, iterations,
- * whether the stopping rule held at the last one, and the objective history.
- * @typedef {{ V: Matrix, state: any, nIter: number, converged: boolean, history: Float64Array }} Loop
+ * What the loop has reached: the data, prototypes, the step's state,
+ * iterations, whether the stopping rule held at the last one, and the
+ * objective history.
+ * @typedef {{ data: Data, V: Matrix, state: any, nIter: number, converged: boolean, history: Float64Array }} Loop
  */
 
 /**
- * The one loop: repeat step until no prototype coordinate moves more than tol
- * times the RMS radius of X (tol = 0: exact fixed point; tol = null: fixed
- * schedule), or maxIter, and return view(loop), the method's Result. After
+ * The one loop: repeat step until the prototypes stop moving, or maxIter.
+ *
+ * The data are an input of every iteration: rows passed to the generator's
+ * next(X) are prepared by prepare and used from the next iteration on. The
+ * prototypes carry over (shifted to the new data's centering), and so does
+ * the state that keep(state, data) returns; without keep the state starts
+ * again, as caches of the old data must. The schedule (t) goes on.
+ *
+ * The run ends when no prototype coordinate moves more than tol times the
+ * RMS radius of the data and no new data arrive (tol = 0: an exact fixed
+ * point; tol = null: a fixed schedule), or after maxIter iterations
+ * (Infinity: no limit), and returns view(loop), the method's Result. After
  * every step it yields { iteration, result }, where result() builds the same
  * Result as if the run had stopped there; it costs nothing unless called and
  * stays valid as the loop goes on, because steps never modify a state they
  * have returned, and it shares no arrays with the run, because views copy
  * the state they put in a Result.
- * @param {Matrix} X @param {Matrix} V @param {Step} step
- * @param {{ maxIter: number, tol: number | null, view: (loop: Loop) => Result }} options
- * @returns {Generator<Progress, Result>}
+ * @param {Data} data @param {Matrix} V @param {Step} step
+ * @param {{ maxIter: number, tol: number | null, view: (loop: Loop) => Result,
+ *   prepare?: (X: MatrixLike, nFeatures?: number) => Data, keep?: ((state: any, data: Data) => any) | null }} options
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* iterate(X, V, step, { maxIter, tol, view }) {
-  let radius = 0;
-  for (const v of X.data) radius += v * v;
-  const limit = tol === null ? null : tol * Math.sqrt(radius / X.rows);
+export function* iterate(data, V, step, { maxIter, tol, view, prepare = asData, keep = null }) {
   const history = [];
   let state = null;
-  for (let t = 0; t < maxIter; t++) {
-    const previous = V, next = step(V, state, t);
+  for (let t = 1; ; t++) {
+    const previous = V, next = step(data, V, state, t - 1);
     ({ V, state } = next);
     if (next.value !== null) history.push(next.value);
     let move = 0;
     for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
-    const loop = { V, state, nIter: t + 1, converged: limit !== null && move <= limit }, length = history.length;
+    const converged = tol !== null && move <= tol * data.radius;
+    const loop = { data, V, state, nIter: t, converged }, length = history.length;
     const result = () => view({ ...loop, history: Float64Array.from(history.slice(0, length)) });
-    yield { iteration: t + 1, result };
-    if (loop.converged || t + 1 === maxIter) return result();
+    const rows = yield { iteration: t, result };
+    if (t === maxIter) return result();
+    if (rows !== undefined && rows !== null) {
+      const fresh = prepare(rows, V.cols);
+      V = shift(V, data.mean.map((m, f) => m - fresh.mean[f]));
+      state = keep ? keep(state, fresh) : null;
+      data = fresh;
+    } else if (converged) return result();
   }
 }
 
 /**
- * The standard step, D = ||x - v||^2 -> U = assign(D, U_prev, t) -> V = update(U, V, t).
+ * The standard step: D = ||x - v||^2, U = assign(data, D, U_prev, t), V = update(data, U, V, t).
  * assign returns labels or memberships, which are the step's state; the
  * optional objective(D, U) gives one history value.
  * @returns {Step}
  */
-export function lloyd(X, { assign, update, objective = null }) {
-  return (V, U, t) => {
-    const D = sqdist(X, V);
-    U = assign(D, U, t);
-    return { V: update(U, V, t), state: U, value: objective ? objective(D, U) : null };
+export function lloyd({ assign, update, objective = null }) {
+  return (data, V, U, t) => {
+    const D = sqdist(data.X, V);
+    U = assign(data, D, U, t);
+    return { V: update(data, U, V, t), state: U, value: objective ? objective(D, U) : null };
   };
 }
 

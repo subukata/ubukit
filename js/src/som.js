@@ -4,8 +4,8 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, center, checkInt, checkNumber, copyMatrix, iterate, labelSums, lloyd, mapMatrix, matrix,
-  nearest, random, shift, softmaxRows, sqdist, sumMinMax, weightedMean,
+  argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, iterate, labelSums, lloyd, mapMatrix,
+  matrix, nearest, random, shift, softmaxRows, sqdist, sumMinMax, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -19,7 +19,7 @@ import {
  * decay geometrically over all epochs * N updates.
  * @param {MatrixLike} X @param {Grid} [grid]
  * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number, lr?: number, lrEnd?: number, shuffle?: boolean, seed?: number }} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* som(X, grid = [10, 10], {
   epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed,
@@ -30,11 +30,10 @@ export function* som(X, grid = [10, 10], {
   checkNumber(lr, 'lr', 0, true);
   checkNumber(lrEnd, 'lrEnd', 0, true);
   if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
-  const { rows: n, cols: d, data: x } = s.X, R = s.R, k = R.rows, q = R.cols;
-  const rand = random(seed), order = Int32Array.from({ length: n }, (_, i) => i);
-  const steps = epochs * n, diff = new Float64Array(k * d);
-  const epoch = (W, _, e) => {
-    const w = W.data.slice();
+  const R = s.R, k = R.rows, q = R.cols, rand = random(seed);
+  const epoch = (data, W, _, e) => {
+    const { rows: n, cols: d, data: x } = data.X, steps = epochs * n;
+    const w = W.data.slice(), diff = new Float64Array(k * d), order = Int32Array.from({ length: n }, (_, i) => i);
     if (shuffle) for (let i = n - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
@@ -57,29 +56,29 @@ export function* som(X, grid = [10, 10], {
     }
     return { V: { data: w, rows: k, cols: d }, state: null, value: null };
   };
-  return yield* iterate(s.X, s.W, epoch, { maxIter: epochs, tol: null, view: loop => finish(s, loop, epochs) });
+  return yield* iterate(s.data, s.W, epoch, { maxIter: epochs, tol: null, view: loop => finish(R, loop, epochs) });
 }
 
 /**
  * Batch SOM: w_j = sum_i h(bmu_i, j) x_i / sum_i h(bmu_i, j), separable kernel.
  * @param {MatrixLike} X @param {number[]} [grid] [rows, cols]
  * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number }} [options]
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca' } = {}) {
   const [rows, cols] = shape(grid);
   const s = setup(X, grid, init);
   checkInt(epochs, 'epochs', 1);
   const [s0, s1] = sigmas(sigma, sigmaEnd, s.R);
-  const d = s.X.cols, k = rows * cols;
+  const d = s.data.X.cols, k = rows * cols;
   const kernel = (size, sg) => Float64Array.from({ length: size * size }, (_, i) => {
     const a = Math.floor(i / size) - (i % size);
     return Math.exp(-(a * a) / (2 * sg * sg));
   });
-  const update = (labels, W, t) => {
+  const update = (data, labels, W, t) => {
     const sg = epochs > 1 ? s0 * (s1 / s0) ** (t / (epochs - 1)) : s0;
     const Kr = kernel(rows, sg), Kc = kernel(cols, sg);
-    const { sums, counts } = labelSums(s.X, labels, k);
+    const { sums, counts } = labelSums(data.X, labels, k);
     // Smooth (sums | counts) along rows, then along columns.
     const width = d + 1, a = new Float64Array(k * width), b = new Float64Array(k * width);
     for (let j = 0; j < k; j++) { a.set(sums.subarray(j * d, (j + 1) * d), j * width); a[j * width + d] = counts[j]; }
@@ -99,11 +98,11 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     }
     return { data: out, rows: k, cols: d };
   };
-  const step = (W, _, t) => {
-    const labels = nearest(s.X, W);
-    return { V: update(labels, W, t), state: labels, value: null };
+  const step = (data, W, _, t) => {
+    const labels = nearest(data.X, W);
+    return { V: update(data, labels, W, t), state: labels, value: null };
   };
-  return yield* iterate(s.X, s.W, step, { maxIter: epochs, tol: null, view: loop => finish(s, loop, epochs) });
+  return yield* iterate(s.data, s.W, step, { maxIter: epochs, tol: null, view: loop => finish(s.R, loop, epochs) });
 }
 
 /**
@@ -112,7 +111,7 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
  * grid is [rows, cols] or a (K, Q) matrix of unit coordinates.
  * @param {MatrixLike} X @param {Grid | undefined} grid
  * @param {MapInit & { lam: number, gamma: number, pcaScale?: number, maxIter?: number, tol?: number }} options
- * @returns {Generator<Progress, Result>}
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* somOlp(X, grid = [10, 10], options) {
   const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = options ?? /** @type {any} */ ({});
@@ -120,7 +119,7 @@ export function* somOlp(X, grid = [10, 10], options) {
   checkNumber(gamma, 'gamma', 0);
   const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale', 0, true));
   let cost = null;
-  const assign = (D, P) => {
+  const assign = (_, D, P) => {
     cost = D;
     if (P) {
       const extra = sqdist(multiply(P, s.R), s.R).data;
@@ -128,17 +127,20 @@ export function* somOlp(X, grid = [10, 10], options) {
     }
     return softmaxRows(mapMatrix(cost, v => -v / lam));
   };
-  const step = lloyd(s.X, {
-    assign, update: (P, W) => weightedMean(s.X, P, W),
+  const step = lloyd({
+    assign, update: (data, P, W) => weightedMean(data.X, P, W),
     // At the memberships of these costs, sum_j p cost + lam p log p = cost_min + lam log p_max per point.
     objective: (D, P) => sumMinMax(cost, P, (c, p) => c + lam * Math.log(p)),
   });
-  const view = ({ V, state: P, nIter, converged, history }) => ({
+  // The memberships give each point's latent position for the next iteration:
+  // they carry over when the rows are the same points.
+  const keep = (P, data) => (P.rows === data.X.rows ? P : null);
+  const view = ({ data, V, state: P, nIter, converged, history }) => ({
     // A copy: the next step reads P.
-    centers: shift(V, s.mean), labels: argmaxRows(P), membership: copyMatrix(P), nIter, converged, history,
+    centers: shift(V, data.mean), labels: argmaxRows(P), membership: copyMatrix(P), nIter, converged, history,
     embedding: multiply(P, s.R),
   });
-  return yield* iterate(s.X, s.W, step, { maxIter: checkInt(maxIter, 'maxIter', 1), tol: checkNumber(tol, 'tol', 0), view });
+  return yield* iterate(s.data, s.W, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view, keep });
 }
 
 function multiply(A, B) {
@@ -163,18 +165,14 @@ function gridCoordinates(grid) {
   return { data, rows: rows * cols, cols: 2 };
 }
 
+/** The data, the unit coordinates and the initial prototypes (centered like the data). */
 function setup(X, grid, init, pcaScale = 2) {
-  const { X: Xc, mean } = center(matrix(X));
-  const R = gridCoordinates(grid);
-  let W;
-  if (init === 'pca') W = pcaInit(Xc, R, pcaScale);
-  else if (typeof init === 'string') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
-  else {
-    W = matrix(init, 'init');
-    if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
-    W = shift(W, mean.map(v => -v));
-  }
-  return { X: Xc, mean, R, W };
+  const data = asData(X), Xc = data.X, R = gridCoordinates(grid);
+  if (init === 'pca') return { data, R, W: pcaInit(Xc, R, pcaScale) };
+  if (typeof init === 'string') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
+  const W = matrix(init, 'init');
+  if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
+  return { data, R, W: shift(W, data.mean.map(v => -v)) };
 }
 
 function sigmas(sigma, sigmaEnd, R) {
@@ -191,11 +189,11 @@ function sigmas(sigma, sigmaEnd, R) {
 }
 
 /** A map's Result for the prototypes the loop has reached; its schedule is complete after `epochs`. */
-function finish(s, { V, nIter }, epochs) {
-  const labels = nearest(s.X, V), q = s.R.cols, emb = new Float64Array(labels.length * q);
-  labels.forEach((j, i) => emb.set(s.R.data.subarray(j * q, (j + 1) * q), i * q));
+function finish(R, { data, V, nIter }, epochs) {
+  const labels = nearest(data.X, V), q = R.cols, emb = new Float64Array(labels.length * q);
+  labels.forEach((j, i) => emb.set(R.data.subarray(j * q, (j + 1) * q), i * q));
   return {
-    centers: shift(V, s.mean), labels, membership: null, nIter, converged: nIter === epochs,
+    centers: shift(V, data.mean), labels, membership: null, nIter, converged: nIter === epochs,
     history: new Float64Array(0), embedding: { data: emb, rows: labels.length, cols: q },
   };
 }

@@ -4,6 +4,28 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 The data are an input of every iteration
+
+A step is `step(data, V, state, t)` and reads the data from its argument;
+the fitting generators accept new rows between iterations (`send` /
+`next(X)`). The engine prepares them (centering; `rmcm`'s graph), keeps the
+prototypes where they are, keeps the schedule and the random state, and
+keeps the step's state only through the method's `keep` (SOM-OLP's
+memberships, while the rows are the same points); any other state is a cache
+of the old data and starts again. `max_iter=None` / `maxIter: Infinity`
+removes the limit. *Why:* the browser demo needs learning to follow points
+that move, and an iterative method is a map from (data, state) to state, of
+which fixed data are the special case; the steps had instead captured the
+data in closures, which is what kept the data from changing. The change
+removed those closures, adds no path, and gives mini-batch learning for free
+(send a different batch each iteration). JavaScript's online SOM now
+shuffles from the identity each epoch, as Python's does, so the number of
+rows may change. *Rejected:* passing the previous Result back as `init`
+(an output carrying the next iteration's state, a new run every frame that
+loses the schedule and random state; principle 9), a public state object
+with a pure `step` function (exposes the internal state as API), and
+swapping the data inside each method (the same logic eight times, twice).
+
 ## 2026-10-06 Designs follow the model, not the shortest path
 
 `DESIGN.md` gains principle 9, and `AGENTS.md` asks agents to choose designs
