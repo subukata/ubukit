@@ -123,3 +123,17 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm test
       - run: npm run check
+
+  # The one check the main ruleset requires: it fails when any job above
+  # failed or was cancelled, so jobs can be added, removed or renamed (a new
+  # Python or Node version) without changing the ruleset. A skipped job counts
+  # as passed, as GitHub reports a skipped required check.
+  all:
+    if: always() && (github.event_name == 'workflow_dispatch' || !github.event.repository.private)
+    name: All checks
+    needs: [python, python-oldest, packages, javascript]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every job passed or was skipped
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
