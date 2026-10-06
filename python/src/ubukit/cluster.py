@@ -57,12 +57,12 @@ def kmeans(
         max_iter: iteration limit (None: none); stops earlier at a fixed point.
         seed: seed for k-means++.
     """
+    max_iter = check_max_iter(max_iter)
     data, V = start(X, k, init, seed)
 
     def view(loop):
         return fitted(loop, loop.state[0].copy())
 
-    max_iter = check_max_iter(max_iter)
     return (yield from iterate(data, V, _hamerly, max_iter=max_iter, tol=0.0, view=view))
 
 
@@ -129,6 +129,7 @@ def fcm(
     solutions" in docs/algorithms.md.
     """
     m = check_float(m, "m", 1.0, strict=True)
+    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     data, V = start(X, k, init, seed)
 
     def assign(_, D):
@@ -150,7 +151,6 @@ def fcm(
         return weighted_mean(data.X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
     step = lloyd(assign, update)
-    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
 
@@ -171,13 +171,9 @@ def efcm(
     the mean of X; see "Degenerate solutions" in docs/algorithms.md.
     """
     tau = check_float(tau, "tau", 0.0, strict=True)
-    data, V = start(X, k, init, seed)
-
-    step = lloyd(
-        assign=lambda _, D: softmin(D, tau),
-        update=lambda data, U, V: weighted_mean(data.X, U, V),
-    )
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
+    data, V = start(X, k, init, seed)
+    step = lloyd(lambda _, D: softmin(D, tau))
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
 
@@ -201,6 +197,7 @@ def rcm(
     alpha = check_float(alpha, "alpha", 1.0)
     beta = check_float(beta, "beta", 0.0)
     p = check_float(p, "p", 0.0, strict=True)
+    max_iter = check_max_iter(max_iter)
     data, V = start(X, k, init, seed)
 
     def assign(_, D):
@@ -214,8 +211,7 @@ def rcm(
         mask = d <= radius
         return mask / mask.sum(axis=1, keepdims=True), None
 
-    step = lloyd(assign, update=lambda data, U, V: weighted_mean(data.X, U, V))
-    max_iter = check_max_iter(max_iter)
+    step = lloyd(assign)
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft))
 
 
@@ -240,11 +236,12 @@ def rmcm(
     """
     delta = check_float(delta, "delta", 0.0)
     max_edges = check_int(max_edges, "max_edges", 1)
+    max_iter = check_max_iter(max_iter)
 
     def prepare(rows, n_features=None):
         data = as_data(rows, n_features)
         P = _neighborhood(data.X, delta, max_edges)
-        return _Neighbors(data.X, data.mean, data.xx, data.radius, P)
+        return _Neighbors(X=data.X, mean=data.mean, xx=data.xx, radius=data.radius, P=P)
 
     data, V = start(X, k, init, seed, prepare)
 
@@ -253,8 +250,7 @@ def rmcm(
         H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), np.arange(n + 1)), shape=D.shape)
         return (data.P @ H).toarray(), None
 
-    step = lloyd(assign, update=lambda data, U, V: weighted_mean(data.X, U, V))
-    max_iter = check_max_iter(max_iter)
+    step = lloyd(assign)
     return (
         yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft, prepare=prepare)
     )

@@ -63,13 +63,14 @@ def som(
     result (``pip install 'ubukit[numba]'``).
     """
     kernels = numba_kernels(engine)
-    data, R, W = _setup(X, grid, init)
+    R = _grid(grid)
     epochs = check_int(epochs, "epochs", 1)
     s0, s1 = _sigmas(sigma, sigma_end, R)
     lr = check_float(lr, "lr", 0.0, strict=True)
     lr_end = check_float(lr_end, "lr_end", 0.0, strict=True)
     if max(lr, lr_end) > 1:
         raise ValueError("lr and lr_end must be at most 1")
+    data, W = _setup(X, R, init)
     rng = np.random.default_rng(seed)
 
     def epoch(data, W, _, e):
@@ -107,9 +108,10 @@ def batch_som(
     grid, so an epoch costs O(N K D + K (rows + cols) D) with no K x K kernel.
     """
     rows, cols = _shape(grid)
-    data, R, W = _setup(X, grid, init)
+    R = _grid(grid)
     epochs = check_int(epochs, "epochs", 1)
     s0, s1 = _sigmas(sigma, sigma_end, R)
+    data, W = _setup(X, R, init)
     gr, gc = np.arange(rows), np.arange(cols)
 
     def step(data, W, _, t):
@@ -153,7 +155,9 @@ def som_olp(
     lam = check_float(lam, "lam", 0.0, strict=True)
     gamma = check_float(gamma, "gamma", 0.0)
     pca_scale = check_float(pca_scale, "pca_scale", 0.0, strict=True)
-    data, R, W = _setup(X, grid, init, pca_scale)
+    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
+    R = _grid(grid)
+    data, W = _setup(X, R, init, pca_scale)
     rr = sq_norms(R)
 
     def step(data, W, P, t):
@@ -175,7 +179,6 @@ def som_olp(
         P = loop.state.copy()  # the next step reads it
         return fitted(loop, P.argmax(axis=1), P, P @ R)
 
-    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     return (yield from iterate(data, W, step, max_iter=max_iter, tol=tol, view=view, keep=keep))
 
 
@@ -195,19 +198,18 @@ def _grid(grid: Grid) -> np.ndarray:
 
 
 def _setup(
-    X: ArrayLike, grid: Grid, init: MapInit, pca_scale: float = 2.0
-) -> tuple[Data, np.ndarray, np.ndarray]:
-    """The data, the unit coordinates and the initial prototypes (centered like the data)."""
+    X: ArrayLike, R: np.ndarray, init: MapInit, pca_scale: float = 2.0
+) -> tuple[Data, np.ndarray]:
+    """The data and the initial prototypes of the units at R (centered like the data)."""
     data = as_data(X)
-    R = _grid(grid)
     if isinstance(init, str):
         if init != "pca":
             raise ValueError("init must be 'pca' or a (n_units, n_features) array")
-        return data, R, _pca_init(data.X, R, pca_scale)
+        return data, _pca_init(data.X, R, pca_scale)
     W = as_matrix(init, "init")
     if W.shape != (len(R), data.X.shape[1]):
         raise ValueError(f"init must have shape ({len(R)}, {data.X.shape[1]})")
-    return data, R, W - data.mean
+    return data, W - data.mean
 
 
 def _pca_init(X: np.ndarray, R: np.ndarray, scale: float) -> np.ndarray:

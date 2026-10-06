@@ -387,12 +387,12 @@ export function checkMaxIter(value) {
  * RMS radius of the data and no new data arrive (tol = 0: an exact fixed
  * point), or after maxIter iterations (Infinity: no limit); tol = null means
  * a fixed schedule, which converges by completing its maxIter iterations.
- * It returns view(loop), the method's Result. After
- * every step it yields { iteration, result }, where result() builds the same
- * Result as if the run had stopped there; it costs nothing unless called and
- * stays valid as the loop goes on, because steps never modify a state they
- * have returned, and it shares no arrays with the run, because views copy
- * the state they put in a Result.
+ * It returns view(loop), the method's Result. After every step it yields
+ * { iteration, result }, where result() builds the same Result as if the run
+ * had stopped there; it costs nothing unless called and stays valid as the
+ * loop goes on, because steps never modify a state they have returned, and
+ * it shares no arrays with the run, because views copy the state they put in
+ * a Result.
  * @param {Data} data @param {Matrix} V @param {Step} step
  * @param {{ maxIter: number, tol: number | null, view: (loop: Loop) => Result,
  *   prepare?: (X: MatrixLike, nFeatures?: number) => Data, keep?: ((state: any, data: Data) => any) | null }} options
@@ -430,16 +430,22 @@ export function fitted({ data, V, nIter, converged, history }, labels, membershi
   return { centers: shift(V, data.mean), labels, membership, nIter, converged, history, embedding };
 }
 
+/** The standard update: the means of the data weighted by the memberships. */
+export function means(data, U, V) {
+  return weightedMean(data.X, U, V);
+}
+
 /**
  * The standard step: D = ||x - v||^2, { U, value } = assign(data, D), V = update(data, U, V).
  * assign gives the memberships U for these distances, the step's state
  * (which the method's view reads), and the method's objective at them, one
  * history value (null for a method without one). The memberships minimize
  * the objective for the given prototypes, and the quantities that compute
- * them give its value, so it costs almost nothing.
+ * them give its value, so it costs almost nothing. update defaults to the
+ * means weighted by U.
  * @returns {Step}
  */
-export function lloyd({ assign, update }) {
+export function lloyd({ assign, update = means }) {
   return (data, V) => {
     const { U, value } = assign(data, sqdist(data.X, V));
     return { V: update(data, U, V), state: U, value };
