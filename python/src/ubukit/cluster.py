@@ -29,7 +29,7 @@ from ._core import (
     iterate,
     label_mean,
     lloyd,
-    softmax_rows,
+    softmin,
     sq_norms,
     sqdist,
     start,
@@ -135,22 +135,21 @@ def fcm(
         # (d_min / d)^(2/(m-1)), normalized: the softmax of -log d^2 / (m - 1)
         # without logarithms or exponentials (none at all for m = 2).
         D = np.maximum(D, TINY)
-        U = D.min(axis=1, keepdims=True) / D
+        d_min = D.min(axis=1, keepdims=True)
+        U = d_min / D
         U **= 1.0 / (m - 1.0)
-        U /= U.sum(axis=1, keepdims=True)
-        return U
+        total = U.sum(axis=1, keepdims=True)
+        U /= total
+        # The largest ratio is 1, so u_max = 1 / total, and the objective at
+        # these memberships, sum_c u_ic^m d_ic^2, is d_min^2 u_max^(m-1).
+        return U, float(d_min[:, 0] @ total[:, 0] ** (1.0 - m))
 
     def update(data, U, V):
         # Scaling each column by its maximum leaves the means unchanged and
         # keeps u^m from underflowing to all zeros for large m.
         return weighted_mean(data.X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
-    def objective(D, U):
-        # At the memberships of these distances, sum_c u_ic^m d_ic^2 equals
-        # d_min^2 u_max^(m-1) for each point.
-        return float(D.min(axis=1) @ U.max(axis=1) ** (m - 1.0))
-
-    step = lloyd(assign, update, objective)
+    step = lloyd(assign, update)
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
@@ -174,15 +173,9 @@ def efcm(
     tau = check_float(tau, "tau", 0.0, strict=True)
     data, V = start(X, k, init, seed)
 
-    def objective(D, U):
-        # At the memberships of these distances, sum_c u_ic d_ic^2 + tau u_ic log u_ic
-        # equals d_min^2 + tau log u_max for each point: N logarithms, not N K.
-        return float(np.sum(D.min(axis=1) + tau * np.log(U.max(axis=1))))
-
     step = lloyd(
-        assign=lambda _, D: softmax_rows(D * (-1.0 / tau)),
+        assign=lambda _, D: softmin(D, tau),
         update=lambda data, U, V: weighted_mean(data.X, U, V),
-        objective=objective,
     )
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
@@ -219,7 +212,7 @@ def rcm(
         with np.errstate(over="ignore"):
             radius = large * (1.0 + ratio**p) ** (1.0 / p)
         mask = d <= radius
-        return mask / mask.sum(axis=1, keepdims=True)
+        return mask / mask.sum(axis=1, keepdims=True), None
 
     step = lloyd(assign, update=lambda data, U, V: weighted_mean(data.X, U, V))
     max_iter = check_max_iter(max_iter)
@@ -258,7 +251,7 @@ def rmcm(
     def assign(data, D):
         n = len(D)
         H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), np.arange(n + 1)), shape=D.shape)
-        return (data.P @ H).toarray()
+        return (data.P @ H).toarray(), None
 
     step = lloyd(assign, update=lambda data, U, V: weighted_mean(data.X, U, V))
     max_iter = check_max_iter(max_iter)

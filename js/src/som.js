@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
-  matrix, nearest, random, shift, softmaxRows, sqdist, sumMinMax, weightedMean,
+  matrix, nearest, random, shift, softmin, sqdist, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -122,10 +122,8 @@ export function* somOlp(X, grid = [10, 10], options) {
       const extra = sqdist(multiply(P, s.R), s.R).data;
       cost = mapMatrix(cost, (v, i) => v + gamma * extra[i]);
     }
-    P = softmaxRows(mapMatrix(cost, v => -v / lam));
-    // At these memberships, sum_j p cost + lam p log p = cost_min + lam log p_max per point.
-    const value = sumMinMax(cost, P, (c, p) => c + lam * Math.log(p));
-    return { V: weightedMean(data.X, P, W), state: P, value };
+    const { U, value } = softmin(cost, lam); // value: the objective at these memberships
+    return { V: weightedMean(data.X, U, W), state: U, value };
   };
   // The memberships give each point's latent position for the next iteration.
   // Points are known only by their rows, so they carry over while the number
