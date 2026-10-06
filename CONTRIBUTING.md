@@ -16,8 +16,10 @@ cd .. && python bench/run.py --size smoke --check
 
 Tests mirror the modules in both languages (`python/tests/test_<module>.py`,
 `js/test/<module>.test.js`, with shared JavaScript data in `js/test/helpers.js`).
-`python/tests/typing_api.py` is checked by mypy, not run: it calls the API
-as typed code does, so a public function that loses its types fails.
+`python/tests/typing_api.py` (checked by mypy) and `js/test/typing-api.js`
+(checked by `npm run check`, in strict mode against the declarations that
+npm users get) are not run: they call the API as typed code does, so a
+public function that loses its types fails.
 Run them before every pull request: CI does not run on pushes or pull
 requests (see "CI and dependencies"). ruff and mypy are each pinned to one
 minor series; bump them in pull requests of their own.

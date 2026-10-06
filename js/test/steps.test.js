@@ -123,3 +123,16 @@ test('runAsync reports progress and honors abort', async () => {
   controller.abort();
   await assert.rejects(ub.runAsync(ub.steps.kmeans(X, 3), { signal: controller.signal }), { name: 'AbortError' });
 });
+
+test('runAsync gives the event loop its turn between iterations', async () => {
+  // With no time budget it yields after every iteration, so a timer set
+  // before the run fires while the run is still going, and an abort from
+  // that timer stops it.
+  let fired = 0, seenAfter = 0;
+  setTimeout(() => (fired = 1), 0);
+  const r = await ub.runAsync(ub.steps.som(X, [3, 3], { epochs: 5, seed: 0 }), { budgetMs: 0, onProgress: () => (seenAfter += fired) });
+  assert.equal(seenAfter, r.nIter - 1, `${seenAfter} of ${r.nIter}`);
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 0);
+  await assert.rejects(ub.runAsync(ub.steps.som(X, [3, 3], { epochs: 5, seed: 0 }), { budgetMs: 0, signal: controller.signal }), { name: 'AbortError' });
+});

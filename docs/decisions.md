@@ -4,6 +4,20 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 JavaScript's public types are tested as npm users see them (#70)
+
+`js/test/typing-api.js`, like `python/tests/typing_api.py`, calls the API as
+typed code does, with `@ts-expect-error` on calls that must be rejected;
+`npm run check` builds the declarations and checks it against them in
+strict mode. *Why:* the published types come from JSDoc, and a broken
+comment turns a parameter into `any` without any error, since the sources
+are checked without strict mode (removing one `@param` line made the check
+fail three ways). Checking the sources instead would not reach what users
+import, and without strict mode TypeScript cannot narrow a generator's
+`{ value, done }`, as the README does. *Rejected:* strict mode for the
+sources (164 errors, nearly all internal parameters without annotations,
+which users never see).
+
 ## 2026-10-06 The objective comes with the memberships (#69)
 
 `lloyd`'s `assign` returns the memberships with the objective at them, and
