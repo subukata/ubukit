@@ -1,14 +1,14 @@
 """Shared numerics: validation, distances, initialization and the engine.
 
 Every iterative method in UbuKit runs in one loop, ``iterate``, which repeats
-a step until the prototypes stop moving. Nearly all of them use the standard
-step ``lloyd``,
+the method's step until the prototypes stop moving. The fuzzy and rough
+c-means use the standard step ``lloyd``,
 
     D = ||x_i - v_c||^2  ->  U = assign(D)  ->  V = update(U),
 
-and differ only in ``assign`` (and, for SOMs, ``update``); a method whose
-iteration has another shape (the online SOM) supplies its own step. The data
-are an input of every step (``Data``: centered rows, which keep the
+and differ only in ``assign`` and ``update``; k-means (with Hamerly's bounds)
+and the maps, whose iterations have other shapes, supply their own steps. The
+data are an input of every step (``Data``: centered rows, which keep the
 Gram-identity distances accurate), so a run can go on with new data.
 """
 
@@ -58,7 +58,8 @@ class Result:
             best-matching unit for ``som`` and ``batch_som``).
         membership: (N, K) soft or rough memberships; ``None`` for hard methods.
         n_iter: iterations performed (epochs for SOMs).
-        converged: whether the stopping rule was met (SOMs: the schedule completed).
+        converged: whether the stopping rule was met (``som`` and ``batch_som``: the
+            schedule completed).
         history: objective value per iteration; empty when the method has none.
         embedding: (N, Q) map coordinates for SOMs, otherwise ``None``.
     """
@@ -265,8 +266,8 @@ def check_max_iter(value: Any) -> int | None:
 # objective value or None); the state starts as None and is whatever the
 # method carries. Steps read the data from their argument, never keep it.
 Step = Callable[[Data, np.ndarray, Any, int], tuple[np.ndarray, Any, float | None]]
-Assign = Callable[[Data, np.ndarray, Any, int], np.ndarray]
-Update = Callable[[Data, np.ndarray, np.ndarray, int], np.ndarray]
+Assign = Callable[[Data, np.ndarray], np.ndarray]
+Update = Callable[[Data, np.ndarray, np.ndarray], np.ndarray]
 Objective = Callable[[np.ndarray, np.ndarray], float]
 
 
@@ -294,6 +295,17 @@ class Loop(NamedTuple):
     n_iter: int
     converged: bool
     history: np.ndarray
+
+
+def fitted(
+    loop: Loop,
+    labels: np.ndarray,
+    membership: np.ndarray | None = None,
+    embedding: np.ndarray | None = None,
+) -> Result:
+    """The Result of ``loop`` with the labels, memberships and embedding of its method."""
+    centers = loop.V + loop.data.mean
+    return Result(centers, labels, membership, loop.n_iter, loop.converged, loop.history, embedding)
 
 
 # A fitting generator: it yields a Progress per iteration and returns the Result.
@@ -343,8 +355,9 @@ def iterate(
 
     The run ends when no prototype coordinate moves more than ``tol`` times
     the RMS radius of the data and no new data arrive (``tol=0``: an exact
-    fixed point; ``tol=None``: a fixed schedule), or after ``max_iter``
-    iterations (``None``: no limit). It yields a Progress after every step
+    fixed point), or after ``max_iter`` iterations (``None``: no limit);
+    ``tol=None`` means a fixed schedule, which converges by completing its
+    ``max_iter`` iterations. It yields a Progress after every step
     and returns ``view`` of the final Loop, the method's Result; a Progress
     builds its Result with the same ``view``, which is why steps never modify
     a state they have returned and views copy the state they put in a Result.
@@ -358,8 +371,10 @@ def iterate(
         t += 1
         if value is not None:
             history.append(value)
-        limit = None if tol is None else tol * data.radius
-        converged = limit is not None and float(np.max(np.abs(V - V_prev))) <= limit
+        if tol is None:
+            converged = t == max_iter
+        else:
+            converged = float(np.max(np.abs(V - V_prev))) <= tol * data.radius
         result = _result(view, Loop(data, V, state, t, converged, np.empty(0)), history)
         rows = yield Progress(t, result)
         if t == max_iter:
@@ -380,16 +395,15 @@ def _result(view, loop: Loop, history: list[float]) -> Callable[[], Result]:
 
 
 def lloyd(assign: Assign, update: Update, objective: Objective | None = None) -> Step:
-    """The standard step: D = ||x - v||^2, U = assign(data, D, U_prev, t), V = update(...).
+    """The standard step: D = ||x - v||^2, U = assign(data, D), V = update(data, U, V).
 
-    ``update(data, U, V, t)`` gives the new prototypes. ``assign`` returns
-    integer labels or float memberships, which are the step's state; the
-    optional ``objective(D, U)`` gives one history value.
+    The memberships U are the step's state, which the method's view reads;
+    the optional ``objective(D, U)`` gives one history value.
     """
 
-    def step(data, V, U, t):
+    def step(data, V, _, t):
         D = sqdist(data.X, V, data.xx)
-        U = assign(data, D, U, t)
-        return update(data, U, V, t), U, None if objective is None else objective(D, U)
+        U = assign(data, D)
+        return update(data, U, V), U, None if objective is None else objective(D, U)
 
     return step

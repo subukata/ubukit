@@ -18,16 +18,15 @@ from ._core import (
     Engine,
     Grid,
     MapInit,
-    Result,
     Steps,
     as_data,
     as_matrix,
     check_float,
     check_int,
     check_max_iter,
+    fitted,
     iterate,
     label_sums,
-    lloyd,
     nearest,
     numba_kernels,
     softmax_rows,
@@ -89,7 +88,7 @@ def som(
             W += (eta * h)[:, None] * diff
         return W, None, None
 
-    return (yield from iterate(data, W, epoch, max_iter=epochs, tol=None, view=_map(R, epochs)))
+    return (yield from iterate(data, W, epoch, max_iter=epochs, tol=None, view=_map(R)))
 
 
 @stepwise
@@ -126,7 +125,7 @@ def batch_som(
         out[ok] = num.reshape(len(W), -1)[ok] / den[ok, None]
         return out, labels, None
 
-    return (yield from iterate(data, W, step, max_iter=epochs, tol=None, view=_map(R, epochs)))
+    return (yield from iterate(data, W, step, max_iter=epochs, tol=None, view=_map(R)))
 
 
 @stepwise
@@ -157,19 +156,18 @@ def som_olp(
     pca_scale = check_float(pca_scale, "pca_scale", 0.0, strict=True)
     data, R, W = _setup(X, grid, init, pca_scale)
     rr = sq_norms(R)
-    cost = None
 
-    def assign(data, D, P, t):
-        nonlocal cost
-        cost = D if P is None else D + gamma * sqdist(P @ R, R, cc=rr)
-        return softmax_rows(cost * (-1.0 / lam))
-
-    def objective(D, P):
-        # At the memberships of these costs, sum_j p_ij cost_ij + lam p_ij log p_ij
-        # equals cost_min + lam log p_max for each point: N logarithms, not N K.
-        return float(np.sum(cost.min(axis=1) + lam * np.log(P.max(axis=1))))
-
-    step = lloyd(assign, lambda data, P, W, t: weighted_mean(data.X, P, W), objective)
+    def step(data, W, P, t):
+        # The previous memberships P give the latent positions P R; the first
+        # iteration has none.
+        cost = sqdist(data.X, W, data.xx)
+        if P is not None:
+            cost += gamma * sqdist(P @ R, R, cc=rr)
+        P = softmax_rows(cost * (-1.0 / lam))
+        # At these memberships, sum_j p_ij cost_ij + lam p_ij log p_ij equals
+        # cost_min + lam log p_max for each point: N logarithms, not N K.
+        value = float(np.sum(cost.min(axis=1) + lam * np.log(P.max(axis=1))))
+        return weighted_mean(data.X, P, W), P, value
 
     def keep(P, data):
         # The memberships give each point's latent position for the next
@@ -178,7 +176,7 @@ def som_olp(
 
     def view(loop):
         P = loop.state.copy()  # the next step reads it
-        return Result(loop.V + loop.data.mean, P.argmax(axis=1), P, *loop[3:], P @ R)
+        return fitted(loop, P.argmax(axis=1), P, P @ R)
 
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     return (yield from iterate(data, W, step, max_iter=max_iter, tol=tol, view=view, keep=keep))
@@ -251,14 +249,11 @@ def _sigmas(sigma, sigma_end, R):
     )
 
 
-def _map(R, epochs):
-    """The view of a map: best-matching units of the prototypes reached; the schedule
-    is complete after ``epochs``."""
+def _map(R):
+    """The view of a map: the best-matching units of the prototypes reached."""
 
     def view(loop):
-        data = loop.data
-        labels = nearest(data.X, loop.V, data.xx)
-        done = loop.n_iter == epochs
-        return Result(loop.V + data.mean, labels, None, loop.n_iter, done, np.empty(0), R[labels])
+        labels = nearest(loop.data.X, loop.V, loop.data.xx)
+        return fitted(loop, labels, embedding=R[labels])
 
     return view

@@ -1,11 +1,12 @@
 /**
- * Partitional clustering on the shared engine. Each method only defines how
- * memberships follow from squared distances; see docs/algorithms.md.
+ * Partitional clustering on the shared engine. The fuzzy and rough c-means
+ * define how memberships follow from squared distances and run the standard
+ * step; k-means runs Lloyd's step with Hamerly's bounds. See docs/algorithms.md.
  * Every function here is a generator: use run()/runAsync() or the wrappers in index.js.
  */
 import {
-  argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, iterate, labelMean,
-  lloyd, mapMatrix, shift, softmaxRows, start, sumMinMax, TINY, weightedMean,
+  argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelMean,
+  lloyd, mapMatrix, softmaxRows, start, sumMinMax, TINY, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -13,13 +14,8 @@ import {
 /** @typedef {import('./core.js').Progress} Progress */
 /** @typedef {{ init?: 'k-means++' | MatrixLike, maxIter?: number, seed?: number }} Common */
 
-/** The Result of a clustering; it copies the state (see iterate). @returns {import('./core.js').Result} */
-function result({ data, V, state: U, nIter, converged, history }, hard = false) {
-  return {
-    centers: shift(V, data.mean), labels: hard ? U.slice() : argmaxRows(U), membership: hard ? null : copyMatrix(U),
-    nIter, converged, history, embedding: null,
-  };
-}
+/** The view of soft and rough clusterings: memberships are the state, copied (see iterate). */
+const soft = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state));
 
 /**
  * Lloyd's k-means; distance ties go to the lowest center index. Iterates with
@@ -30,7 +26,7 @@ function result({ data, V, state: U, nIter, converged, history }, hard = false) 
  */
 export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
   const { data, V } = start(X, k, init, seed);
-  const view = loop => result({ ...loop, state: loop.state.labels }, true);
+  const view = loop => fitted(loop, loop.state.labels.slice());
   return yield* iterate(data, V, hamerly, { maxIter: checkMaxIter(maxIter), tol: 0, view });
 }
 
@@ -48,55 +44,53 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) 
  */
 function hamerly(data, V, state) {
   const X = data.X, { rows: n, cols: d, data: x } = X;
-  {
-    const k = V.rows, v = V.data;
-    // Fresh arrays: a state once returned is never modified (see iterate).
-    const labels = Int32Array.from(state?.labels ?? new Int32Array(n));
-    const lower = Float64Array.from(state?.lower ?? new Float64Array(n));
-    const dist = (i, j) => {
-      let s = 0;
-      for (let f = 0, a = i * d, b = j * d; f < d; f++) {
-        const t = x[a + f] - v[b + f];
-        s += t * t;
-      }
-      return s;
-    };
-    const half = new Float64Array(k).fill(Infinity);
-    for (let a = 0; a < k; a++) for (let b = a + 1; b < k; b++) {
-      let s = 0;
-      for (let f = 0; f < d; f++) s += (v[a * d + f] - v[b * d + f]) ** 2;
-      half[a] = Math.min(half[a], Math.sqrt(s) / 2);
-      half[b] = Math.min(half[b], Math.sqrt(s) / 2);
+  const k = V.rows, v = V.data;
+  // Fresh arrays: a state once returned is never modified (see iterate).
+  const labels = Int32Array.from(state?.labels ?? new Int32Array(n));
+  const lower = Float64Array.from(state?.lower ?? new Float64Array(n));
+  const dist = (i, j) => {
+    let s = 0;
+    for (let f = 0, a = i * d, b = j * d; f < d; f++) {
+      const t = x[a + f] - v[b + f];
+      s += t * t;
     }
-    let objective = 0;
-    for (let i = 0; i < n; i++) {
-      let own = dist(i, labels[i]);
-      if (Math.sqrt(own) >= Math.max(half[labels[i]], lower[i]) * (1 - 1e-9)) {
-        let best = Infinity, second = Infinity, nearest = 0;
-        for (let j = 0; j < k; j++) {
-          const s = dist(i, j);
-          if (s < best) second = best, best = s, nearest = j;
-          else if (s < second) second = s;
-        }
-        labels[i] = nearest, own = best, lower[i] = Math.sqrt(second);
-      }
-      objective += own;
-    }
-    const W = labelMean(X, labels, V);
-    if (k > 1) {
-      // Moving the centers loosens each lower bound by the largest move of another center.
-      let first = 0, second = 0, top = 0;
-      for (let j = 0; j < k; j++) {
-        let s = 0;
-        for (let f = 0; f < d; f++) s += (W.data[j * d + f] - v[j * d + f]) ** 2;
-        const m = Math.sqrt(s);
-        if (m > first) second = first, first = m, top = j;
-        else if (m > second) second = m;
-      }
-      for (let i = 0; i < n; i++) lower[i] -= labels[i] === top ? second : first;
-    }
-    return { V: W, state: { labels, lower }, value: objective };
+    return s;
+  };
+  const half = new Float64Array(k).fill(Infinity);
+  for (let a = 0; a < k; a++) for (let b = a + 1; b < k; b++) {
+    let s = 0;
+    for (let f = 0; f < d; f++) s += (v[a * d + f] - v[b * d + f]) ** 2;
+    half[a] = Math.min(half[a], Math.sqrt(s) / 2);
+    half[b] = Math.min(half[b], Math.sqrt(s) / 2);
   }
+  let objective = 0;
+  for (let i = 0; i < n; i++) {
+    let own = dist(i, labels[i]);
+    if (Math.sqrt(own) >= Math.max(half[labels[i]], lower[i]) * (1 - 1e-9)) {
+      let best = Infinity, second = Infinity, nearest = 0;
+      for (let j = 0; j < k; j++) {
+        const s = dist(i, j);
+        if (s < best) second = best, best = s, nearest = j;
+        else if (s < second) second = s;
+      }
+      labels[i] = nearest, own = best, lower[i] = Math.sqrt(second);
+    }
+    objective += own;
+  }
+  const W = labelMean(X, labels, V);
+  if (k > 1) {
+    // Moving the centers loosens each lower bound by the largest move of another center.
+    let first = 0, second = 0, top = 0;
+    for (let j = 0; j < k; j++) {
+      let s = 0;
+      for (let f = 0; f < d; f++) s += (W.data[j * d + f] - v[j * d + f]) ** 2;
+      const m = Math.sqrt(s);
+      if (m > first) second = first, first = m, top = j;
+      else if (m > second) second = m;
+    }
+    for (let i = 0; i < n; i++) lower[i] -= labels[i] === top ? second : first;
+  }
+  return { V: W, state: { labels, lower }, value: objective };
 }
 
 /**
@@ -115,7 +109,7 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
     // At the memberships of these distances, sum_c u^m d^2 = d_min^2 u_max^(m-1) per point.
     objective: (D, U) => sumMinMax(D, U, (d, u) => d * u ** (m - 1)),
   });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: result });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: soft });
 }
 
 /**
@@ -159,7 +153,7 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
     // At the memberships of these distances, sum_c u d^2 + tau u log u = d_min^2 + tau log u_max per point.
     objective: (D, U) => sumMinMax(D, U, (d, u) => d + tau * Math.log(u)),
   });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: result });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: soft });
 }
 
 /**
@@ -187,7 +181,7 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
     return U;
   };
   const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: result });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: soft });
 }
 
 /**
@@ -214,7 +208,7 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
     return R;
   };
   const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: result, prepare });
+  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: soft, prepare });
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */

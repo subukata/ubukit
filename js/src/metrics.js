@@ -163,9 +163,8 @@ const LANCZOS = [
   1.5056327351493116e-7,
 ];
 
-/** log Gamma(x) for x > 0 (Lanczos, g = 7). */
-export function lgamma(x) {
-  if (x < 0.5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgamma(1 - x);
+/** log Gamma(x) for x >= 0.5 (Lanczos, g = 7); here only for log-factorials, x >= 1. */
+function lgamma(x) {
   x -= 1;
   let sum = LANCZOS[0];
   for (let i = 1; i < 9; i++) sum += LANCZOS[i] / (x + i);

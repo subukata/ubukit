@@ -4,6 +4,26 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Each method's step fits it; one way to build a Result (#65)
+
+SOM-OLP has its own step, like k-means and the maps, and the standard step
+`lloyd` takes `assign(data, D)` and `update(data, U, V)`. Every view builds
+its Result with `fitted`, and a fixed schedule (`tol=None`) converges in the
+loop when it completes. *Why:* SOM-OLP's memberships depend on the previous
+ones and its objective on its costs rather than the distances, so inside
+`lloyd` it needed an argument for the previous memberships that no other
+method used and passed its costs from `assign` to `objective` through a
+shared variable, a workaround by principle 9; `lloyd` also passed the
+iteration to `assign` and `update`, which no method had used since the batch
+SOM got its own step. The views spelled the common fields of a Result by
+their position, and the map views overrode the loop's `converged`. A review
+of the whole library found these, with a block left over from #64 in
+JavaScript's k-means step and three exports nothing imported. Every iterate
+of every method, with new data sent in, is bit for bit unchanged in both
+languages, and `bench/run.py --compare` finds every affected case the same.
+*Rejected:* `assign` returning its costs with the memberships (a second
+output for one method).
+
 ## 2026-10-06 The data are an input of every iteration
 
 A step is `step(data, V, state, t)` and reads the data from its argument;

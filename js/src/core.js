@@ -1,10 +1,11 @@
 /**
  * Shared numerics: matrices, validation, distances, initialization and the
- * engine. Every iterative method runs in one loop, iterate, which repeats a
- * step until the prototypes stop moving; it is a generator so callers can
- * observe, pause or cancel it. Nearly all methods use the standard step lloyd,
- * D = ||x_i - v_c||^2 -> U = assign(D) -> V = update(U); a method whose
- * iteration has another shape (the online SOM) supplies its own step.
+ * engine. Every iterative method runs in one loop, iterate, which repeats the
+ * method's step until the prototypes stop moving; it is a generator so callers
+ * can observe, pause or cancel it. The fuzzy and rough c-means use the
+ * standard step lloyd, D = ||x_i - v_c||^2 -> U = assign(D) -> V = update(U);
+ * k-means (with Hamerly's bounds) and the maps, whose iterations have other
+ * shapes, supply their own steps.
  */
 
 /** @typedef {{ data: Float64Array, rows: number, cols: number }} Matrix */
@@ -19,7 +20,7 @@
  * @property {Int32Array} labels strongest membership (nearest prototype for kmeans, best-matching unit for som and batchSom).
  * @property {Matrix | null} membership (N, K) memberships; null for hard methods.
  * @property {number} nIter iterations performed (epochs for SOMs).
- * @property {boolean} converged stopping rule met (SOMs: schedule completed).
+ * @property {boolean} converged stopping rule met (som and batchSom: schedule completed).
  * @property {Float64Array} history objective per iteration; empty when undefined.
  * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs.
  */
@@ -129,7 +130,7 @@ export function random(seed) {
 }
 
 /** Center the columns of X; returns the centered copy and the mean. */
-export function center(X) {
+function center(X) {
   const { rows: n, cols: d, data } = X;
   const mean = new Float64Array(d);
   for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) mean[f] += data[i * d + f];
@@ -289,7 +290,7 @@ function divide(sums, mass, V) {
  * best, by the resulting sum of squared distances to the nearest seed, of
  * 2 + floor(ln k) candidates drawn in proportion to that squared distance.
  */
-export function kmeansPlusPlus(X, k, rand) {
+function kmeansPlusPlus(X, k, rand) {
   const { rows: n, cols: d } = X, chosen = [Math.floor(rand() * n)], trials = 2 + Math.floor(Math.log(k));
   const row = i => ({ data: X.data.subarray(i * d, (i + 1) * d), rows: 1, cols: d });
   let closest = sqdist(X, row(chosen[0])).data;
@@ -389,8 +390,9 @@ export function checkMaxIter(value) {
  *
  * The run ends when no prototype coordinate moves more than tol times the
  * RMS radius of the data and no new data arrive (tol = 0: an exact fixed
- * point; tol = null: a fixed schedule), or after maxIter iterations
- * (Infinity: no limit), and returns view(loop), the method's Result. After
+ * point), or after maxIter iterations (Infinity: no limit); tol = null means
+ * a fixed schedule, which converges by completing its maxIter iterations.
+ * It returns view(loop), the method's Result. After
  * every step it yields { iteration, result }, where result() builds the same
  * Result as if the run had stopped there; it costs nothing unless called and
  * stays valid as the loop goes on, because steps never modify a state they
@@ -410,7 +412,7 @@ export function* iterate(data, V, step, { maxIter, tol, view, prepare = asData, 
     if (next.value !== null) history.push(next.value);
     let move = 0;
     for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
-    const converged = tol !== null && move <= tol * data.radius;
+    const converged = tol === null ? t === maxIter : move <= tol * data.radius;
     const loop = { data, V, state, nIter: t, converged }, length = history.length;
     const result = () => view({ ...loop, history: Float64Array.from(history.slice(0, length)) });
     const rows = yield { iteration: t, result };
@@ -425,16 +427,24 @@ export function* iterate(data, V, step, { maxIter, tol, view, prepare = asData, 
 }
 
 /**
- * The standard step: D = ||x - v||^2, U = assign(data, D, U_prev, t), V = update(data, U, V, t).
- * assign returns labels or memberships, which are the step's state; the
+ * The Result of a loop with the labels, memberships and embedding of its method.
+ * @param {Loop} loop @param {Int32Array} labels @param {Matrix | null} [membership] @param {Matrix | null} [embedding]
+ * @returns {Result}
+ */
+export function fitted({ data, V, nIter, converged, history }, labels, membership = null, embedding = null) {
+  return { centers: shift(V, data.mean), labels, membership, nIter, converged, history, embedding };
+}
+
+/**
+ * The standard step: D = ||x - v||^2, U = assign(data, D), V = update(data, U, V).
+ * The memberships U are the step's state, which the method's view reads; the
  * optional objective(D, U) gives one history value.
  * @returns {Step}
  */
 export function lloyd({ assign, update, objective = null }) {
-  return (data, V, U, t) => {
-    const D = sqdist(data.X, V);
-    U = assign(data, D, U, t);
-    return { V: update(data, U, V, t), state: U, value: objective ? objective(D, U) : null };
+  return (data, V) => {
+    const D = sqdist(data.X, V), U = assign(data, D);
+    return { V: update(data, U, V), state: U, value: objective ? objective(D, U) : null };
   };
 }
 

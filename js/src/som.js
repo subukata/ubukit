@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, iterate, labelSums, lloyd, mapMatrix,
+  argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
   matrix, nearest, random, shift, softmaxRows, sqdist, sumMinMax, weightedMean,
 } from './core.js';
 
@@ -56,7 +56,7 @@ export function* som(X, grid = [10, 10], {
     }
     return { V: { data: w, rows: k, cols: d }, state: null, value: null };
   };
-  return yield* iterate(s.data, s.W, epoch, { maxIter: epochs, tol: null, view: loop => finish(R, loop, epochs) });
+  return yield* iterate(s.data, s.W, epoch, { maxIter: epochs, tol: null, view: mapView(R) });
 }
 
 /**
@@ -75,7 +75,8 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     const a = Math.floor(i / size) - (i % size);
     return Math.exp(-(a * a) / (2 * sg * sg));
   });
-  const update = (data, labels, W, t) => {
+  const step = (data, W, _, t) => {
+    const labels = nearest(data.X, W);
     const sg = epochs > 1 ? s0 * (s1 / s0) ** (t / (epochs - 1)) : s0;
     const Kr = kernel(rows, sg), Kc = kernel(cols, sg);
     const { sums, counts } = labelSums(data.X, labels, k);
@@ -96,13 +97,9 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
       const den = a[j * width + d];
       if (den > 0) for (let f = 0; f < d; f++) out[j * d + f] = a[j * width + f] / den;
     }
-    return { data: out, rows: k, cols: d };
+    return { V: { data: out, rows: k, cols: d }, state: labels, value: null };
   };
-  const step = (data, W, _, t) => {
-    const labels = nearest(data.X, W);
-    return { V: update(data, labels, W, t), state: labels, value: null };
-  };
-  return yield* iterate(s.data, s.W, step, { maxIter: epochs, tol: null, view: loop => finish(s.R, loop, epochs) });
+  return yield* iterate(s.data, s.W, step, { maxIter: epochs, tol: null, view: mapView(s.R) });
 }
 
 /**
@@ -118,28 +115,23 @@ export function* somOlp(X, grid = [10, 10], options) {
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
   const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale', 0, true));
-  let cost = null;
-  const assign = (_, D, P) => {
-    cost = D;
+  const step = (data, W, P) => {
+    // The previous memberships P give the latent positions P R; the first iteration has none.
+    let cost = sqdist(data.X, W);
     if (P) {
       const extra = sqdist(multiply(P, s.R), s.R).data;
-      cost = mapMatrix(D, (v, i) => v + gamma * extra[i]);
+      cost = mapMatrix(cost, (v, i) => v + gamma * extra[i]);
     }
-    return softmaxRows(mapMatrix(cost, v => -v / lam));
+    P = softmaxRows(mapMatrix(cost, v => -v / lam));
+    // At these memberships, sum_j p cost + lam p log p = cost_min + lam log p_max per point.
+    const value = sumMinMax(cost, P, (c, p) => c + lam * Math.log(p));
+    return { V: weightedMean(data.X, P, W), state: P, value };
   };
-  const step = lloyd({
-    assign, update: (data, P, W) => weightedMean(data.X, P, W),
-    // At the memberships of these costs, sum_j p cost + lam p log p = cost_min + lam log p_max per point.
-    objective: (D, P) => sumMinMax(cost, P, (c, p) => c + lam * Math.log(p)),
-  });
   // The memberships give each point's latent position for the next iteration:
   // they carry over when the rows are the same points.
   const keep = (P, data) => (P.rows === data.X.rows ? P : null);
-  const view = ({ data, V, state: P, nIter, converged, history }) => ({
-    // A copy: the next step reads P.
-    centers: shift(V, data.mean), labels: argmaxRows(P), membership: copyMatrix(P), nIter, converged, history,
-    embedding: multiply(P, s.R),
-  });
+  // A copy of the memberships: the next step reads them.
+  const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, s.R));
   return yield* iterate(s.data, s.W, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view, keep });
 }
 
@@ -188,13 +180,12 @@ function sigmas(sigma, sigmaEnd, R) {
   return [checkNumber(sigma, 'sigma', 0, true), checkNumber(sigmaEnd, 'sigmaEnd', 0, true)];
 }
 
-/** A map's Result for the prototypes the loop has reached; its schedule is complete after `epochs`. */
-function finish(R, { data, V, nIter }, epochs) {
-  const labels = nearest(data.X, V), q = R.cols, emb = new Float64Array(labels.length * q);
-  labels.forEach((j, i) => emb.set(R.data.subarray(j * q, (j + 1) * q), i * q));
-  return {
-    centers: shift(V, data.mean), labels, membership: null, nIter, converged: nIter === epochs,
-    history: new Float64Array(0), embedding: { data: emb, rows: labels.length, cols: q },
+/** The view of a map: the best-matching units of the prototypes reached. */
+function mapView(R) {
+  return loop => {
+    const labels = nearest(loop.data.X, loop.V), q = R.cols, emb = new Float64Array(labels.length * q);
+    labels.forEach((j, i) => emb.set(R.data.subarray(j * q, (j + 1) * q), i * q));
+    return fitted(loop, labels, null, { data: emb, rows: labels.length, cols: q });
   };
 }
 
