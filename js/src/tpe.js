@@ -134,8 +134,9 @@ export class TPE {
  * @returns {Promise<TPEResult>}
  */
 export async function minimize(f, space, { nTrials = 100, ...options } = {}) {
+  checkInt(nTrials, 'nTrials', 1);
   const tpe = new TPE(space, options);
-  for (let t = 0; t < checkInt(nTrials, 'nTrials', 1); t++) {
+  for (let t = 0; t < nTrials; t++) {
     const params = tpe.ask();
     tpe.tell(params, await f(params));
   }

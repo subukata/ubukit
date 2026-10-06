@@ -1,7 +1,8 @@
-"""Partitional clustering on the shared alternating engine.
+"""Partitional clustering on the shared engine.
 
-Each method below only defines how memberships follow from squared distances.
-See docs/algorithms.md for the update equations.
+The fuzzy and rough c-means define how memberships follow from squared
+distances and run the standard step; k-means runs Lloyd's step with
+Hamerly's bounds. See docs/algorithms.md for the update equations.
 """
 
 from __future__ import annotations
@@ -17,12 +18,12 @@ from ._core import (
     TINY,
     Data,
     Init,
-    Result,
     Steps,
     as_data,
     check_float,
     check_int,
     check_max_iter,
+    fitted,
     iterate,
     label_mean,
     lloyd,
@@ -59,7 +60,7 @@ def kmeans(
     data, V = start(X, k, init, seed)
 
     def view(loop):
-        return Result(loop.V + loop.data.mean, loop.state[0].copy(), None, *loop[3:])
+        return fitted(loop, loop.state[0].copy())
 
     max_iter = check_max_iter(max_iter)
     return (yield from iterate(data, V, _hamerly, max_iter=max_iter, tol=0.0, view=view))
@@ -129,7 +130,7 @@ def fcm(
     m = check_float(m, "m", 1.0, strict=True)
     data, V = start(X, k, init, seed)
 
-    def assign(data, D, _, t):
+    def assign(_, D):
         # (d_min / d)^(2/(m-1)), normalized: the softmax of -log d^2 / (m - 1)
         # without logarithms or exponentials (none at all for m = 2).
         D = np.maximum(D, TINY)
@@ -138,7 +139,7 @@ def fcm(
         U /= U.sum(axis=1, keepdims=True)
         return U
 
-    def update(data, U, V, t):
+    def update(data, U, V):
         # Scaling each column by its maximum leaves the means unchanged and
         # keeps u^m from underflowing to all zeros for large m.
         return weighted_mean(data.X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
@@ -179,8 +180,8 @@ def efcm(
         return float(np.sum(D.min(axis=1) + tau * np.log(U.max(axis=1))))
 
     step = lloyd(
-        assign=lambda data, D, _, t: softmax_rows(D * (-1.0 / tau)),
-        update=lambda data, U, V, t: weighted_mean(data.X, U, V),
+        assign=lambda _, D: softmax_rows(D * (-1.0 / tau)),
+        update=lambda data, U, V: weighted_mean(data.X, U, V),
         objective=objective,
     )
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
@@ -210,7 +211,7 @@ def rcm(
     p = check_float(p, "p", 0.0, strict=True)
     data, V = start(X, k, init, seed)
 
-    def assign(data, D, _, t):
+    def assign(_, D):
         d = np.sqrt(D)
         a = alpha * d.min(axis=1, keepdims=True)
         # radius = ((alpha d_min)^p + beta^p)^(1/p), scaled to avoid under/overflow.
@@ -221,7 +222,7 @@ def rcm(
         mask = d <= radius
         return mask / mask.sum(axis=1, keepdims=True)
 
-    step = lloyd(assign, update=lambda data, U, V, t: weighted_mean(data.X, U, V))
+    step = lloyd(assign, update=lambda data, U, V: weighted_mean(data.X, U, V))
     max_iter = check_max_iter(max_iter)
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft))
 
@@ -256,12 +257,12 @@ def rmcm(
 
     data, V = start(X, k, init, seed, prepare)
 
-    def assign(data, D, _, t):
+    def assign(data, D):
         n = len(D)
         H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), np.arange(n + 1)), shape=D.shape)
         return (data.P @ H).toarray()
 
-    step = lloyd(assign, update=lambda data, U, V, t: weighted_mean(data.X, U, V))
+    step = lloyd(assign, update=lambda data, U, V: weighted_mean(data.X, U, V))
     max_iter = check_max_iter(max_iter)
     return (
         yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft, prepare=prepare)
@@ -278,7 +279,7 @@ class _Neighbors(Data):
 def _soft(loop):
     """The view of soft and rough clusterings: memberships are the state."""
     U = loop.state.copy()
-    return Result(loop.V + loop.data.mean, U.argmax(axis=1), U, *loop[3:])
+    return fitted(loop, U.argmax(axis=1), U)
 
 
 def _neighborhood(X: np.ndarray, delta: float, max_edges: int) -> sparse.csr_matrix:

@@ -110,14 +110,17 @@ How the principles are realized today. This section changes with the code.
   (centering, and for `rmcm` its neighborhood graph), the prototypes carry
   over, and the state carries over only through the method's `keep`
   (SOM-OLP's memberships); other state is a cache of the old data. The
-  standard step is `lloyd(assign, update, objective)`; k-means uses an exact
-  accelerated step with Hamerly's bounds, and the online SOM's step is one
-  epoch. Each
-  method passes the loop its `view`, the function that turns the loop's state
-  into its Result, so every yielded iteration can build, on demand, the
-  Result the run would return had it stopped there; steps therefore never
-  modify a state they have returned, and views copy the state they put in a
-  Result, so changing a Result leaves the run unchanged. Each fitting
+  standard step, `lloyd(assign, update, objective)`, serves the fuzzy and
+  rough c-means; k-means (an exact accelerated step with Hamerly's bounds),
+  the batch SOM (separable smoothing), the online SOM (one epoch) and SOM-OLP
+  (memberships that depend on the previous ones) have their own. With
+  `tol=None` the loop runs a fixed schedule, which converges when complete.
+  Each method passes the loop its `view`, which adds the method's labels,
+  memberships and embedding to what every Result has (`fitted`), so every
+  yielded iteration can build, on demand, the Result the run would return
+  had it stopped there; steps therefore never modify a state they have
+  returned, and views copy the state they put in a Result, so changing a
+  Result leaves the run unchanged. Each fitting
   function is written once as such a generator: `steps` exposes the
   generators, and the plain functions run them to the end (`stepwise` in
   Python, `index.js` in JavaScript).
