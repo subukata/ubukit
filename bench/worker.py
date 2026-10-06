@@ -4,7 +4,8 @@ Usage: python bench/worker.py request.json  (results as JSON on stdout)
 
 The request names the source tree whose UbuKit to import, so --compare can
 time another commit with this same harness, and the implementation:
-"python" (UbuKit) or "scikit-learn" (references for the same quantities).
+"python" (UbuKit), "scikit-learn" (references for the same quantities) or
+"baseline" (the textbook code in baseline.py).
 """
 
 from __future__ import annotations
@@ -26,7 +27,14 @@ def main(request_path: str) -> None:
 
     import ubukit as ub
 
-    functions = _references() if request["impl"] == "scikit-learn" else _ubukit(ub)
+    if request["impl"] == "baseline":
+        import baseline
+
+        functions = {name: getattr(baseline, name) for name in baseline.__all__}
+    elif request["impl"] == "scikit-learn":
+        functions = _references()
+    else:
+        functions = _ubukit(ub)
     data = _Data(Path(request["data"]), np)
     results = {}
     for case in request["cases"]:
@@ -104,7 +112,7 @@ def _references() -> dict:
     """scikit-learn computations of the same quantities, called like UbuKit."""
     from sklearn.cluster import KMeans
     from sklearn.manifold import trustworthiness
-    from sklearn.metrics import adjusted_mutual_info_score
+    from sklearn.metrics import adjusted_mutual_info_score, adjusted_rand_score
 
     def kmeans(X, k, *, init=None, seed=None):
         model = KMeans(
@@ -126,6 +134,7 @@ def _references() -> dict:
         "kmeans": kmeans,
         "trustworthiness": lambda X, Y, k: trustworthiness(X, Y, n_neighbors=k),
         "ami": adjusted_mutual_info_score,
+        "ari": adjusted_rand_score,
     }
 
 

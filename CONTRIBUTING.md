@@ -51,6 +51,7 @@ where it computes the same quantity, scikit-learn, and reports time
 | Is the change faster? Are the results unchanged? | `python bench/run.py --compare main --only name` |
 | Did the behavior of the default settings change? | `python bench/run.py --quality --only name` |
 | How does the time grow with N? | `python bench/run.py --size s,m,l --only name` |
+| What does UbuKit gain over the textbook code? | `python bench/run.py --baseline` |
 
 `--compare` alternates the two trees in ABBA order and says "faster" or
 "slower" only when the samples do not overlap and the medians differ by at
@@ -58,6 +59,12 @@ least 5%, and "changed" when the results differ. Identical trees measured
 this way still differ by up to 5%. Times depend on the machine and on BLAS
 threads (`--threads 1` fixes them for the Python side), so compare runs from
 one machine only. Paste the tables into the pull request.
+
+`bench/baseline.py` holds the textbook NumPy form of every method (not
+shipped): `--baseline` times it, shows each time's speed-up over it, and
+marks a case whose results differ from it, so a change to a method's results
+changes its baseline too. It holds dense (N, N) arrays, so it runs at sizes
+up to m.
 
 ## Done
 

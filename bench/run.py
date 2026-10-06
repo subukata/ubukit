@@ -8,14 +8,17 @@ installed (scikit-learn provides the reference column):
     python bench/run.py --compare main    # this tree against a git ref
     python bench/run.py --size s,m,l      # growth with N
     python bench/run.py --quality         # default initialization over seeds
+    python bench/run.py --baseline        # also the textbook code, bench/baseline.py
     python bench/run.py --size smoke --check
 
 Each implementation runs in its own process (bench/worker.py, worker.mjs) on
 the same data, written once as binary files. A time is the median of
 --repeat runs after a warm-up, shown with +- half the range. --compare runs
 the two trees in ABBA order and calls a difference only when their samples
-do not overlap and their medians differ by at least 5%. Quality is computed
-here, the same way for every implementation.
+do not overlap and their medians differ by at least 5%. --baseline adds the
+time of the textbook code and each time's speed-up over it, and marks a
+result that differs from it. Quality is computed here, the same way for
+every implementation.
 """
 
 from __future__ import annotations
@@ -74,15 +77,19 @@ def _measure(runner, size, cases, fields, seeds, opts) -> list[dict]:
         "javascript": runner.work("javascript", ROOT, size, cases, opts.repeat, seeds),
         "scikit-learn": runner.work("scikit-learn", ROOT, size, cases, opts.repeat, seeds),
     }
+    if opts.baseline:
+        impls["baseline"] = runner.work("baseline", ROOT, size, cases, min(opts.repeat, 3), None)
     rows = []
     for case in cases:
         row = {"case": case.name, "size": size, "n": fields[case.data][0]}
         for impl, results in impls.items():
             if case.name in results:
                 row[impl] = _scored(case, results[case.name], fields)
-        py, js = (row.get(impl, {}).get("quality") for impl in ("python", "javascript"))
+        py, js, base = (row.get(i, {}).get("quality") for i in ("python", "javascript", "baseline"))
         if case.parity and not seeds and py and js:
             row["parity"] = _same(py, js, 1e-6)
+        if py and base:
+            row["baseline agrees"] = _same(py, base, 1e-6)
         rows.append(row)
     return rows
 
@@ -176,7 +183,7 @@ class _Runner:
         return self.tmp / f"data-{size}"
 
     def work(self, impl, src, size, cases, repeat, seeds, memory=False) -> dict:
-        if impl != "python":  # engines are Python's
+        if impl not in ("python", "baseline"):  # engines are Python's; the baseline ignores them
             cases = [c for c in cases if "engine" not in c.options]
         self.calls += 1
         request = self.tmp / f"request-{self.calls}.json"
@@ -248,21 +255,35 @@ def _print(report: dict, opts) -> None:
                 f" | {r['ratio']:.2f} | {r['verdict']} | {_results(r)} |"
             )
         return
+    first = ["baseline s"] if opts.baseline else []
+    order = "base/Py/JS/sk" if opts.baseline else "Py/JS/sk"
     print(
-        "| case | N | Python s | JS s | scikit-learn s | iterations (Py/JS/sk) | Python MB"
-        " | Python quality | JS quality |"
+        "| "
+        + " | ".join(["case", "N", *first, "Python s", "JS s", "scikit-learn s"])
+        + f" | iterations ({order}) | Python MB | Python quality | JS quality |"
     )
-    print("|---|---:|---:|---:|---:|---:|---:|---|---|")
+    print("|---|---:|" + "---:|" * len(first) + "---:|---:|---:|---:|---:|---|---|")
     for r in report["rows"]:
         py, js, sk = r.get("python", {}), r.get("javascript", {}), r.get("scikit-learn")
-        iters = "/".join(f"{d['n_iter']:g}" for d in (py, js, sk or {}) if "n_iter" in d)
+        base = r.get("baseline")
+        runs = ([base or {}] if opts.baseline else []) + [py, js, sk or {}]
+        iters = "/".join(f"{d['n_iter']:g}" for d in runs if "n_iter" in d)
         mb = f"{py['peak_mb']:.0f}" if "peak_mb" in py else ""
         mark = " **(differs)**" if r.get("parity") is False else ""
-        times = [_time(d) if d else "" for d in (js, sk)]  # Numba cases have only Python
-        cells = [r["case"], r["n"] or "", _time(py), *times, iters, mb]
-        cells += [_quality_text(py), _quality_text(js) + mark]
+        if r.get("baseline agrees") is False:
+            mark += " **(baseline differs)**"
+        # Each time with its speed-up over the baseline; only Python has the Numba cases.
+        times = [_time(d) + _speedup(base, d) if d else "" for d in (py, js, sk)]
+        cells = [r["case"], r["n"] or "", *([_time(base) if base else ""] if opts.baseline else [])]
+        cells += [*times, iters, mb, _quality_text(py), _quality_text(js) + mark]
         print("| " + " | ".join(map(str, cells)) + " |")
     _print_growth(report["rows"])
+
+
+def _speedup(base: dict | None, d: dict) -> str:
+    if not base or "seconds" not in base or "seconds" not in d:
+        return ""
+    return f" ({base['seconds'] / d['seconds']:.1f}x)"
 
 
 def _print_growth(rows: list[dict]) -> None:
@@ -329,7 +350,11 @@ def _parse():
     parser.add_argument("--threads", type=int, help="BLAS threads for the Python processes")
     parser.add_argument("--check", action="store_true", help="fail if the languages disagree")
     parser.add_argument("--json", metavar="PATH", help="also write all samples as JSON")
+    parser.add_argument("--baseline", action="store_true", help="also time bench/baseline.py")
     opts = parser.parse_args()
+    if opts.baseline and (opts.quality or opts.compare or "l" in opts.size.split(",")):
+        # The textbook code holds dense (N, N) arrays and supports only the given starts.
+        parser.error("--baseline times the fixed work at sizes up to m")
     if opts.size == "smoke":
         opts.repeat, opts.rounds = 1, 1
     return opts

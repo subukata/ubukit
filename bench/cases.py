@@ -56,6 +56,7 @@ CASES = [
         {"lam": 5.0, "gamma": 1.0, "max_iter": 30, "tol": 0.0},
     ),
     Case("trustworthiness", "trustworthiness", "embed", ("X", "Y", 10), quality=("value",)),
+    Case("ari", "ari", "labels", ("a", "b"), quality=("value",)),
     Case("ami", "ami", "labels", ("a", "b"), quality=("value",)),
     Case("tpe", "tpe_sphere", "none", (200,), {"seed": 0}, ("value",), parity=False),
     # Python's compiled kernels (engine="numba"); only Python runs these.
