@@ -123,7 +123,9 @@ def sq_norms(X: np.ndarray) -> np.ndarray:
     return np.einsum("ij,ij->i", X, X)
 
 
-def sqdist(X: np.ndarray, C: np.ndarray, xx=None, cc=None) -> np.ndarray:
+def sqdist(
+    X: np.ndarray, C: np.ndarray, xx: np.ndarray | None = None, cc: np.ndarray | None = None
+) -> np.ndarray:
     """Squared Euclidean distances (N, K) via the Gram identity, clipped at zero."""
     D = X @ (-2.0 * C).T  # scaling C rather than the (N, K) result; doubling is exact
     D += (sq_norms(X) if xx is None else xx)[:, None]
@@ -131,7 +133,7 @@ def sqdist(X: np.ndarray, C: np.ndarray, xx=None, cc=None) -> np.ndarray:
     return np.maximum(D, 0.0, out=D)
 
 
-def nearest(X: np.ndarray, C: np.ndarray, xx=None) -> np.ndarray:
+def nearest(X: np.ndarray, C: np.ndarray, xx: np.ndarray | None = None) -> np.ndarray:
     """Index of the nearest row of C for each row of X, ties to the lowest index.
 
     The same arithmetic as ``sqdist(X, C).argmin(axis=1)``, in blocks of rows
@@ -308,15 +310,13 @@ def fitted(
     return Result(centers, labels, membership, loop.n_iter, loop.converged, loop.history, embedding)
 
 
-# A fitting generator: it yields a Progress per iteration and returns the Result.
-Steps = Generator[Progress, None, Result]
-# The generators behind the public fitting functions, by name (ubukit.steps).
-STEPS: dict[str, Callable[..., Steps]] = {}
+# A fitting generator (ubukit.steps): it yields a Progress per iteration,
+# takes new rows or None by send, and returns the Result.
+Steps = Generator[Progress, ArrayLike | None, Result]
 
 
 def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
-    """Make a fitting generator a function that runs it to the end, and list it in STEPS."""
-    STEPS[generator.__name__] = generator
+    """The public fitting function of a generator: it runs the generator to the end."""
 
     @wraps(generator)
     def run(*args: P.args, **kwargs: P.kwargs) -> Result:
@@ -327,10 +327,12 @@ def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
             except StopIteration as end:
                 return end.value
 
-    # help() shows the generator's parameters with the Result it returns.
+    # help() shows the generator's parameters with the Result it returns, and
+    # pickle finds the function under its public name, ubukit.<name>.
     run.__signature__ = inspect.signature(generator).replace(  # type: ignore[attr-defined]
         return_annotation=Result
     )
+    run.__module__ = "ubukit"
     return run
 
 
@@ -388,7 +390,9 @@ def iterate(
             return result()
 
 
-def _result(view, loop: Loop, history: list[float]) -> Callable[[], Result]:
+def _result(
+    view: Callable[[Loop], Result], loop: Loop, history: list[float]
+) -> Callable[[], Result]:
     """The Result of ``loop`` with the history so far, built on demand."""
     n = len(history)
     return lambda: view(loop._replace(history=np.asarray(history[:n], dtype=float)))

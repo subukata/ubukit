@@ -1,5 +1,7 @@
 """ubukit.steps: the fitting functions as generators of per-iteration Results."""
 
+import pickle
+
 import numpy as np
 import pytest
 
@@ -158,8 +160,14 @@ def test_no_iteration_limit_runs_to_convergence(blobs):
 
 
 def test_steps_lists_every_fitting_function():
+    # Each fitting function runs its generator in ubukit.steps, and pickle
+    # finds it under its public name (for multiprocessing).
     fitting = ["batch_som", "efcm", "fcm", "kmeans", "rcm", "rmcm", "som", "som_olp"]
-    assert sorted(vars(ub.steps)) == fitting
+    assert sorted(ub.steps.__all__) == fitting
+    for name in fitting:
+        function = getattr(ub, name)
+        assert function.__wrapped__ is getattr(ub.steps, name)
+        assert pickle.loads(pickle.dumps(function)) is function
 
 
 def test_steps_validate_when_they_start():

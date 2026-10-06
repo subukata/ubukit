@@ -18,6 +18,8 @@ from ._core import (
     TINY,
     Data,
     Init,
+    Loop,
+    Result,
     Steps,
     as_data,
     check_float,
@@ -31,12 +33,10 @@ from ._core import (
     sq_norms,
     sqdist,
     start,
-    stepwise,
     weighted_mean,
 )
 
 
-@stepwise
 def kmeans(
     X: ArrayLike,
     k: int,
@@ -66,7 +66,9 @@ def kmeans(
     return (yield from iterate(data, V, _hamerly, max_iter=max_iter, tol=0.0, view=view))
 
 
-def _hamerly(data: Data, V: np.ndarray, state, t: int):
+def _hamerly(
+    data: Data, V: np.ndarray, state: tuple[np.ndarray, np.ndarray] | None, t: int
+) -> tuple[np.ndarray, tuple[np.ndarray, np.ndarray], float]:
     """Lloyd's step with Hamerly's bounds; the state is (labels, lower bounds).
 
     A point keeps its label without computing its other distances when its
@@ -107,7 +109,6 @@ def _hamerly(data: Data, V: np.ndarray, state, t: int):
     return V_new, (labels, lower), float(own.sum())
 
 
-@stepwise
 def fcm(
     X: ArrayLike,
     k: int,
@@ -154,7 +155,6 @@ def fcm(
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
 
-@stepwise
 def efcm(
     X: ArrayLike,
     k: int,
@@ -188,7 +188,6 @@ def efcm(
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
 
 
-@stepwise
 def rcm(
     X: ArrayLike,
     k: int,
@@ -227,7 +226,6 @@ def rcm(
     return (yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft))
 
 
-@stepwise
 def rmcm(
     X: ArrayLike,
     k: int,
@@ -276,7 +274,7 @@ class _Neighbors(Data):
     P: sparse.csr_matrix
 
 
-def _soft(loop):
+def _soft(loop: Loop) -> Result:
     """The view of soft and rough clusterings: memberships are the state."""
     U = loop.state.copy()
     return fitted(loop, U.argmax(axis=1), U)

@@ -120,10 +120,10 @@ How the principles are realized today. This section changes with the code.
   yielded iteration can build, on demand, the Result the run would return
   had it stopped there; steps therefore never modify a state they have
   returned, and views copy the state they put in a Result, so changing a
-  Result leaves the run unchanged. Each fitting
-  function is written once as such a generator: `steps` exposes the
-  generators, and the plain functions run them to the end (`stepwise` in
-  Python, `index.js` in JavaScript).
+  Result leaves the run unchanged. Each fitting function is written once as
+  such a generator, in `cluster` or `som`: `steps` exposes the generators,
+  and the package entry point makes the plain functions that run them to
+  the end (`stepwise` in Python's `__init__.py`, `index.js` in JavaScript).
 - **Input contract:** `as_matrix` (Python) and `matrix` (JavaScript) reject
   non-finite input and data outside the scale bounds.
 - **Implementations:** Python is vectorized NumPy/SciPy; JavaScript is plain
@@ -147,7 +147,7 @@ How the principles are realized today. This section changes with the code.
   each method, which `--baseline` times against UbuKit.
 
 ```
-python/src/ubukit/  _core.py cluster.py som.py metrics.py tpe.py _numba.py
+python/src/ubukit/  _core.py cluster.py som.py steps.py metrics.py tpe.py _numba.py
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
 bench/              cases.py run.py worker.py worker.mjs baseline.py

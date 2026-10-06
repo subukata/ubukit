@@ -6,6 +6,7 @@ Units sit on a rectangular grid; unit j = row * cols + col has coordinates
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -17,7 +18,9 @@ from ._core import (
     Data,
     Engine,
     Grid,
+    Loop,
     MapInit,
+    Result,
     Steps,
     as_data,
     as_matrix,
@@ -32,12 +35,10 @@ from ._core import (
     softmax_rows,
     sq_norms,
     sqdist,
-    stepwise,
     weighted_mean,
 )
 
 
-@stepwise
 def som(
     X: ArrayLike,
     grid: Grid = (10, 10),
@@ -91,7 +92,6 @@ def som(
     return (yield from iterate(data, W, epoch, max_iter=epochs, tol=None, view=_map(R)))
 
 
-@stepwise
 def batch_som(
     X: ArrayLike,
     grid: tuple[int, int] = (10, 10),
@@ -128,7 +128,6 @@ def batch_som(
     return (yield from iterate(data, W, step, max_iter=epochs, tol=None, view=_map(R)))
 
 
-@stepwise
 def som_olp(
     X: ArrayLike,
     grid: Grid = (10, 10),
@@ -239,7 +238,7 @@ def _pca_init(X: np.ndarray, R: np.ndarray, scale: float) -> np.ndarray:
     return (G * (scale * np.sqrt(np.maximum(eigval, 0.0)))) @ axes
 
 
-def _sigmas(sigma, sigma_end, R):
+def _sigmas(sigma: float | None, sigma_end: float, R: np.ndarray) -> tuple[float, float]:
     """Neighborhood width schedule endpoints; default start is half the grid extent."""
     if sigma is None:
         sigma = float(np.ptp(R, axis=0).max()) / 2 or 1.0
@@ -249,10 +248,10 @@ def _sigmas(sigma, sigma_end, R):
     )
 
 
-def _map(R):
+def _map(R: np.ndarray) -> Callable[[Loop], Result]:
     """The view of a map: the best-matching units of the prototypes reached."""
 
-    def view(loop):
+    def view(loop: Loop) -> Result:
         labels = nearest(loop.data.X, loop.V, loop.data.xx)
         return fitted(loop, labels, embedding=R[labels])
 

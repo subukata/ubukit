@@ -4,6 +4,23 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Typed generators in Python (#66)
+
+The fitting generators are the functions of `cluster.py` and `som.py`;
+`ubukit.steps` is a module that lists them, and `__init__.py` makes the
+plain functions from them with `stepwise`, as JavaScript's `index.js` does.
+A fitting generator takes new rows or `None` by `send`. mypy also checks the
+bodies of untyped functions and reports unneeded ignores, and
+`tests/typing_api.py` calls the API as typed code does. *Why:* `ubukit.steps`
+was a `SimpleNamespace` filled by the decorator, so to type checkers every
+generator was `Any` and `ub.steps.fcm(X, "3")` passed, and the generator
+type declared that nothing could be sent, so typing them would have
+rejected `run.send(X)` as the README writes it; the typed API of #53 had
+missed both. The decorator also filled a module-level registry as a side
+effect of importing. The plain functions keep `ubukit` as their module, so
+pickle and multiprocessing find them as before. *Rejected:* a typed stub
+listing the generators beside the namespace (every signature twice).
+
 ## 2026-10-06 Each method's step fits it; one way to build a Result (#65)
 
 SOM-OLP has its own step, like k-means and the maps, and the standard step
