@@ -405,14 +405,20 @@ def _result(
     return lambda: view(loop._replace(history=np.asarray(history[:n], dtype=float)))
 
 
-def lloyd(assign: Assign, update: Update) -> Step:
+def means(data: Data, U: np.ndarray, V: np.ndarray) -> np.ndarray:
+    """The standard update: the means of the data weighted by the memberships."""
+    return weighted_mean(data.X, U, V)
+
+
+def lloyd(assign: Assign, update: Update = means) -> Step:
     """The standard step: D = ||x - v||^2, (U, J) = assign(data, D), V = update(data, U, V).
 
     ``assign`` gives the memberships U for these distances, the step's state
     (which the method's view reads), and the method's objective J at them,
     one history value (None for a method without one). The memberships
     minimize the objective for the given prototypes, and the quantities that
-    compute them give its value, so it costs almost nothing.
+    compute them give its value, so it costs almost nothing. ``update``
+    defaults to the means weighted by U.
     """
 
     def step(data, V, _, t):

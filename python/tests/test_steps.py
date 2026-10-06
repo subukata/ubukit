@@ -175,3 +175,23 @@ def test_steps_validate_when_they_start():
     run = ub.steps.kmeans(np.zeros((5, 2)), 9)
     with pytest.raises(ValueError, match="k"):
         next(run)
+
+
+@pytest.mark.parametrize(
+    ("call", "match"),
+    [
+        (lambda X: ub.kmeans(X, 3, max_iter=0), "max_iter"),
+        (lambda X: ub.fcm(X, 3, tol=-1.0), "tol"),
+        (lambda X: ub.efcm(X, 3, max_iter=0), "max_iter"),
+        (lambda X: ub.rcm(X, 3, max_iter=0), "max_iter"),
+        (lambda X: ub.rmcm(X, 3, 0.5, max_iter=0), "max_iter"),
+        (lambda X: ub.som(X, (3, 3), epochs=0), "epochs"),
+        (lambda X: ub.batch_som(X, (3, 3), sigma=0.0), "sigma"),
+        (lambda X: ub.som_olp(X, (3, 3), lam=1.0, gamma=1.0, tol=-1.0), "tol"),
+    ],
+)
+def test_arguments_are_checked_before_the_data(call, match):
+    # The data are invalid too: a wrong argument is reported before any work
+    # on the data (centering, seeding, the PCA start).
+    with pytest.raises(ValueError, match=match):
+        call(np.full((10, 2), np.nan))

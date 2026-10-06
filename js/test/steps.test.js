@@ -115,6 +115,19 @@ test('new data are checked, and no iteration limit runs to convergence', () => {
   assertClose(ub.fcm(X, 3, { seed: 0, maxIter: Infinity }), ub.fcm(X, 3, { seed: 0, maxIter: 10_000 }), 'maxIter');
 });
 
+test('arguments are checked before the data', () => {
+  // The data are invalid too: a wrong argument is reported before any work
+  // on the data (centering, seeding, the PCA start).
+  const bad = X.map(() => [NaN, 0]);
+  for (const [call, name] of [
+    [() => ub.kmeans(bad, 3, { maxIter: 0 }), /maxIter/], [() => ub.fcm(bad, 3, { tol: -1 }), /tol/],
+    [() => ub.efcm(bad, 3, { maxIter: 0 }), /maxIter/], [() => ub.rcm(bad, 3, { maxIter: 0 }), /maxIter/],
+    [() => ub.rmcm(bad, 3, 0.5, { maxIter: 0 }), /maxIter/], [() => ub.som(bad, [3, 3], { epochs: 0 }), /epochs/],
+    [() => ub.batchSom(bad, [3, 3], { sigma: 0 }), /sigma/],
+    [() => ub.somOlp(bad, [3, 3], { lam: 1, gamma: 1, tol: -1 }), /tol/],
+  ]) assert.throws(call, name);
+});
+
 test('runAsync reports progress and honors abort', async () => {
   const seen = [];
   const r = await ub.runAsync(ub.steps.fcm(X, 3, { seed: 0 }), { onProgress: p => seen.push(p.iteration) });

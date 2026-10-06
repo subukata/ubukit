@@ -25,9 +25,10 @@ const soft = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state)
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
+  checkMaxIter(maxIter);
   const { data, V } = start(X, k, init, seed);
   const view = loop => fitted(loop, loop.state.labels.slice());
-  return yield* iterate(data, V, hamerly, { maxIter: checkMaxIter(maxIter), tol: 0, view });
+  return yield* iterate(data, V, hamerly, { maxIter, tol: 0, view });
 }
 
 /**
@@ -102,12 +103,14 @@ function hamerly(data, V, state) {
  */
 export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
   checkNumber(m, 'm', 1, true);
+  checkMaxIter(maxIter);
+  checkNumber(tol, 'tol', 0);
   const { data, V } = start(X, k, init, seed);
   const step = lloyd({
     assign: (_, D) => fuzzyMemberships(D, m),
     update: (data, U, V) => weightedMean(data.X, fuzzyWeights(U, m), V),
   });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: soft });
+  return yield* iterate(data, V, step, { maxIter, tol, view: soft });
 }
 
 /**
@@ -148,12 +151,11 @@ function fuzzyWeights(U, m) {
  */
 export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
   checkNumber(tau, 'tau', 0, true);
+  checkMaxIter(maxIter);
+  checkNumber(tol, 'tol', 0);
   const { data, V } = start(X, k, init, seed);
-  const step = lloyd({
-    assign: (_, D) => softmin(D, tau),
-    update: (data, U, V) => weightedMean(data.X, U, V),
-  });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view: soft });
+  const step = lloyd({ assign: (_, D) => softmin(D, tau) });
+  return yield* iterate(data, V, step, { maxIter, tol, view: soft });
 }
 
 /**
@@ -166,6 +168,7 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
   checkNumber(alpha, 'alpha', 1);
   checkNumber(beta, 'beta', 0);
   checkNumber(p, 'p', 0, true);
+  checkMaxIter(maxIter);
   const { data, V } = start(X, k, init, seed);
   const assign = (_, D) => {
     const { rows: n, cols: kk } = D, U = { data: new Float64Array(n * kk), rows: n, cols: kk };
@@ -180,8 +183,8 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
     }
     return { U, value: null };
   };
-  const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: soft });
+  const step = lloyd({ assign });
+  return yield* iterate(data, V, step, { maxIter, tol: 0, view: soft });
 }
 
 /**
@@ -193,6 +196,7 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
 export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed } = {}) {
   checkNumber(delta, 'delta', 0);
   checkInt(maxEdges, 'maxEdges', 1);
+  checkMaxIter(maxIter);
   // The data with their neighborhood graph, built again for new data.
   const prepare = (rows, nFeatures) => {
     const d = asData(rows, nFeatures);
@@ -207,8 +211,8 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
     }
     return { U: R, value: null };
   };
-  const step = lloyd({ assign, update: (data, U, V) => weightedMean(data.X, U, V) });
-  return yield* iterate(data, V, step, { maxIter: checkMaxIter(maxIter), tol: 0, view: soft, prepare });
+  const step = lloyd({ assign });
+  return yield* iterate(data, V, step, { maxIter, tol: 0, view: soft, prepare });
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */

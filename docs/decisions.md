@@ -4,6 +4,21 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 Arguments before data; the standard update by default (#71)
+
+Every fitting function checks all its arguments before it touches the data
+(the maps build their unit coordinates first, so the default `sigma` needs
+no data), `lloyd`'s `update` defaults to the means weighted by the
+memberships, and rmcm builds its data by field name. *Why:* a wrong `tol`,
+`max_iter` or `epochs` was reported only after centering, k-means++ seeding
+or the PCA start, which can take seconds on large data, and the order
+differed between methods; three methods per language spelled out the same
+weighted-mean update; and building rmcm's data by position would shift the
+fields silently if `Data` gained one, the problem #65 removed from the
+views. Iterates are bit for bit unchanged in both languages, and tests now
+require arguments to be checked first. *Rejected:* checking arguments
+inside `start` and `_setup` (they would need every method's options).
+
 ## 2026-10-06 JavaScript's public types are tested as npm users see them (#70)
 
 `js/test/typing-api.js`, like `python/tests/typing_api.py`, calls the API as

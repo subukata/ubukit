@@ -24,13 +24,13 @@ import {
 export function* som(X, grid = [10, 10], {
   epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed,
 } = {}) {
-  const s = setup(X, grid, init);
+  const R = gridCoordinates(grid);
   checkInt(epochs, 'epochs', 1);
-  const [s0, s1] = sigmas(sigma, sigmaEnd, s.R);
+  const [s0, s1] = sigmas(sigma, sigmaEnd, R);
   checkNumber(lr, 'lr', 0, true);
   checkNumber(lrEnd, 'lrEnd', 0, true);
   if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
-  const R = s.R, k = R.rows, q = R.cols, rand = random(seed);
+  const { data, W } = setup(X, R, init), k = R.rows, q = R.cols, rand = random(seed);
   const epoch = (data, W, _, e) => {
     const { rows: n, cols: d, data: x } = data.X, steps = epochs * n;
     const w = W.data.slice(), diff = new Float64Array(k * d), order = Int32Array.from({ length: n }, (_, i) => i);
@@ -56,7 +56,7 @@ export function* som(X, grid = [10, 10], {
     }
     return { V: { data: w, rows: k, cols: d }, state: null, value: null };
   };
-  return yield* iterate(s.data, s.W, epoch, { maxIter: epochs, tol: null, view: mapView(R) });
+  return yield* iterate(data, W, epoch, { maxIter: epochs, tol: null, view: mapView(R) });
 }
 
 /**
@@ -66,11 +66,10 @@ export function* som(X, grid = [10, 10], {
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca' } = {}) {
-  const [rows, cols] = shape(grid);
-  const s = setup(X, grid, init);
+  const [rows, cols] = shape(grid), R = gridCoordinates(grid);
   checkInt(epochs, 'epochs', 1);
-  const [s0, s1] = sigmas(sigma, sigmaEnd, s.R);
-  const d = s.data.X.cols, k = rows * cols;
+  const [s0, s1] = sigmas(sigma, sigmaEnd, R);
+  const { data, W } = setup(X, R, init), d = data.X.cols, k = rows * cols;
   const kernel = (size, sg) => Float64Array.from({ length: size * size }, (_, i) => {
     const a = Math.floor(i / size) - (i % size);
     return Math.exp(-(a * a) / (2 * sg * sg));
@@ -99,7 +98,7 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     }
     return { V: { data: out, rows: k, cols: d }, state: labels, value: null };
   };
-  return yield* iterate(s.data, s.W, step, { maxIter: epochs, tol: null, view: mapView(s.R) });
+  return yield* iterate(data, W, step, { maxIter: epochs, tol: null, view: mapView(R) });
 }
 
 /**
@@ -114,12 +113,15 @@ export function* somOlp(X, grid = [10, 10], options) {
   const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = options ?? /** @type {any} */ ({});
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
-  const s = setup(X, grid, init, checkNumber(pcaScale, 'pcaScale', 0, true));
+  checkNumber(pcaScale, 'pcaScale', 0, true);
+  checkMaxIter(maxIter);
+  checkNumber(tol, 'tol', 0);
+  const R = gridCoordinates(grid), { data, W } = setup(X, R, init, pcaScale);
   const step = (data, W, P) => {
     // The previous memberships P give the latent positions P R; the first iteration has none.
     let cost = sqdist(data.X, W);
     if (P) {
-      const extra = sqdist(multiply(P, s.R), s.R).data;
+      const extra = sqdist(multiply(P, R), R).data;
       cost = mapMatrix(cost, (v, i) => v + gamma * extra[i]);
     }
     const { U, value } = softmin(cost, lam); // value: the objective at these memberships
@@ -130,8 +132,8 @@ export function* somOlp(X, grid = [10, 10], options) {
   // of rows stays the same, row i being the same point.
   const keep = (P, data) => (P.rows === data.X.rows ? P : null);
   // A copy of the memberships: the next step reads them.
-  const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, s.R));
-  return yield* iterate(s.data, s.W, step, { maxIter: checkMaxIter(maxIter), tol: checkNumber(tol, 'tol', 0), view, keep });
+  const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, R));
+  return yield* iterate(data, W, step, { maxIter, tol, view, keep });
 }
 
 function multiply(A, B) {
@@ -156,14 +158,14 @@ function gridCoordinates(grid) {
   return { data, rows: rows * cols, cols: 2 };
 }
 
-/** The data, the unit coordinates and the initial prototypes (centered like the data). */
-function setup(X, grid, init, pcaScale = 2) {
-  const data = asData(X), Xc = data.X, R = gridCoordinates(grid);
-  if (init === 'pca') return { data, R, W: pcaInit(Xc, R, pcaScale) };
+/** The data and the initial prototypes of the units at R (centered like the data). */
+function setup(X, R, init, pcaScale = 2) {
+  const data = asData(X), Xc = data.X;
+  if (init === 'pca') return { data, W: pcaInit(Xc, R, pcaScale) };
   if (typeof init === 'string') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
   const W = matrix(init, 'init');
   if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
-  return { data, R, W: shift(W, data.mean.map(v => -v)) };
+  return { data, W: shift(W, data.mean.map(v => -v)) };
 }
 
 function sigmas(sigma, sigmaEnd, R) {
