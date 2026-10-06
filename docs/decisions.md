@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 0.1.0 released; npm through its trusted publisher only (#82)
+
+UbuKit 0.1.0 is on PyPI and npm, both built by `release.yml` from the
+release commit on `main` and published with provenance (PyPI's attestation
+names `release.yml` and the `pypi` environment; npm's statement is in the
+public transparency log). npm trusts only an existing package, so its first
+upload used a short-lived token; npm now publishes through its trusted
+publisher like PyPI, the token is revoked, and `release.yml` reads no secret.
+*Why:* a stored publishing token is the credential an attacker would want;
+trusted publishing mints one per run, for this workflow and environment
+only. *Rejected:* keeping the token for convenience (it would outlive its
+one use).
+
 ## 2026-10-06 No JavaScript allocation sized by a claimed length (#80)
 
 `ari`, `ami` and `toRows` check their input as `matrix` does since #76: a

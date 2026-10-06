@@ -5,11 +5,10 @@
 # upload the built files with trusted publishing (OIDC), so no dependency code
 # runs where a publishing token can be minted. npm waits for PyPI, so a
 # failed upload never leaves the new version on npm alone.
-# The one-time setup is listed under "Releasing" in CONTRIBUTING.md: the
-# repository must be public (npm does not generate provenance in private
-# repositories), and npm can only trust a package that already exists, so the
-# very first npm release reads a short-lived NPM_TOKEN secret from the "npm"
-# environment; delete that secret once the trusted publisher is configured.
+# The one-time setup is listed under "Releasing" in CONTRIBUTING.md; the
+# repository must be public, since npm does not generate provenance in
+# private repositories. Both registries trust this workflow and its
+# environment, so no publishing token is stored anywhere.
 name: Release
 
 on:
@@ -115,5 +114,3 @@ jobs:
           registry-url: https://registry.npmjs.org
       # The ./ prefix keeps npm from reading the path as a GitHub "owner/repo".
       - run: npm publish ./dist/npm/*.tgz --provenance --access public --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
