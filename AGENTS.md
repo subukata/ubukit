@@ -12,9 +12,10 @@ Unless the maintainer asks for it:
   repository settings, environments or secrets;
 - do not add dependencies or CI actions;
 - do not start a GitHub Actions workflow (dispatching or re-running one, or
-  anything else that triggers one). Say which workflow, how many jobs and on
-  which systems before asking: Actions minutes are the maintainer's and
-  limited.
+  anything else that triggers one), except CI on a pull request, which a
+  push to it starts on Ubuntu at no cost while the repository is public. Say
+  which workflow, how many jobs and on which systems before asking: Actions
+  minutes are the maintainer's, and paid while the repository is private.
 
 Never:
 

@@ -4,6 +4,21 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 CI on every pull request, on Ubuntu, once public (#73)
+
+CI runs its six Ubuntu jobs on every pull request, and a new push cancels
+the earlier run; Windows and macOS still run by hand, once each before a
+release. While the repository is private, pull requests skip every job, and
+agents may start no workflow but this one. *Why:* the repository is about
+to become public, where standard runners cost nothing; the runs of
+2026-10-05 took 1 to 2.3 minutes from start to finish, three systems
+included (6.6 job-minutes for 14 jobs), and Dependabot's pull requests no
+longer need checking out by hand. The decision of #50 was about paid
+minutes, which the skip keeps should the repository become private again.
+*Rejected:* all three systems on every pull request (Windows and macOS
+rarely differ here, and their jobs are the slowest) and keeping CI manual
+(no reason once runs are free).
+
 ## 2026-10-06 scikit-learn's notice for three expressions in ARI and AMI (#72)
 
 `THIRD_PARTY_NOTICES.txt` (in the repository and both packages) keeps
