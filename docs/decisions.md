@@ -4,6 +4,22 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-06 scikit-learn's notice for three expressions in ARI and AMI (#72)
+
+`THIRD_PARTY_NOTICES.txt` (in the repository and both packages) keeps
+scikit-learn's BSD 3-Clause notice for the ARI expression from pair counts
+with its fn = fp = 0 case, the AMI of 1.0 for single clusters, and the
+signed epsilon of the AMI denominator; comments mark them in both
+languages, and the packages declare `MIT AND BSD-3-Clause`. *Why:* the code
+before the rebuild (#36) recorded these as adapted from scikit-learn and kept
+its notice; the rebuild kept the same expressions but not the notice, which
+a check before making the repository public found. Publishing the packages
+redistributes them, and BSD-3-Clause asks that its notice go with them.
+*Rejected:* relying on the expressions being too small to be covered (it
+contradicts the earlier judgement) and rewriting them in another form (the
+last digits of ARI would change, and the rewrite would still need
+explaining).
+
 ## 2026-10-06 Arguments before data; the standard update by default (#71)
 
 Every fitting function checks all its arguments before it touches the data
