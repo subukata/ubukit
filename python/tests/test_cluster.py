@@ -151,6 +151,20 @@ def test_fcm_near_one_approaches_kmeans(blobs):
     np.testing.assert_allclose(soft.centers, hard.centers, atol=1e-6)
 
 
+@pytest.mark.parametrize(("scale", "tau"), [(1.0, 1e-320), (1e148, 1e-12)])
+def test_efcm_reaches_kmeans_as_tau_vanishes(blobs, scale, tau):
+    # Costs over tau beyond float64 (data of the largest allowed scale, or a
+    # subnormal tau) give hard memberships, the limit, not NaN marked converged.
+    X, _ = blobs
+    init = np.array([[1.0, 1.0], [4.0, 1.0], [1.0, 4.0]])
+    with np.errstate(all="raise"):
+        r = ub.efcm(X * scale, 3, tau=tau, init=init * scale)
+    assert set(np.unique(r.membership)) == {0.0, 1.0}
+    assert np.isfinite(r.history).all()
+    hard = ub.kmeans(X * scale, 3, init=init * scale)
+    np.testing.assert_allclose(r.centers, hard.centers, rtol=1e-12)
+
+
 def test_rcm_without_margin_is_kmeans(blobs):
     X, _ = blobs
     init = np.array([[1.0, 1.0], [4.0, 1.0], [1.0, 4.0]])

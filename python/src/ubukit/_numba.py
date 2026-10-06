@@ -18,10 +18,13 @@ from numba import njit, prange
 
 
 @njit(cache=False)
-def som_epoch(X, W, R, order, start, steps, s0, s1, lr, lr_end):
-    """One epoch of ``som``: update the prototypes W by the samples in ``order``."""
+def som_epoch(X, W, G2, order, start, steps, s0, s1, lr, lr_end):
+    """One epoch of ``som``: update the prototypes W by the samples in ``order``.
+
+    ``G2`` holds the squared grid distances between the units.
+    """
     d = X.shape[1]
-    k, q = R.shape
+    k = G2.shape[0]
     W = W.copy()
     diff = np.empty((k, d))
     for j in range(order.shape[0]):
@@ -37,11 +40,7 @@ def som_epoch(X, W, R, order, start, steps, s0, s1, lr, lr_end):
             if dist < best:
                 bmu, best = u, dist
         for u in range(k):
-            g = 0.0
-            for c in range(q):
-                t = R[u, c] - R[bmu, c]
-                g += t * t
-            h = eta * math.exp(g * (-0.5 / (s * s)))
+            h = eta * math.exp(-0.5 * (G2[bmu, u] / s) / s)
             for c in range(d):
                 W[u, c] += h * diff[u, c]
     return W

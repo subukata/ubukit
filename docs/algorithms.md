@@ -86,11 +86,15 @@ $u_{i,\max} = 1/s_i$.
 
 Minimizes $\sum u_{ic} d_{ic}^2 + \tau \sum u_{ic} \log u_{ic}$ (Miyamoto &
 Mukaidono, 1997), giving a softmax of $-d^2/\tau$ with linear center weights.
-`history` holds the objective, computed with the memberships as the sum of
-the soft minima $-\tau \log \sum_c \exp(-d_{ic}^2/\tau)$, from the row maxima
-and sums that the softmax computes; this equals the objective at the
-memberships of the same distances (and likewise for `som_olp` with its
-costs and $\lambda$).
+The softmax is evaluated as $\exp(-(d_{ic}^2 - d_{i,\min}^2)/\tau)$,
+normalized: every exponent lies in $[-\infty, 0]$, so a $\tau$ however small
+against the distances gives the hard memberships of its limit, k-means,
+rather than an overflow. `history` holds the objective, computed with the
+memberships as the sum of the soft minima
+$d_{i,\min}^2 - \tau \log \sum_c \exp(-(d_{ic}^2 - d_{i,\min}^2)/\tau)$,
+from the row minima and sums that the softmax computes; this equals the
+objective at the memberships of the same distances (and likewise for
+`som_olp` with its costs and $\lambda$).
 
 ## Degenerate solutions (`fcm`, `efcm`)
 
@@ -158,7 +162,9 @@ JavaScript uses Rayleigh–Ritz on a Krylov basis of at most 64 vectors, which
 is exact for $D \le 64$ and never forms the $D \times D$ covariance.
 The neighborhood is $h_t(b, j) = \exp(-\lVert r_b - r_j \rVert^2 / 2\sigma_t^2)$
 with $\sigma_t$ decaying geometrically from `sigma` (half the grid extent) to
-`sigma_end`.
+`sigma_end`. It is evaluated by dividing by $\sigma_t$ twice (or squaring
+$\lVert r_b - r_j \rVert / \sigma_t$), never by $\sigma_t^2$, which underflows
+for a tiny width: such a width gives its limit, the winner alone.
 
 - `som`: per sample, $w_j \leftarrow w_j + \eta_t h_t(\mathrm{bmu}, j)(x - w_j)$
   with $\eta_t$ decaying geometrically from `lr` to `lr_end`.

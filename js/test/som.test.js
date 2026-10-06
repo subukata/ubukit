@@ -56,3 +56,27 @@ test('pca orientation does not depend on rounding', () => {
     order.forEach((i, r) => { for (let j = 0; j < 12; j++) assert.ok(Math.abs(a[i * 12 + j] - b[r * 12 + j]) < 1e-9); });
   }
 });
+
+test('tiny widths and temperatures reach their limits', () => {
+  // A width whose square underflows moves the winner alone, and a subnormal
+  // temperature gives hard memberships; neither gives NaN or stands still.
+  const W0 = Array.from({ length: 9 }, (_, j) => [Math.floor(j / 3) * 2 - 1, (j % 3) * 2 - 1]);
+  const tiny = { sigma: 1e-200, sigmaEnd: 1e-200 };
+  const sq = (a, b) => a.reduce((s, v, f) => s + (v - b[f]) ** 2, 0);
+  const bmu = (x, W) => W.reduce((b, w, j) => (sq(x, w) < sq(x, W[b]) ? j : b), 0);
+  const batch = ub.toRows(ub.batchSom(X, [3, 3], { epochs: 1, init: W0, ...tiny }).centers);
+  W0.forEach((w, j) => {
+    const cell = X.filter(x => bmu(x, W0) === j);
+    const mean = cell.length ? w.map((_, f) => cell.reduce((s, x) => s + x[f], 0) / cell.length) : w;
+    mean.forEach((m, f) => assert.ok(Math.abs(batch[j][f] - m) < 1e-12, `batch unit ${j}`));
+  });
+  const ref = W0.map(w => w.slice()), steps = X.length;
+  X.forEach((x, t) => {
+    const eta = 0.5 * (0.01 / 0.5) ** (t / (steps - 1)), b = bmu(x, ref);
+    ref[b] = ref[b].map((v, f) => v + eta * (x[f] - v));
+  });
+  const online = ub.toRows(ub.som(X, [3, 3], { epochs: 1, init: W0, shuffle: false, ...tiny }).centers);
+  ref.forEach((w, j) => w.forEach((v, f) => assert.ok(Math.abs(online[j][f] - v) < 1e-12, `online unit ${j}`)));
+  const olp = ub.somOlp(X, [3, 3], { lam: 1e-320, gamma: 1, init: W0, maxIter: 3 });
+  assert.ok(olp.membership.data.every(p => p === 0 || p === 1));
+});

@@ -133,6 +133,30 @@ def test_tiny_values_take_the_ordinary_path():
     assert np.isfinite(r.centers).all()
 
 
+def test_tiny_widths_and_temperatures_reach_their_limits(blobs):
+    # A width whose square underflows moves the winner alone, and a subnormal
+    # temperature gives hard memberships; neither gives NaN or stands still.
+    X, _ = blobs
+    W0 = np.random.default_rng(3).normal(2, 2, (9, 2))
+    tiny = {"sigma": 1e-200, "sigma_end": 1e-200}
+    with np.errstate(all="raise"):
+        batch = ub.batch_som(X, (3, 3), epochs=1, init=W0, **tiny)
+        online = ub.som(X, (3, 3), epochs=1, init=W0, shuffle=False, **tiny)
+        olp = ub.som_olp(X, (3, 3), lam=1e-320, gamma=1.0, init=W0, max_iter=3)
+    labels = cdist(X, W0, "sqeuclidean").argmin(axis=1)
+    cells = W0.copy()
+    for j in np.unique(labels):
+        cells[j] = X[labels == j].mean(axis=0)
+    np.testing.assert_allclose(batch.centers, cells, atol=1e-12)
+    ref, steps = W0.copy(), len(X)
+    for t, x in enumerate(X):
+        eta = 0.5 * (0.01 / 0.5) ** (t / (steps - 1))
+        b = ((ref - x) ** 2).sum(axis=1).argmin()
+        ref[b] += eta * (x - ref[b])
+    np.testing.assert_allclose(online.centers, ref, atol=1e-12)
+    assert set(np.unique(olp.membership)) == {0.0, 1.0}
+
+
 @pytest.mark.parametrize(
     "call",
     [
