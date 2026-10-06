@@ -37,19 +37,22 @@ to the data actually given. *Rejected:* a size limit in the library (any
 fixed limit would block research use; services that take untrusted input
 set their own, as `SECURITY.md` says).
 
-## 2026-10-06 Releases only from main, with fixed tags (#75)
+## 2026-10-06 Releases only from main, with fixed tags (#75, #78)
 
 `release.yml` stops before building when the tag's commit is not on `main`;
-a tag ruleset lets only the maintainer create `v*` tags and nobody move or
+two tag rulesets let only the maintainer create `v*` tags and nobody move or
 delete them; and the `pypi` and `npm` environments no longer let
 administrators bypass the review. *Why:* an external security review found
 that any commit with a `v*` tag could be published after one approval, that
 a tag could be re-pointed, and that administrators could skip the review;
 a published version can never be replaced. The check on `main` and the tag
-ruleset cover different failures (a wrong commit and a moved tag), so both
-are kept. *Rejected:* building from a branch instead of tags (the
-registries' trusted publishing and provenance are set up for tags) and a
-release environment limited to `main` (a tag run has no branch to match).
+rulesets cover different failures (a wrong commit and a moved tag), so both
+are kept. The rules are split in two (#78) because a ruleset's bypass
+applies to all its rules: one ruleset that let the maintainer create tags
+would also have let them move or delete one. *Rejected:* building from a
+branch instead of tags (the registries' trusted publishing and provenance
+are set up for tags) and a release environment limited to `main` (a tag run
+has no branch to match).
 
 ## 2026-10-06 One required check, "All checks" (#74)
 
