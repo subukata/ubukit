@@ -118,6 +118,14 @@ Only the maintainer releases. A published version can never be replaced
 (PyPI refuses a file name it has seen and npm a version number), so a broken
 release is fixed by the next patch version.
 
+Changes collect on `main` under "(unreleased)" in `CHANGELOG.md` (the first
+change after a release opens the section) and ship together. Release a patch
+soon after a fix that users of the released version need, such as one for
+results that were wrong without an error; a minor version once features or
+API changes have gathered; and whenever a fixed version is needed, for
+example for a paper. Documentation, refactoring and speed wait for the next
+release.
+
 Once, before the first release:
 
 1. Make the repository public. npm does not generate provenance in a private
