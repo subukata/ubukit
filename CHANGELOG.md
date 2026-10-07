@@ -5,6 +5,14 @@ every such change is listed under "Changed results" or "Changed API". Patch
 versions keep the API and change results only to fix bugs, listed under
 "Fixed".
 
+## 0.1.1 (unreleased)
+
+### Fixed
+
+- JavaScript: rows given as arrays must hold numbers. `null` was read as 0,
+  so a missing value entered the fit silently (Python rejects `None`), and
+  booleans and numeric strings were converted.
+
 ## 0.1.0 (2026-10-06)
 
 First release of the rewritten library, for Python (PyPI) and JavaScript

@@ -53,11 +53,12 @@ export function matrix(values, name = 'X') {
   if (Array.isArray(values)) {
     // Every row is checked before the copy is allocated, so its size never
     // exceeds that of the rows given (an object claiming a length of 1e9 is
-    // not a row).
+    // not a row). Its entries must be numbers: the copy would turn null into
+    // 0, so a missing value would enter the fit silently.
     const rows = values.length;
     const cols = rows ? values[0]?.length : 0;
     for (const row of values) {
-      if (!isList(row)) throw new TypeError(`${name} rows must be arrays of numbers`);
+      if (!isList(row) || !row.every(v => typeof v === 'number')) throw new TypeError(`${name} rows must be arrays of numbers`);
       if (row.length !== cols) throw new RangeError(`${name} rows must have equal length`);
     }
     out = { data: new Float64Array(rows * cols), rows, cols };
