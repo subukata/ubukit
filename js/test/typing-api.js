@@ -13,12 +13,22 @@ export function fit() {
   return ub.fcm(X, 2, { m: 2, seed: 0 }).nIter;
 }
 
-/** @returns {import('../types/core.js').Result} */
+/** @returns {ub.Result} */
 export function followMovingData() {
   const run = ub.steps.somOlp(X, [2, 2], { lam: 0.5, gamma: 1, maxIter: Infinity });
   run.next();
   const { value, done } = run.next(X.map(([a, b]) => [a + 1, b]));
   return done ? value : value.result();
+}
+
+/** The classes Python exports are types of the package entry. @param {ub.Progress} p @returns {ub.Result} */
+export function resultOf(p) {
+  return p.result();
+}
+
+/** @returns {Promise<ub.TPEResult>} */
+export function search() {
+  return ub.minimize(p => Number(p.x), { x: ub.uniform(0, 1) });
 }
 
 export async function everyOption() {

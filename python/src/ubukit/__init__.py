@@ -10,19 +10,20 @@ whose ``result()`` is the Result as if the run had stopped there:
 """
 
 from . import steps
-from ._core import Progress, Result, stepwise
+from ._core import Progress, Result
+from ._core import stepwise as _stepwise
 from .metrics import ami, ari, continuity, trustworthiness
 from .tpe import TPE, TPEResult, choice, integer, loguniform, minimize, uniform
 
 # The fitting functions: each runs its generator in ``steps`` to the end.
-kmeans = stepwise(steps.kmeans)
-fcm = stepwise(steps.fcm)
-efcm = stepwise(steps.efcm)
-rcm = stepwise(steps.rcm)
-rmcm = stepwise(steps.rmcm)
-som = stepwise(steps.som)
-batch_som = stepwise(steps.batch_som)
-som_olp = stepwise(steps.som_olp)
+kmeans = _stepwise(steps.kmeans)
+fcm = _stepwise(steps.fcm)
+efcm = _stepwise(steps.efcm)
+rcm = _stepwise(steps.rcm)
+rmcm = _stepwise(steps.rmcm)
+som = _stepwise(steps.som)
+batch_som = _stepwise(steps.batch_som)
+som_olp = _stepwise(steps.som_olp)
 
 __version__ = "0.1.0"
 

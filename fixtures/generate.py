@@ -1,4 +1,5 @@
-"""Generate fixtures.json: Python reference results that the JavaScript port must reproduce.
+"""Generate fixtures.json: Python's public names and reference results, which the
+JavaScript port must match.
 
 Every case fixes its initialization explicitly (or uses deterministic PCA), so
 both languages walk the same iterates. Run from the repository root:
@@ -94,7 +95,8 @@ def build() -> dict:
     for method, args, options in METRICS:
         value = getattr(ub, method)(*[_resolve(a, data) for a in args], **options)
         cases.append({"method": method, "args": args, "options": options, "expect": value})
-    return json.loads(json.dumps({"data": data, "cases": cases}, default=_jsonable))
+    api = {"ubukit": ub.__all__, "steps": ub.steps.__all__}
+    return json.loads(json.dumps({"api": api, "data": data, "cases": cases}, default=_jsonable))
 
 
 def _jsonable(value):
@@ -106,11 +108,12 @@ def _jsonable(value):
 
 
 def dumps(fixtures: dict) -> str:
-    """JSON with one dataset or case per line, so a diff names the cases that changed."""
+    """JSON with the names, then one dataset or case per line, so a diff names what changed."""
     compact = partial(json.dumps, separators=(",", ":"))
+    api = compact(fixtures["api"])
     data = ",\n".join(f"{json.dumps(k)}:{compact(v)}" for k, v in fixtures["data"].items())
     cases = ",\n".join(compact(case) for case in fixtures["cases"])
-    return f'{{"data":{{\n{data}\n}},\n"cases":[\n{cases}\n]}}\n'
+    return f'{{"api":{api},\n"data":{{\n{data}\n}},\n"cases":[\n{cases}\n]}}\n'
 
 
 if __name__ == "__main__":

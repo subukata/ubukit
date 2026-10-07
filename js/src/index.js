@@ -12,6 +12,8 @@ import { run } from './core.js';
 import * as maps from './som.js';
 
 /** @typedef {import('./core.js').Result} Result */
+/** @typedef {import('./core.js').Progress} Progress */
+/** @typedef {import('./tpe.js').TPEResult} TPEResult */
 
 /** Step generators of every fitting function (yield after each iteration or epoch). */
 export const steps = Object.freeze({
