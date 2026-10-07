@@ -5,7 +5,7 @@ every such change is listed under "Changed results" or "Changed API". Patch
 versions keep the API and change results only to fix bugs, listed under
 "Fixed".
 
-## 0.1.1 (unreleased)
+## 0.1.1 (2026-10-07)
 
 ### Fixed
 
