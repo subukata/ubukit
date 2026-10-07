@@ -37,3 +37,10 @@ test('rows are checked before the matrix is allocated', () => {
   assert.throws(() => ub.matrix([null]), TypeError);
   assert.deepEqual(ub.matrix([Float64Array.of(1, 2), [3, 4]]).data, Float64Array.of(1, 2, 3, 4));
 });
+
+test('row entries must be numbers', () => {
+  // The copy into a Float64Array read null as 0 (Python rejects None), true
+  // as 1 and '3' as 3; a BigInt made it throw an unrelated error.
+  for (const v of [null, true, '3', 1n]) assert.throws(() => ub.matrix([[v], [2]]), /rows must be arrays of numbers/);
+  assert.throws(() => ub.kmeans([[0], [null], [2]], 2), TypeError);
+});
