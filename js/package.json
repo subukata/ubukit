@@ -1,6 +1,6 @@
 {
   "name": "ubukit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Fuzzy, rough and classical clustering, self-organizing maps, evaluation metrics and TPE search",
   "keywords": ["clustering", "fuzzy c-means", "rough clustering", "self-organizing map", "som-olp", "tpe"],
   "license": "MIT AND BSD-3-Clause",
