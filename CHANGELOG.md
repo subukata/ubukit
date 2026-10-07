@@ -15,6 +15,9 @@ versions keep the API and change results only to fix bugs, listed under
 - JavaScript: the TypeScript declarations of `minimize` accept the options
   of `TPE` (`seed`, `nStartup`, `nCandidates`, `gamma`), which it passes on;
   they allowed only `nTrials`.
+- JavaScript: an unknown option throws `TypeError`, as an unknown keyword
+  does in Python. It was ignored, so a misspelled option, such as the Python
+  name `max_iter` for `maxIter`, left the default in force.
 
 ## 0.1.0 (2026-10-06)
 

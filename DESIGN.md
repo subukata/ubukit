@@ -50,10 +50,11 @@ Each principle states a rule and the failure it prevents.
    *Why:* rescue paths for extreme inputs multiply code and hide wrong
    answers; a stated contract with a clear error is honest and testable.
 4. **Same API, same math, not the same bits.** Python and JavaScript share
-   names, parameters and equations (`docs/algorithms.md`); results agree to
-   ~1e-9 when the initialization is given. Each language may add API only for
-   its own concerns (JavaScript: asynchronous running; Python: compiled
-   kernels).
+   names, parameters and equations (`docs/algorithms.md`), each in its
+   language's spelling (`max_iter`, `maxIter`), and both reject a parameter
+   they do not take; results agree to ~1e-9 when the initialization is
+   given. Each language may add API only for its own concerns (JavaScript:
+   asynchronous running; Python: compiled kernels).
    *Why:* users move between the languages and expect the same results, but
    random generators, BLAS and platforms make bit-for-bit agreement
    unattainable, so agreement is defined by equations and checked by fixtures.

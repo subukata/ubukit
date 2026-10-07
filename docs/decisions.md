@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-07 JavaScript rejects unknown options (#86)
+
+Every JavaScript function that takes options collects those it does not take
+with a rest element and throws `TypeError`, naming the camelCase spelling
+when the name has an underscore. *Why:* Python rejects an unknown keyword,
+but JavaScript ignored an unknown option, so the likeliest mistake of someone
+moving between the packages, a Python name (`max_iter` for `maxIter`), ran
+the call with the default and no error; TypeScript catches it only in object
+literals of typed code. *Rejected:* relying on the TypeScript declarations
+(plain JavaScript and options built at run time are not checked), a list of
+known names per function (a second copy of each destructuring, which can
+drift), and accepting snake_case aliases (two spellings of every option).
+
 ## 2026-10-06 npm releases are staged and approved on npmjs.com (#83)
 
 The release job runs `npm stage publish`; the version is published only

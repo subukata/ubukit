@@ -142,6 +142,19 @@ export function checkNumber(value, name, low = -Infinity, strict = false) {
   return value;
 }
 
+/**
+ * Reject the options a function does not take, as Python rejects an unknown
+ * keyword: an ignored option (max_iter, the Python name of maxIter) would
+ * leave its default in force without a word.
+ * @param {object} unknown the options left after the known ones are destructured
+ */
+export function rejectUnknown(unknown) {
+  const [name] = Object.keys(unknown);
+  if (name === undefined) return;
+  const camel = name.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  throw new TypeError(`unknown option ${name}${camel === name ? '' : ` (options are camelCase: ${camel})`}`);
+}
+
 /** Seeded uniform [0, 1) generator (Mulberry32); random seed when omitted. */
 export function random(seed) {
   let s = seed === undefined ? (Math.random() * 2 ** 32) >>> 0 : checkInt(seed, 'seed', 0, 2 ** 32 - 1);
@@ -501,7 +514,8 @@ export function run(steps) {
  * @param {{ signal?: AbortSignal, onProgress?: (p: Progress) => void, budgetMs?: number }} [options]
  * @returns {Promise<T>}
  */
-export async function runAsync(steps, { signal, onProgress, budgetMs = 12 } = {}) {
+export async function runAsync(steps, { signal, onProgress, budgetMs = 12, ...unknown } = {}) {
+  rejectUnknown(unknown);
   checkNumber(budgetMs, 'budgetMs', 0);
   let deadline = performance.now() + budgetMs;
   try {

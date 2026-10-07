@@ -5,7 +5,7 @@
  * mixture whose components keep one trial's dimensions together, and the
  * candidate maximizing l(x) / g(x) is proposed. Numeric dimensions live on [0, 1].
  */
-import { checkInt, checkNumber, random } from './core.js';
+import { checkInt, checkNumber, random, rejectUnknown } from './core.js';
 
 /** @typedef {{ kind: 'numeric', low: number, high: number, log: boolean, integer: boolean }} NumericDim */
 /** @typedef {{ kind: 'choice', options: unknown[] }} ChoiceDim */
@@ -21,7 +21,8 @@ export const loguniform = (low, high) => numeric(low, high, true, false);
  * Integers in [low, high], optionally on a log scale.
  * @param {number} low @param {number} high @param {{ log?: boolean }} [options] @returns {NumericDim}
  */
-export const integer = (low, high, { log = false } = {}) => {
+export const integer = (low, high, { log = false, ...unknown } = {}) => {
+  rejectUnknown(unknown);
   checkInt(low, 'low', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
   return numeric(low, checkInt(high, 'high', low, Number.MAX_SAFE_INTEGER), log, true);
 };
@@ -72,7 +73,8 @@ export class TPE {
    * @param {Space} space
    * @param {TPEOptions} [options]
    */
-  constructor(space, { seed, nStartup = 10, nCandidates = 24, gamma = 0.15 } = {}) {
+  constructor(space, { seed, nStartup = 10, nCandidates = 24, gamma = 0.15, ...unknown } = {}) {
+    rejectUnknown(unknown);
     if (!space || typeof space !== 'object' || !Object.keys(space).length) throw new RangeError('space must be a non-empty object');
     for (const [name, dim] of Object.entries(space)) {
       if (dim?.kind !== 'numeric' && dim?.kind !== 'choice') throw new RangeError(`space.${name} must come from uniform/loguniform/integer/choice`);

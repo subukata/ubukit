@@ -14,7 +14,9 @@ and TPE search, for Python and JavaScript.
 | Metrics | adjusted Rand index, adjusted mutual information, trustworthiness, continuity |
 | Search | multivariate Tree-structured Parzen Estimator |
 
-Both packages share names, parameters and equations ([docs/algorithms.md](docs/algorithms.md)).
+Both packages share names, parameters and equations ([docs/algorithms.md](docs/algorithms.md)),
+each in its language's spelling (`batch_som` and `max_iter` in Python,
+`batchSom` and `maxIter` in JavaScript).
 Python depends only on NumPy and SciPy (Numba optionally, for compiled
 kernels); JavaScript has no dependencies.
 
