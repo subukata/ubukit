@@ -6,7 +6,7 @@
  */
 import {
   argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelMean,
-  lloyd, softmin, start, TINY, weightedMean,
+  lloyd, rejectUnknown, softmin, start, TINY, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -24,7 +24,8 @@ const soft = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state)
  * @param {MatrixLike} X @param {number} k @param {Common} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed } = {}) {
+export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed, ...unknown } = {}) {
+  rejectUnknown(unknown);
   checkMaxIter(maxIter);
   const { data, V } = start(X, k, init, seed);
   const view = loop => fitted(loop, loop.state.labels.slice());
@@ -101,7 +102,8 @@ function hamerly(data, V, state) {
  * @param {MatrixLike} X @param {number} k @param {Common & { m?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
+export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = {}) {
+  rejectUnknown(unknown);
   checkNumber(m, 'm', 1, true);
   checkMaxIter(maxIter);
   checkNumber(tol, 'tol', 0);
@@ -149,7 +151,8 @@ function fuzzyWeights(U, m) {
  * @param {MatrixLike} X @param {number} k @param {Common & { tau?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed } = {}) {
+export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = {}) {
+  rejectUnknown(unknown);
   checkNumber(tau, 'tau', 0, true);
   checkMaxIter(maxIter);
   checkNumber(tol, 'tol', 0);
@@ -164,7 +167,8 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
  * @param {MatrixLike} X @param {number} k @param {Common & { alpha?: number, beta?: number, p?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', maxIter = 300, seed } = {}) {
+export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', maxIter = 300, seed, ...unknown } = {}) {
+  rejectUnknown(unknown);
   checkNumber(alpha, 'alpha', 1);
   checkNumber(beta, 'beta', 0);
   checkNumber(p, 'p', 0, true);
@@ -193,7 +197,8 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
  * @param {MatrixLike} X @param {number} k @param {number} delta @param {Common & { maxEdges?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed } = {}) {
+export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed, ...unknown } = {}) {
+  rejectUnknown(unknown);
   checkNumber(delta, 'delta', 0);
   checkInt(maxEdges, 'maxEdges', 1);
   checkMaxIter(maxIter);

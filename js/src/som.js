@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
-  matrix, nearest, random, shift, softmin, sqdist, weightedMean,
+  matrix, nearest, random, rejectUnknown, shift, softmin, sqdist, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -22,8 +22,9 @@ import {
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* som(X, grid = [10, 10], {
-  epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed,
+  epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed, ...unknown
 } = {}) {
+  rejectUnknown(unknown);
   const R = gridCoordinates(grid);
   checkInt(epochs, 'epochs', 1);
   const [s0, s1] = sigmas(sigma, sigmaEnd, R);
@@ -70,7 +71,8 @@ export function* som(X, grid = [10, 10], {
  * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca' } = {}) {
+export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca', ...unknown } = {}) {
+  rejectUnknown(unknown);
   const [rows, cols] = shape(grid), R = gridCoordinates(grid);
   checkInt(epochs, 'epochs', 1);
   const [s0, s1] = sigmas(sigma, sigmaEnd, R);
@@ -115,7 +117,8 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* somOlp(X, grid = [10, 10], options) {
-  const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6 } = options ?? /** @type {any} */ ({});
+  const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6, ...unknown } = options ?? /** @type {any} */ ({});
+  rejectUnknown(unknown);
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
   checkNumber(pcaScale, 'pcaScale', 0, true);

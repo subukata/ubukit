@@ -38,6 +38,21 @@ test('rows are checked before the matrix is allocated', () => {
   assert.deepEqual(ub.matrix([Float64Array.of(1, 2), [3, 4]]).data, Float64Array.of(1, 2, 3, 4));
 });
 
+test('an unknown option is an error, as an unknown keyword is in Python', async () => {
+  // It was ignored: fcm(X, 3, { max_iter: 1 }) ran to convergence.
+  const space = { x: ub.uniform(0, 1) };
+  const calls = {
+    kmeans: o => ub.kmeans(X, 3, o), fcm: o => ub.fcm(X, 3, o), efcm: o => ub.efcm(X, 3, o), rcm: o => ub.rcm(X, 3, o),
+    rmcm: o => ub.rmcm(X, 3, 0.5, o), som: o => ub.som(X, [2, 2], o), batchSom: o => ub.batchSom(X, [2, 2], o),
+    somOlp: o => ub.somOlp(X, [2, 2], { lam: 1, gamma: 1, ...o }), ami: o => ub.ami([0, 1], [1, 0], o),
+    integer: o => ub.integer(1, 3, o), TPE: o => new ub.TPE(space, o),
+  };
+  const error = { name: 'TypeError', message: 'unknown option max_iter (options are camelCase: maxIter)' };
+  for (const [name, call] of Object.entries(calls)) assert.throws(() => call({ max_iter: 1 }), error, name);
+  await assert.rejects(ub.minimize(() => 0, space, { nTrials: 2, n_startup: 2 }), /n_startup \(options are camelCase: nStartup\)/);
+  await assert.rejects(ub.runAsync(ub.steps.fcm(X, 3), { budgetMS: 0 }), { name: 'TypeError', message: 'unknown option budgetMS' });
+});
+
 test('row entries must be numbers', () => {
   // The copy into a Float64Array read null as 0 (Python rejects None), true
   // as 1 and '3' as 3; a BigInt made it throw an unrelated error.
