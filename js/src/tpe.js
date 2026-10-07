@@ -11,6 +11,7 @@ import { checkInt, checkNumber, random } from './core.js';
 /** @typedef {{ kind: 'choice', options: unknown[] }} ChoiceDim */
 /** @typedef {Record<string, NumericDim | ChoiceDim>} Space */
 /** @typedef {{ bestParams: Record<string, unknown>, bestValue: number, params: Record<string, unknown>[], values: Float64Array }} TPEResult */
+/** @typedef {{ seed?: number, nStartup?: number, nCandidates?: number, gamma?: number }} TPEOptions */
 
 /** Real values in [low, high]. @param {number} low @param {number} high @returns {NumericDim} */
 export const uniform = (low, high) => numeric(low, high, false, false);
@@ -69,7 +70,7 @@ export class TPE {
 
   /**
    * @param {Space} space
-   * @param {{ seed?: number, nStartup?: number, nCandidates?: number, gamma?: number }} [options]
+   * @param {TPEOptions} [options]
    */
   constructor(space, { seed, nStartup = 10, nCandidates = 24, gamma = 0.15 } = {}) {
     if (!space || typeof space !== 'object' || !Object.keys(space).length) throw new RangeError('space must be a non-empty object');
@@ -131,6 +132,7 @@ export class TPE {
  * Minimize f(params) over space with TPE; f may return a promise. Negate f to maximize.
  * @param {(params: Record<string, unknown>) => number | Promise<number>} f
  * @param {Space} space
+ * @param {TPEOptions & { nTrials?: number }} [options] the number of trials and the options of TPE
  * @returns {Promise<TPEResult>}
  */
 export async function minimize(f, space, { nTrials = 100, ...options } = {}) {

@@ -12,6 +12,9 @@ versions keep the API and change results only to fix bugs, listed under
 - JavaScript: rows given as arrays must hold numbers. `null` was read as 0,
   so a missing value entered the fit silently (Python rejects `None`), and
   booleans and numeric strings were converted.
+- JavaScript: the TypeScript declarations of `minimize` accept the options
+  of `TPE` (`seed`, `nStartup`, `nCandidates`, `gamma`), which it passes on;
+  they allowed only `nTrials`.
 
 ## 0.1.0 (2026-10-06)
 
