@@ -77,4 +77,4 @@ parallel ones (trustworthiness, continuity, ami) use every core unless
 `NUMBA_NUM_THREADS` limits them; their results do not depend on it.
 
 Equations, defaults and references: <https://github.com/subukata/ubukit/blob/main/docs/algorithms.md>.
-A JavaScript package with the same API is available as `ubukit` on npm.
+A JavaScript package with the same API in camelCase is available as `ubukit` on npm.
