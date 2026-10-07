@@ -38,7 +38,9 @@ none). `converged` says only that the prototypes stopped moving (for `som`
 and `batch_som`, that the schedule completed), not that the result is good.
 In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
 a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
-Inputs should be finite and of ordinary scale; standardize features first.
+A pickled `Result` or `TPE` loads in the UbuKit version that wrote it; keep
+results across versions as arrays. Inputs should be finite and of ordinary
+scale; standardize features first.
 
 From about five dimensions on, FCM with the default `m = 2` can collapse:
 every prototype goes to the mean of the data, every membership to 1/K, and

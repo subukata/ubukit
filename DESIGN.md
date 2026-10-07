@@ -54,7 +54,8 @@ Each principle states a rule and the failure it prevents.
    language's spelling (`max_iter`, `maxIter`), and both reject a parameter
    they do not take; results agree to ~1e-9 when the initialization is
    given. Each language may add API only for its own concerns (JavaScript:
-   asynchronous running; Python: compiled kernels).
+   running the generators, synchronously or not, and its `{ data, rows, cols }`
+   matrices; Python: compiled kernels).
    *Why:* users move between the languages and expect the same results, but
    random generators, BLAS and platforms make bit-for-bit agreement
    unattainable, so agreement is defined by equations and checked by fixtures.
@@ -100,6 +101,34 @@ Each principle states a rule and the failure it prevents.
    abstraction makes later features small (one engine made per-iteration
    results and Numba kernels a few lines each).
 
+## Compatibility
+
+What UbuKit promises is written down and kept small; everything else may
+change in any release.
+
+- **Promised:** the public names, which are `__all__` of `ubukit` and of
+  `ubukit.steps` in Python and the exports of the package entry
+  (`index.js`, with its types) in JavaScript, each with its parameters,
+  defaults and Result fields; and the equations of `docs/algorithms.md`,
+  which the fixtures check. Tests compare the names each package exposes
+  with `__all__`, and the two languages with each other, so a change to
+  them is a visible diff.
+- **Not promised:** where a name is defined (module files and the import
+  paths into them, such as `ubukit.cluster`), names with an underscore,
+  pickles across versions (a pickle loads in the version that wrote it;
+  keep results across versions as arrays), and identical bits (see
+  "Non-goals").
+- **Breaking changes:** while UbuKit is 0.x, a change to a promise replaces
+  the old form at once, in a minor version, listed under "Changed API" or
+  "Changed results" in `CHANGELOG.md`; no alias, shim or old code path is
+  kept. From 1.0, an old name stays for one minor version as deprecated,
+  with the version that removes it written beside it.
+
+*Why:* anything that works without being stated becomes a promise once
+someone relies on it, and each such promise needs a compatibility layer when
+the code changes; such layers made the code this library replaced hard to
+change. A small, written promise keeps everything else free to improve.
+
 ## Current architecture
 
 How the principles are realized today. This section changes with the code.
@@ -140,9 +169,9 @@ How the principles are realized today. This section changes with the code.
   results. The module is imported on first use and caches nothing on disk;
   the parallel kernels split the work by independent rows and leave sums to
   NumPy, so results do not depend on the thread count.
-- **Cross-language reference:** `fixtures/generate.py` writes Python results
-  to `fixtures/fixtures.json` (one case per line); the JavaScript tests
-  reproduce them.
+- **Cross-language reference:** `fixtures/generate.py` writes Python's public
+  names and results to `fixtures/fixtures.json` (one case per line); the
+  JavaScript tests check the names and reproduce the results.
 - **Benchmark:** `bench/cases.py` defines each case once; `bench/run.py`
   writes the data as binary files and runs it in a process per implementation
   (`worker.py` for Python and scikit-learn, `worker.mjs` for JavaScript),

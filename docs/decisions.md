@@ -4,6 +4,25 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-07 A small, written compatibility promise (#90)
+
+`DESIGN.md` states what UbuKit promises (the public names with their
+parameters, defaults and Result fields, and the equations) and what it does
+not (where names are defined, underscored names, pickles across versions,
+identical bits), and how a promise changes: at once in a 0.x minor version,
+with no alias or shim; from 1.0, after one minor version of deprecation.
+Tests compare the names each package exposes with `__all__`, and the
+JavaScript exports with Python's names through the fixtures; #89 collects
+what to settle before 1.0. *Why:* undocumented import paths
+(`ubukit.cluster`, whose `fcm` is the generator) and pickles that record
+module files had become implicit promises, each needing a compatibility
+layer once the code moves. *Rejected:* setting the `__module__` of the
+public classes to `ubukit` so that pickles survive moved files:
+`inspect.getsource` then fails for them (Python 3.12) or returns lines of
+another file (3.13 and later read `__firstlineno__` in the file of
+`__module__`), and a pickle across versions breaks anyway once a Result
+gains a field; scikit-learn does not promise it either.
+
 ## 2026-10-07 JavaScript rejects unknown options (#86)
 
 Every JavaScript function that takes options collects those it does not take

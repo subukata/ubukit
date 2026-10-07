@@ -1,4 +1,4 @@
-"""The committed cross-language fixtures must match the current Python results."""
+"""The committed cross-language fixtures must match the current Python names and results."""
 
 import importlib.util
 import json
@@ -20,6 +20,7 @@ def test_fixtures_are_current():
     spec.loader.exec_module(generate)
     stored = json.loads(generate.PATH.read_text(encoding="utf-8"))
     fresh = generate.build()
+    assert stored["api"] == fresh["api"]
     assert len(stored["cases"]) == len(fresh["cases"])
     for old, new in zip(stored["cases"], fresh["cases"], strict=True):
         assert old["method"] == new["method"]

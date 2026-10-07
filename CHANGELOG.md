@@ -18,6 +18,10 @@ versions keep the API and change results only to fix bugs, listed under
 - JavaScript: an unknown option throws `TypeError`, as an unknown keyword
   does in Python. It was ignored, so a misspelled option, such as the Python
   name `max_iter` for `maxIter`, left the default in force.
+- JavaScript: the package exports the types `Progress` and `TPEResult`, as
+  Python exports the classes.
+- Python: the internal `stepwise` is no longer a name of the package; it was
+  never in `__all__`.
 
 ## 0.1.0 (2026-10-06)
 
