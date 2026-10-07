@@ -30,10 +30,21 @@ best = ub.minimize(
 )
 ```
 
-Every fit returns a `Result` with `centers`, `labels`, `membership` (`None` for
-hard methods), `n_iter`, `converged`, `history` (objective per iteration) and
-`embedding` (maps). Inputs should be finite and of ordinary scale; standardize
-features first.
+Every fit returns a `Result`: `centers` (K, D), `labels` (N,), `membership`
+(N, K; `None` for `kmeans`, `som` and `batch_som`), `embedding` ((N, Q) map
+positions, for the maps), `n_iter`, `converged` and `history`, the objective
+at each iteration (empty for `rcm`, `rmcm`, `som` and `batch_som`, which have
+none). `converged` says only that the prototypes stopped moving (for `som`
+and `batch_som`, that the schedule completed), not that the result is good.
+In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
+a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
+Inputs should be finite and of ordinary scale; standardize features first.
+
+From about five dimensions on, FCM with the default `m = 2` can collapse:
+every prototype goes to the mean of the data, every membership to 1/K, and
+the run still reports `converged`. Use `m` closer to 1 there (1.2, for
+example) and check that the centers are apart; `efcm` collapses likewise
+when `tau` is too large ([degenerate solutions](https://github.com/subukata/ubukit/blob/main/docs/algorithms.md#degenerate-solutions-fcm-efcm)).
 
 `ub.steps` has every fitting function as a generator that yields after each
 iteration (each epoch for maps). `p.result()` is the `Result` the run would

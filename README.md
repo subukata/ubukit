@@ -46,6 +46,12 @@ best = ub.minimize(  # pick the fuzzifier whose FCM labels agree best with y
 best.best_params, best.best_value
 ```
 
+From about five dimensions on, FCM with the default `m = 2` can send every
+prototype to the mean of the data and still report `converged`, which says
+only that the prototypes stopped moving. Use `m` closer to 1 there (1.2, for
+example) and check that the centers are apart
+([degenerate solutions](docs/algorithms.md#degenerate-solutions-fcm-efcm)).
+
 ## JavaScript
 
 ```sh

@@ -20,8 +20,8 @@
  * @property {Int32Array} labels strongest membership (nearest prototype for kmeans, best-matching unit for som and batchSom).
  * @property {Matrix | null} membership (N, K) memberships; null for hard methods.
  * @property {number} nIter iterations performed (epochs for SOMs).
- * @property {boolean} converged stopping rule met (som and batchSom: schedule completed).
- * @property {Float64Array} history objective per iteration; empty when undefined.
+ * @property {boolean} converged stopping rule met (som and batchSom: schedule completed); not a sign that the result is good.
+ * @property {Float64Array} history objective per iteration; empty for rcm, rmcm, som and batchSom, which have none.
  * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs.
  */
 /**
