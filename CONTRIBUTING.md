@@ -152,14 +152,17 @@ Once, before the first release:
    publish", and set the package's publishing access to disallow tokens. npm
    trusts only an existing package, so 0.1.0 was uploaded once with a
    short-lived token, revoked right after.
+5. On Zenodo, log in with GitHub and switch the repository on (Account >
+   GitHub). Zenodo then archives every GitHub Release and gives it a DOI,
+   with the metadata of `CITATION.cff`.
 
 Every release:
 
 1. Run the checks on an up-to-date `main`, then CI once on each operating
    system.
-2. In one pull request, set the version in `python/src/ubukit/__init__.py`
-   and `js/package.json`, and replace "(unreleased)" in `CHANGELOG.md` with
-   the date.
+2. In one pull request, set the version in `python/src/ubukit/__init__.py`,
+   `js/package.json` and the two version fields of `js/package-lock.json`,
+   and replace "(unreleased)" in `CHANGELOG.md` with the date.
 3. After merging it, tag the merge and push the tag
    (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` tests both
    packages, builds them in a separate job with only the build tools after
@@ -173,3 +176,7 @@ Every release:
 4. Install the published versions in a clean environment
    (`pip install ubukit==0.1.0`, `npm install ubukit@0.1.0`) and fit one
    example.
+5. Create the GitHub Release of the tag, with the version's CHANGELOG
+   section as its notes (`gh release create v0.1.0 --notes-file notes.md`).
+   Zenodo archives it and gives the version a DOI; a DOI cannot be
+   withdrawn, so do this only once both packages are published.

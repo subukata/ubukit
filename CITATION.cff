@@ -1,0 +1,26 @@
+# How to cite UbuKit: GitHub's "Cite this repository" reads this file, and so
+# does Zenodo, which archives every GitHub Release and gives it a DOI. The
+# version and date come from each release, so this file does not change with
+# them.
+cff-version: 1.2.0
+message: If you use UbuKit, please cite the version you used, by its DOI on Zenodo.
+type: software
+title: UbuKit
+abstract: >-
+  Fuzzy, rough and classical clustering, self-organizing maps, evaluation
+  metrics and TPE search, for Python and JavaScript.
+authors:
+  - family-names: Ubukata
+    given-names: Seiki
+repository-code: https://github.com/subukata/ubukit
+# CFF reads several licenses as alternatives, so only UbuKit's own is listed;
+# three small expressions in ARI and AMI follow scikit-learn under
+# BSD-3-Clause (THIRD_PARTY_NOTICES.txt).
+license: MIT
+keywords:
+  - clustering
+  - fuzzy c-means
+  - rough clustering
+  - self-organizing map
+  - som-olp
+  - tpe

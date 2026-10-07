@@ -4,6 +4,18 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-07 DOIs from Zenodo's GitHub integration (#92)
+
+Each version gets a DOI: Zenodo, switched on for the repository, archives
+every GitHub Release, which the maintainer creates once both packages are
+published. `CITATION.cff` gives the title, author, license and keywords, and
+feeds GitHub's "Cite this repository" too; it names no version or date,
+which come from the release, so releases do not edit it. *Why:* a paper can
+cite the exact version it used. *Rejected:* `.zenodo.json`, which only
+Zenodo reads; uploading from a workflow, which needs a Zenodo token in CI;
+and listing BSD-3-Clause in `CITATION.cff`, whose licenses are read as
+alternatives, not as `MIT AND BSD-3-Clause`.
+
 ## 2026-10-07 A small, written compatibility promise (#90)
 
 `DESIGN.md` states what UbuKit promises (the public names with their
