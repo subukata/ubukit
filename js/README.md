@@ -23,7 +23,21 @@ ub.ari([0, 0, 1, 1], Array.from(r.labels));
 const best = await ub.minimize(p => (p.x - 1) ** 2, { x: ub.uniform(-5, 5) }, { nTrials: 40 });
 ```
 
+Every fit returns a Result: `centers` (K, D), `labels` (N), `membership`
+(N, K; `null` for `kmeans`, `som` and `batchSom`), `embedding` ((N, Q) map
+positions, for the maps), `nIter`, `converged` and `history`, the objective
+at each iteration (empty for `rcm`, `rmcm`, `som` and `batchSom`, which have
+none). `converged` says only that the prototypes stopped moving (for `som`
+and `batchSom`, that the schedule completed), not that the result is good.
+In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
+a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
 Inputs should be finite and of ordinary scale; standardize features first.
+
+From about five dimensions on, FCM with the default `m: 2` can collapse:
+every prototype goes to the mean of the data, every membership to 1/K, and
+the run still reports `converged`. Use `m` closer to 1 there (1.2, for
+example) and check that the centers are apart; `efcm` collapses likewise
+when `tau` is too large ([degenerate solutions](https://github.com/subukata/ubukit/blob/main/docs/algorithms.md#degenerate-solutions-fcm-efcm)).
 
 Fitting runs synchronously. Every fitting function has a generator in `steps`
 that yields `{ iteration, result }` after each iteration (each epoch for

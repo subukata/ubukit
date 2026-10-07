@@ -59,8 +59,9 @@ class Result:
         membership: (N, K) soft or rough memberships; ``None`` for hard methods.
         n_iter: iterations performed (epochs for SOMs).
         converged: whether the stopping rule was met (``som`` and ``batch_som``: the
-            schedule completed).
-        history: objective value per iteration; empty when the method has none.
+            schedule completed); not a sign that the result is good.
+        history: objective value per iteration; empty for ``rcm``, ``rmcm``, ``som``
+            and ``batch_som``, which have none.
         embedding: (N, Q) map coordinates for SOMs, otherwise ``None``.
     """
 
