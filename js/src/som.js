@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
-  matrix, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
+  matrix, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -21,9 +21,8 @@ import {
  * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number, lr?: number, lrEnd?: number, shuffle?: boolean, seed?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* som(X, grid = [10, 10], {
-  epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed, ...unknown
-} = {}) {
+export function* som(X, grid = [10, 10], options) {
+  const { epochs = 10, sigma, sigmaEnd = 0.5, lr = 0.5, lrEnd = 0.01, init = 'pca', shuffle = true, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   const R = gridCoordinates(grid);
   checkInt(epochs, 'epochs', 1);
@@ -71,7 +70,8 @@ export function* som(X, grid = [10, 10], {
  * @param {MapInit & { epochs?: number, sigma?: number, sigmaEnd?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca', ...unknown } = {}) {
+export function* batchSom(X, grid = [10, 10], options) {
+  const { epochs = 50, sigma, sigmaEnd = 0.5, init = 'pca', ...unknown } = named(options);
   rejectUnknown(unknown);
   const [rows, cols] = shape(grid), R = gridCoordinates(grid);
   checkInt(epochs, 'epochs', 1);
@@ -117,7 +117,7 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* somOlp(X, grid = [10, 10], options) {
-  const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6, ...unknown } = options ?? /** @type {any} */ ({});
+  const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6, ...unknown } = named(options);
   rejectUnknown(unknown);
   const R = gridCoordinates(grid), assign = olp(R, lam, gamma);
   checkNumber(pcaScale, 'pcaScale', 0, true);
@@ -138,7 +138,8 @@ export function* somOlp(X, grid = [10, 10], options) {
  * @param {MatrixLike} X @param {MatrixLike} centers @param {Grid} grid @param {Record<string, never>} [options] none
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applySom(X, centers, grid, { ...unknown } = {}) {
+export function* applySom(X, centers, grid, options) {
+  const { ...unknown } = named(options);
   rejectUnknown(unknown);
   const R = gridCoordinates(grid), { data, V, fixed } = startFixed(X, centers, R.rows);
   const step = (data, W) => ({ V: W, state: null, value: null }); // the view finds the best-matching units
@@ -161,7 +162,7 @@ export const applyBatchSom = applySom;
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* applySomOlp(X, centers, grid, options) {
-  const { lam, gamma, maxIter = 1000, tol = 1e-6, ...unknown } = options ?? /** @type {any} */ ({});
+  const { lam, gamma, maxIter = 1000, tol = 1e-6, ...unknown } = named(options);
   rejectUnknown(unknown);
   const R = gridCoordinates(grid), assign = olp(R, lam, gamma);
   checkMaxIter(maxIter);

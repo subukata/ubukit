@@ -6,7 +6,7 @@
  */
 import {
   argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelMean,
-  lloyd, nearest, rejectUnknown, schedule, softmin, start, startFixed, TINY, tolerance, unchanged, weightedMean,
+  lloyd, named, nearest, rejectUnknown, schedule, softmin, start, startFixed, TINY, tolerance, unchanged, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -24,7 +24,8 @@ const soft = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state)
  * @param {MatrixLike} X @param {number} k @param {Common} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed, ...unknown } = {}) {
+export function* kmeans(X, k, options) {
+  const { init = 'k-means++', maxIter = 300, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   checkMaxIter(maxIter);
   const { data, V } = start(X, k, init, seed);
@@ -39,7 +40,8 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed, ...unkn
  * @param {MatrixLike} X @param {MatrixLike} centers @param {Record<string, never>} [options] none
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applyKmeans(X, centers, { ...unknown } = {}) {
+export function* applyKmeans(X, centers, options) {
+  const { ...unknown } = named(options);
   rejectUnknown(unknown);
   const { data, V, fixed } = startFixed(X, centers);
   const step = (data, V) => {
@@ -121,7 +123,8 @@ function hamerly(data, V, state) {
  * @param {MatrixLike} X @param {number} k @param {Common & { m?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = {}) {
+export function* fcm(X, k, options) {
+  const { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   const rule = fuzzy(m);
   checkMaxIter(maxIter);
@@ -135,7 +138,8 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
  * @param {MatrixLike} X @param {MatrixLike} centers @param {{ m?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applyFcm(X, centers, { m = 2, ...unknown } = {}) {
+export function* applyFcm(X, centers, options) {
+  const { m = 2, ...unknown } = named(options);
   rejectUnknown(unknown);
   return yield* applied(X, centers, fuzzy(m).assign);
 }
@@ -185,7 +189,8 @@ function fuzzyWeights(U, m) {
  * @param {MatrixLike} X @param {number} k @param {Common & { tau?: number, tol?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = {}) {
+export function* efcm(X, k, options) {
+  const { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   const assign = entropic(tau);
   checkMaxIter(maxIter);
@@ -199,7 +204,8 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
  * @param {MatrixLike} X @param {MatrixLike} centers @param {{ tau?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applyEfcm(X, centers, { tau = 1, ...unknown } = {}) {
+export function* applyEfcm(X, centers, options) {
+  const { tau = 1, ...unknown } = named(options);
   rejectUnknown(unknown);
   return yield* applied(X, centers, entropic(tau));
 }
@@ -216,7 +222,8 @@ function entropic(tau) {
  * @param {MatrixLike} X @param {number} k @param {Common & { alpha?: number, beta?: number, p?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', maxIter = 300, seed, ...unknown } = {}) {
+export function* rcm(X, k, options) {
+  const { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', maxIter = 300, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   const assign = rough(alpha, beta, p);
   checkMaxIter(maxIter);
@@ -230,7 +237,8 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
  * @param {MatrixLike} X @param {MatrixLike} centers @param {{ alpha?: number, beta?: number, p?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applyRcm(X, centers, { alpha = 1.1, beta = 0, p = 1, ...unknown } = {}) {
+export function* applyRcm(X, centers, options) {
+  const { alpha = 1.1, beta = 0, p = 1, ...unknown } = named(options);
   rejectUnknown(unknown);
   return yield* applied(X, centers, rough(alpha, beta, p));
 }
@@ -261,7 +269,8 @@ function rough(alpha, beta, p) {
  * @param {MatrixLike} X @param {number} k @param {number} delta @param {Common & { maxEdges?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed, ...unknown } = {}) {
+export function* rmcm(X, k, delta, options) {
+  const { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   const { assign, prepare } = roughMembership(delta, maxEdges);
   checkMaxIter(maxIter);
@@ -276,7 +285,8 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
  * @param {MatrixLike} X @param {MatrixLike} centers @param {number} delta @param {{ maxEdges?: number }} [options]
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applyRmcm(X, centers, delta, { maxEdges = 10_000_000, ...unknown } = {}) {
+export function* applyRmcm(X, centers, delta, options) {
+  const { maxEdges = 10_000_000, ...unknown } = named(options);
   rejectUnknown(unknown);
   const { assign, prepare } = roughMembership(delta, maxEdges);
   return yield* applied(X, centers, assign, prepare);

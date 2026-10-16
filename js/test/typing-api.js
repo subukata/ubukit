@@ -113,6 +113,8 @@ export function wrongArguments() {
   ub.apply.kmeans(X, X, { maxIter: 3 });
   // @ts-expect-error lam is required
   ub.apply.somOlp(X, X, [2, 2], { gamma: 1 });
+  // @ts-expect-error the number of trials is an option, { nTrials: 20 }
+  ub.minimize(p => Number(p.x), { x: ub.uniform(0, 1) }, 20);
   // @ts-expect-error 'max_iter' is not a stop reason
   if (ub.fcm(X, 2).stopReason === 'max_iter') return;
 }

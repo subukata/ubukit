@@ -51,6 +51,11 @@ versions keep the API and change results only to fix bugs, listed under
 
 ### Fixed
 
+- JavaScript: options that are not an object throw `TypeError`. A number
+  or boolean in their place has no keys, so it read as no options:
+  `minimize(f, space, 20)`, Python's positional `n_trials`, ran 100
+  trials, `integer(1, 8, true)` searched on a linear scale, and
+  `fcm(X, 3, 1.5)` used `m = 2`.
 - Python: data must hold numbers, as in JavaScript since 0.1.1. Booleans
   and numeric strings were converted, the real part of complex numbers
   kept, and `None` refused only as a missing value; they now raise
