@@ -36,6 +36,8 @@ def _datasets() -> dict:
         "low": np.random.default_rng(4).normal(size=(40, 2)),
         "wide": np.random.default_rng(5).normal(size=(30, 100)) * np.linspace(3, 0.1, 100),
         "standard": (correlated - correlated.mean(axis=0)) / correlated.std(axis=0),
+        # Unit coordinates given as an array: Q = 3 > D, negative, not normalized.
+        "coordinates": np.random.default_rng(7).normal(size=(7, 3)) * 2.5 - 1.0,
         "labels_a": labels.integers(0, 4, 50),
         "labels_b": labels.integers(0, 3, 50),
         # Clusters large enough that the expected-MI sums are windowed.
@@ -60,6 +62,8 @@ CASES = [
     # PCA initialization with D > 64 > N, and with axes whose components tie.
     ("som_olp", "wide", [[3, 4]], {"lam": 50.0, "gamma": 1.0, "max_iter": 5}),
     ("som_olp", "standard", [[3, 4]], {"lam": 0.5, "gamma": 1.0, "max_iter": 5}),
+    ("som", "blobs", ["coordinates"], {"epochs": 2, "shuffle": False}),
+    ("som_olp", "blobs", ["coordinates"], {"lam": 0.5, "gamma": 1.0, "max_iter": 5}),
 ]
 METRICS = [
     ("ari", ["labels_a", "labels_b"], {}),
@@ -86,7 +90,7 @@ def build() -> dict:
     for method, X, args, options in CASES:
         r = getattr(ub, method)(
             data[X],
-            *[tuple(a) if isinstance(a, list) else a for a in args],
+            *[tuple(a) if isinstance(a, list) else _resolve(a, data) for a in args],
             **{k: _resolve(v, data) for k, v in options.items()},
         )
         expect = {"centers": r.centers, "labels": r.labels}
@@ -94,6 +98,8 @@ def build() -> dict:
             expect["membership"] = r.membership
         if r.embedding is not None:
             expect["embedding"] = r.embedding
+        if r.unit_coordinates is not None:
+            expect["unit_coordinates"] = r.unit_coordinates
         expect["stop_reason"] = r.stop_reason
         cases.append({"method": method, "X": X, "args": args, "options": options, "expect": expect})
     for method, args, options in METRICS:

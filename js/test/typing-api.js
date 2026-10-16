@@ -13,6 +13,13 @@ export function fit() {
   return ub.fcm(X, 2, { m: 2, seed: 0 }).nIter;
 }
 
+/** The unit coordinates of the first point's unit. @returns {number[]} */
+export function unitOfFirstPoint() {
+  const m = ub.batchSom(X, [2, 2]), coordinates = m.unitCoordinates; // null for clusterings
+  if (coordinates === null) throw new Error('a map has unit coordinates');
+  return ub.toRows(coordinates)[m.labels[0]];
+}
+
 /** @returns {boolean} */
 export function stoppedByTolerance() {
   /** @type {'tol' | 'schedule' | 'limit' | null} */
@@ -81,6 +88,8 @@ export function wrongArguments() {
   ub.fcm(new ub.Neighborhood(X), 2);
   // @ts-expect-error converged was replaced by stopReason
   ub.fcm(X, 2).converged;
+  // @ts-expect-error unitCoordinates may be null
+  ub.batchSom(X, [2, 2]).unitCoordinates.data;
   // @ts-expect-error 'max_iter' is not a stop reason
   if (ub.fcm(X, 2).stopReason === 'max_iter') return;
 }

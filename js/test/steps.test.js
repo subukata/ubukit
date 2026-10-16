@@ -93,18 +93,33 @@ test('somOlp memberships can move after the tolerance holds', () => {
 
 test('changing a progress result leaves the run unchanged', () => {
   // A Result shares no arrays with the run: SOM-OLP's next step reads the
-  // memberships, so changing them in place used to change the run.
-  for (const [name, start] of Object.entries(converging)) {
+  // memberships, so changing them in place used to change the run, and the
+  // maps' steps read their unit coordinates.
+  const all = {
+    ...converging,
+    som: () => ub.steps.som(X, [3, 3], { epochs: 6, seed: 2 }),
+    batchSom: () => ub.steps.batchSom(X, [3, 3], { epochs: 6 }),
+  };
+  for (const [name, start] of Object.entries(all)) {
     const run = start(1000), first = run.next().value.result();
     first.labels.fill(0);
     first.membership?.data.fill(1 / first.membership.cols);
+    first.unitCoordinates?.data.fill(0);
     assert.deepEqual(ub.run(run), ub.run(start(1000)), name);
+  }
+  // Nor does changing the rows of coordinates passed in, after the first iteration.
+  for (const start of [R => ub.steps.som(X, R, { epochs: 3, seed: 2 }), R => ub.steps.somOlp(X, R, { lam: 1, gamma: 1, maxIter: 4 })]) {
+    const R = Array.from({ length: 7 }, (_, j) => [(j % 3) - 1, Math.floor(j / 3) * 0.5, -j]);
+    const expected = [...start(R.map(r => r.slice()))].map(p => p.result());
+    const run = start(R), first = run.next().value;
+    R.forEach(r => r.fill(100));
+    assert.deepEqual([first, ...run].map(p => p.result()), expected);
   }
 });
 
-/** Results equal to 1e-10 in centers, labels, memberships and embeddings. */
+/** Results equal to 1e-10 in centers, labels, memberships, embeddings and unit coordinates. */
 function assertClose(a, b, label) {
-  for (const field of ['centers', 'labels', 'membership', 'embedding']) {
+  for (const field of ['centers', 'labels', 'membership', 'embedding', 'unitCoordinates']) {
     const x = a[field], y = b[field];
     if (x === null || y === null) { assert.equal(x, y, `${label} ${field}`); continue; }
     const p = x.data ?? x, q = y.data ?? y;

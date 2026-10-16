@@ -185,7 +185,7 @@ def som_olp(
 
     def view(loop):
         P = loop.state.copy()  # the next step reads it
-        return fitted(loop, P.argmax(axis=1), P, P @ R)
+        return fitted(loop, P.argmax(axis=1), P, P @ R, R.copy())
 
     return (
         yield from iterate(data, W, step, stopping=Tolerance(tol, max_iter), view=view, keep=keep)
@@ -199,9 +199,13 @@ def _shape(grid: Any) -> tuple[int, int]:
 
 
 def _grid(grid: Grid) -> np.ndarray:
-    """Unit coordinates: (rows, cols) -> rectangular grid, or an explicit (K, Q) array."""
+    """Unit coordinates: (rows, cols) -> rectangular grid, or an explicit (K, Q) array.
+
+    The run owns them: a given array is copied, so changing it later changes
+    neither the run nor its Results.
+    """
     if np.ndim(grid) == 2:
-        return as_matrix(grid, "grid")
+        return as_matrix(grid, "grid").copy()
     rows, cols = _shape(grid)
     r, c = np.divmod(np.arange(rows * cols), cols)
     return np.column_stack((r, c)).astype(np.float64)
@@ -272,6 +276,6 @@ def _map(R: np.ndarray) -> Callable[[Loop], Result]:
 
     def view(loop: Loop) -> Result:
         labels = nearest(loop.data.X, loop.V, loop.data.xx)
-        return fitted(loop, labels, embedding=R[labels])
+        return fitted(loop, labels, embedding=R[labels], unit_coordinates=R.copy())
 
     return view

@@ -30,6 +30,18 @@ versions keep the API and change results only to fix bugs, listed under
 - `trustworthiness` and `continuity` take a list of `k` and return one value
   per entry, in its order (an array; a `Float64Array` in JavaScript), for
   one count of ranks.
+- The Results of `som`, `batch_som` and `som_olp` hold `unit_coordinates`
+  (`unitCoordinates`): the (K, Q) coordinates of the units as the run used
+  them, not normalized, `centers[j]` being the prototype of unit j. `None`
+  (`null`) for clusterings.
+
+### Fixed
+
+- Python: `som` and `som_olp` read the unit coordinates from the array
+  passed as `grid`, so changing that array during a run changed the
+  iterations that followed, and the Results that a saved Progress of an
+  earlier iteration built afterwards. The run now copies it; JavaScript
+  already did.
 
 ## 0.1.1 (2026-10-07)
 

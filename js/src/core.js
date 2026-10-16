@@ -26,7 +26,11 @@
  *   (maxIter reached without 'tol'); null in a Progress result where none holds. It says nothing about
  *   the quality of the result.
  * @property {Float64Array} history objective per iteration; empty for rcm, rmcm, som and batchSom, which have none.
- * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs.
+ * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs: the unit coordinates of the
+ *   labels for som and batchSom, membership times unit coordinates for somOlp.
+ * @property {Matrix | null} unitCoordinates (K, Q) coordinates of a map's units as the run used them,
+ *   not normalized: (row, col) on a rectangular grid, unit j = row * cols + col, or the coordinates
+ *   given; row j of centers is the prototype of unit j. null for clusterings.
  */
 /** @typedef {'tol' | 'schedule' | 'limit'} StopReason */
 /**
@@ -498,12 +502,14 @@ export function* iterate(data, V, step, { stopping, view, prepare = asData, keep
 }
 
 /**
- * The Result of a loop with the labels, memberships and embedding of its method.
+ * The Result of a loop with the labels, memberships, embedding and unit
+ * coordinates of its method (arrays the view has made or copied for it).
  * @param {Loop} loop @param {Int32Array} labels @param {Matrix | null} [membership] @param {Matrix | null} [embedding]
+ * @param {Matrix | null} [unitCoordinates]
  * @returns {Result}
  */
-export function fitted({ data, V, nIter, stopReason, history }, labels, membership = null, embedding = null) {
-  return { centers: shift(V, data.mean), labels, membership, nIter, stopReason, history, embedding };
+export function fitted({ data, V, nIter, stopReason, history }, labels, membership = null, embedding = null, unitCoordinates = null) {
+  return { centers: shift(V, data.mean), labels, membership, nIter, stopReason, history, embedding, unitCoordinates };
 }
 
 /** The standard update: the means of the data weighted by the memberships. */

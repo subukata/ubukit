@@ -25,7 +25,8 @@ const best = await ub.minimize(p => (p.x - 1) ** 2, { x: ub.uniform(-5, 5) }, { 
 
 Every fit returns a Result: `centers` (K, D), `labels` (N), `membership`
 (N, K; `null` for `kmeans`, `som` and `batchSom`), `embedding` ((N, Q) map
-positions, for the maps), `nIter`, `stopReason` and `history`, the
+positions, for the maps), `unitCoordinates` ((K, Q), for the maps; see below),
+`nIter`, `stopReason` and `history`, the
 objective at each iteration (empty for `rcm`, `rmcm`, `som` and `batchSom`,
 which have none). `stopReason` is the stopping rule that holds at the
 result's iteration: `'tol'` (no prototype moved more than the tolerance),
@@ -46,6 +47,14 @@ const reference = new ub.Neighborhood(X);
 ub.trustworthiness(reference, m.embedding, 1);
 ub.continuity(reference, m.embedding, [1]);
 ```
+
+A map's `unitCoordinates` are the coordinates of its units as the run used
+them, not normalized: `(row, col)` in grid steps on a rectangular grid (unit
+`j = row * cols + col`, so a plot can take x = col and y = row), or the
+`(K, Q)` matrix given to `som` or `somOlp`. Row `j` of `centers` is the
+prototype of unit `j`, and `embedding` holds the coordinates of each point's
+unit (`labels`) for `som` and `batchSom`, and `membership` times
+`unitCoordinates` for `somOlp`.
 
 From about five dimensions on, FCM with the default `m: 2` can collapse:
 every prototype goes to the mean of the data, every membership to 1/K, and

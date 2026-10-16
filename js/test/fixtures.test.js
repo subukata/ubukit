@@ -31,12 +31,16 @@ for (const c of cases) {
   test(`${c.method} ${JSON.stringify(c.options)}`, () => {
     const fn = ub[camel(c.method)];
     if (c.X) {
-      const r = fn(data[c.X], ...c.args, options);
+      const r = fn(data[c.X], ...c.args.map(resolve), options);
       close(r.centers, c.expect.centers, 'centers');
       assert.deepEqual(Array.from(r.labels), c.expect.labels);
       assert.equal(r.stopReason, c.expect.stop_reason);
       if (c.expect.membership) close(r.membership, c.expect.membership, 'membership');
       if (c.expect.embedding) close(r.embedding, c.expect.embedding, 'embedding');
+      if (c.expect.unit_coordinates) {
+        assert.deepEqual([r.unitCoordinates.rows, r.unitCoordinates.cols], [c.expect.unit_coordinates.length, c.expect.unit_coordinates[0].length]);
+        close(r.unitCoordinates, c.expect.unit_coordinates, 'unit coordinates', 0);
+      } else assert.equal(r.unitCoordinates, null);
     } else {
       // A number, or one per k when k is a list.
       const value = fn(...c.args.map(resolve), options);
