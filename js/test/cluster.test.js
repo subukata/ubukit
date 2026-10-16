@@ -10,7 +10,7 @@ for (const [name, fit] of [
   ['efcm', () => ub.efcm(X, 3, { seed: 0 })],
   ['rcm', () => ub.rcm(X, 3, { seed: 0 })],
   ['exrcm', () => ub.rcm(X, 3, { p: 2, beta: 0.3, seed: 0 })],
-  ['rmcm', () => ub.rmcm(X, 3, 0.5, { seed: 0 })],
+  ['rmcm', () => ub.rmcm(X, 3, { delta: 0.5, seed: 0 })],
 ]) {
   test(`${name} recovers the blobs`, () => {
     const r = fit();
@@ -106,7 +106,7 @@ test('fewer distinct points than clusters', () => {
     for (const [name, fit] of [
       ['kmeans', () => ub.kmeans(P, k, { seed: 0 })], ['fcm', () => ub.fcm(P, k, { seed: 0 })],
       ['efcm', () => ub.efcm(P, k, { seed: 0, tau: 0.1 })], ['rcm', () => ub.rcm(P, k, { seed: 0 })],
-      ['rmcm', () => ub.rmcm(P, k, 0.5, { seed: 0 })],
+      ['rmcm', () => ub.rmcm(P, k, { delta: 0.5, seed: 0 })],
     ]) {
       const r = fit();
       for (const c of ub.toRows(r.centers)) assert.ok(Math.min(Math.hypot(c[0], c[1]), Math.hypot(c[0] - 1, c[1] - 1)) < 1e-6, `${name} k=${k}: ${c}`);

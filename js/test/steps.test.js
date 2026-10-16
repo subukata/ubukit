@@ -9,7 +9,7 @@ const converging = {
   fcm: n => ub.steps.fcm(X, 4, { seed: 1, maxIter: n }),
   efcm: n => ub.steps.efcm(X, 4, { seed: 1, tau: 0.5, maxIter: n }),
   rcm: n => ub.steps.rcm(X, 4, { seed: 1, maxIter: n }),
-  rmcm: n => ub.steps.rmcm(X, 4, 0.5, { seed: 1, maxIter: n }),
+  rmcm: n => ub.steps.rmcm(X, 4, { delta: 0.5, seed: 1, maxIter: n }),
   somOlp: n => ub.steps.somOlp(X, [3, 3], { lam: 0.5, gamma: 1, maxIter: n }),
 };
 
@@ -156,7 +156,7 @@ test('new data continue from the current prototypes', () => {
     fcm: [(Y, o) => ub.steps.fcm(Y, 4, { seed: 1, ...o }), { maxIter: 1 }],
     efcm: [(Y, o) => ub.steps.efcm(Y, 4, { seed: 1, tau: 0.5, ...o }), { maxIter: 1 }],
     rcm: [(Y, o) => ub.steps.rcm(Y, 4, { seed: 1, ...o }), { maxIter: 1 }],
-    rmcm: [(Y, o) => ub.steps.rmcm(Y, 4, 0.5, { seed: 1, ...o }), { maxIter: 1 }],
+    rmcm: [(Y, o) => ub.steps.rmcm(Y, 4, { delta: 0.5, seed: 1, ...o }), { maxIter: 1 }],
     som: [(Y, o) => ub.steps.som(Y, [3, 3], { ...steady, lr: 0.1, lrEnd: 0.1, shuffle: false, ...o }), { epochs: 1 }],
     batchSom: [(Y, o) => ub.steps.batchSom(Y, [3, 3], { ...steady, ...o }), { epochs: 1 }],
   };
@@ -198,11 +198,11 @@ test('arguments are checked before the data', () => {
   for (const [call, name] of [
     [() => ub.kmeans(bad, 3, { maxIter: 0 }), /maxIter/], [() => ub.fcm(bad, 3, { tol: -1 }), /tol/],
     [() => ub.efcm(bad, 3, { maxIter: 0 }), /maxIter/], [() => ub.rcm(bad, 3, { maxIter: 0 }), /maxIter/],
-    [() => ub.rmcm(bad, 3, 0.5, { maxIter: 0 }), /maxIter/], [() => ub.som(bad, [3, 3], { epochs: 0 }), /epochs/],
+    [() => ub.rmcm(bad, 3, { delta: 0.5, maxIter: 0 }), /maxIter/], [() => ub.som(bad, [3, 3], { epochs: 0 }), /epochs/],
     [() => ub.batchSom(bad, [3, 3], { sigma: 0 }), /sigma/],
     [() => ub.somOlp(bad, [3, 3], { lam: 1, gamma: 1, tol: -1 }), /tol/],
     // k, a named init and the seed were checked after the data.
-    [() => ub.kmeans(bad, 0), /^k must/], [() => ub.rmcm(bad, 0, 0.5), /^k must/],
+    [() => ub.kmeans(bad, 0), /^k must/], [() => ub.rmcm(bad, 0, { delta: 0.5 }), /^k must/],
     [() => ub.fcm(bad, 3, { init: 'random' }), /^init must/], [() => ub.efcm(bad, 3, { seed: -1 }), /^seed must/],
     [() => ub.som(bad, [3, 3], { seed: -1 }), /^seed must/], [() => ub.batchSom(bad, [3, 3], { init: 'random' }), /^init must/],
     [() => ub.somOlp(bad, [3, 3], { lam: 1, gamma: 1, init: 'random' }), /^init must/],
