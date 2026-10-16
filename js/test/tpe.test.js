@@ -37,6 +37,14 @@ test('a space too narrow to search is refused', () => {
   assert.throws(() => new ub.TPE({ x: ub.uniform(0, 1) }).tell({ x: 0.5 }, Infinity), { message: 'value must be a finite number' });
 });
 
+test('the settings of a TPE are read-only', () => {
+  // They were plain properties: nCandidates = 0 set later skipped the check and
+  // made the next proposal fail.
+  const tpe = new ub.TPE({ x: ub.uniform(0, 1) }, { nStartup: 3, nCandidates: 5, gamma: 0.2 });
+  assert.deepEqual([tpe.nStartup, tpe.nCandidates, tpe.gamma], [3, 5, 0.2]);
+  for (const name of ['nStartup', 'nCandidates', 'gamma']) assert.throws(() => { /** @type {any} */ (tpe)[name] = 0; }, TypeError, name);
+});
+
 test('a TPE keeps checked copies of its dimensions', () => {
   // Changing a dimension after the TPE was made changed its proposals; the
   // factories' dimensions are frozen, as Python's are, and a dimension written
