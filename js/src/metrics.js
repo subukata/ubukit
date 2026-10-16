@@ -100,7 +100,8 @@ export function trustworthiness(X, Y, k = 5) {
     checkInt(q, 'k', 1);
     if (!(2 * q < n)) throw new RangeError('k must satisfy 1 <= k < n / 2');
   }
-  const top = Math.max(...ks), penalty = ks.map(() => 0);
+  // A reduction, not Math.max(...ks): spreading a long list overflows the stack.
+  const top = ks.reduce((a, b) => Math.max(a, b)), penalty = ks.map(() => 0);
   const da = new Float64Array(n), db = new Float64Array(n), nearest = new Int32Array(top);
   for (let i = 0; i < n; i++) {
     a.row(i, da);
@@ -168,6 +169,8 @@ function distances(M, i, out) {
   out[i] = Infinity;
 }
 
+const LABEL_TYPES = new Set(['number', 'string', 'boolean', 'bigint']);
+
 function contingency(labelsTrue, labelsPred) {
   // Arrays only: the length of anything else would size the encoding unchecked.
   if (!isList(labelsTrue) || !isList(labelsPred)) throw new TypeError('labels must be arrays');
@@ -176,6 +179,9 @@ function contingency(labelsTrue, labelsPred) {
   const encode = labels => {
     const ids = new Map(), codes = new Int32Array(n), counts = [];
     for (let i = 0; i < n; i++) {
+      // A label is a value, as in Python's 1-D labels: an array or object would
+      // be compared by identity, each one a cluster of its own.
+      if (!LABEL_TYPES.has(typeof labels[i])) throw new TypeError('labels must hold numbers, strings or booleans');
       let id = ids.get(labels[i]);
       if (id === undefined) ids.set(labels[i], (id = counts.length)), counts.push(0);
       codes[i] = id;

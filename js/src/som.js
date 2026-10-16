@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
+  argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
   matrix, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
@@ -212,12 +212,13 @@ function multiply(A, B) {
 }
 
 function shape(grid) {
-  if (!Array.isArray(grid) || grid.length !== 2 || Array.isArray(grid[0])) throw new RangeError('grid must be [rows, cols]');
+  if (!Array.isArray(grid) || grid.length !== 2 || isList(grid[0])) throw new RangeError('grid must be [rows, cols]');
   return [checkInt(grid[0], 'rows', 1), checkInt(grid[1], 'cols', 1)];
 }
 
+/** Unit coordinates: [rows, cols] -> a rectangular grid; rows of coordinates (arrays or typed arrays, as matrix reads them) or a matrix -> a copy. */
 function gridCoordinates(grid) {
-  if (!Array.isArray(grid) || Array.isArray(grid[0])) return matrix(grid, 'grid'); // a copy: the run owns it
+  if (!Array.isArray(grid) || isList(grid[0])) return matrix(grid, 'grid'); // a copy: the run owns it
   const [rows, cols] = shape(grid);
   const data = new Float64Array(rows * cols * 2);
   for (let j = 0; j < rows * cols; j++) data[2 * j] = Math.floor(j / cols), data[2 * j + 1] = j % cols;

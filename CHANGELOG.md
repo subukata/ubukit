@@ -85,6 +85,14 @@ versions keep the API and change results only to fix bugs, listed under
   the call: a variable holding numeric dimensions only, or numeric and
   categorical ones, was rejected. Both now take any mapping of dimensions,
   at run time too.
+- JavaScript: labels must be numbers, strings or booleans, as Python's form
+  a 1-D array: arrays or objects as labels were compared by identity, each
+  a cluster of its own. Python's error for labels that do not sort, such as
+  `[0, None]`, says so; NumPy's named neither.
+- JavaScript: `trustworthiness` and `continuity` take a list of `k` of any
+  length (200,000 overflowed the stack), and rows of unit coordinates may
+  be typed arrays, as `matrix` reads them; they were refused as a malformed
+  `[rows, cols]`.
 - Python: the type declarations of `minimize` name the options it passes
   to `TPE` (`n_startup`, `n_candidates`, `gamma`), as JavaScript's do since
   0.1.1, so a type checker reports a misspelled or mistyped option.

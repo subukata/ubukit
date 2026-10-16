@@ -62,3 +62,22 @@ test('labels are checked before anything is allocated for them', () => {
   }
   assert.equal(ub.ari(Int32Array.of(0, 0, 1), [5, 5, 3]), 1);
 });
+
+test('labels are values, as in Python', () => {
+  // Arrays as labels were compared by identity, each a cluster of its own,
+  // so two labelings of nothing but distinct arrays scored 1; Python refuses
+  // labels that are not 1-D.
+  for (const metric of [ub.ari, ub.ami]) {
+    assert.throws(() => metric([[0], [0], [1]], [[0], [0], [1]]), { name: 'TypeError', message: 'labels must hold numbers, strings or booleans' });
+    assert.throws(() => metric([0, null], [0, 1]), TypeError);
+    assert.throws(() => metric([0, 1], [{}, {}]), TypeError);
+  }
+  assert.equal(ub.ari([true, true, false], ['a', 'a', 'b']), 1);
+});
+
+test('any number of k', () => {
+  // Math.max(...ks) overflowed the stack for 200,000 of them.
+  const values = ub.trustworthiness(P, G, Array(200_000).fill(3));
+  assert.equal(values.length, 200_000);
+  assert.ok(values.every(v => v === ub.trustworthiness(P, G, 3)));
+});
