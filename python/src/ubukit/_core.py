@@ -264,13 +264,13 @@ class Data:
 
 def as_data(X: ArrayLike, n_features: int | None = None) -> Data:
     """Validate and center X as the input of an iteration."""
-    X = as_matrix(X)
-    if n_features is not None and X.shape[1] != n_features:
+    A = as_matrix(X)
+    if n_features is not None and A.shape[1] != n_features:
         raise ValueError(f"X must have {n_features} features, like the data the run started on")
-    mean = X.mean(axis=0)
-    X = X - mean
-    xx = sq_norms(X)
-    return Data(X, mean, xx, float(np.sqrt(xx.mean())))
+    mean = A.mean(axis=0)
+    A = A - mean
+    xx = sq_norms(A)
+    return Data(A, mean, xx, float(np.sqrt(xx.mean())))
 
 
 def start(
