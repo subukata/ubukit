@@ -22,7 +22,17 @@ def follow_moving_data() -> ub.Result:
     return p.result()
 
 
+def score_many_layouts() -> float:
+    # One Neighborhood of X scores many embeddings, at one k or several.
+    reference = ub.Neighborhood(X)
+    one: float = ub.trustworthiness(reference, X + 1.0, 3)
+    several: np.ndarray = ub.continuity(reference, X + 1.0, [2, 3])
+    return one + float(several.sum())
+
+
 def wrong_arguments() -> None:
+    ub.trustworthiness(X, X, "3")  # type: ignore[arg-type]
+    ub.fcm(ub.Neighborhood(X), 3)  # type: ignore[arg-type]
     ub.fcm(X, "3")  # type: ignore[arg-type]
     ub.steps.fcm(X, "3")  # type: ignore[arg-type]
     ub.steps.som_olp(X, (3, 3), lam=0.5)  # type: ignore[call-arg]

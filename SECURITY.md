@@ -8,7 +8,8 @@ UbuKit computes on in-memory numeric arrays and performs no file, network or
 process access. Its main risk with untrusted input is resource use: fitting
 costs O(N K D) time per iteration and O(N K) memory, `rmcm` builds a
 neighborhood graph (memory bounded by `max_edges`; O(N^2 D) time in
-JavaScript), `trustworthiness`/`continuity` cost O(N^2 (D + k)) time, and
+JavaScript), `trustworthiness`/`continuity` cost O(N^2 (D + k)) time (a
+`Neighborhood` holds 8 N^2 bytes), and
 `ami` grows with the number of distinct cluster sizes in the labels (0.3 s
 for N = 80,000 with 400 distinct sizes on each side) and holds N + 1
 log-factorials. UbuKit checks the shape of its data and labels before

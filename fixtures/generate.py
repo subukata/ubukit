@@ -70,6 +70,9 @@ METRICS = [
     ("ami", ["labels_c", "labels_d"], {}),
     ("trustworthiness", ["high", "low", 5], {}),
     ("continuity", ["high", "low", 5], {}),
+    # Several k at once: one value per k, in their order.
+    ("trustworthiness", ["high", "low", [8, 3, 5]], {}),
+    ("continuity", ["high", "low", [8, 3, 5]], {}),
 ]
 
 

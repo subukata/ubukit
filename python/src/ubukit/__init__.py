@@ -12,7 +12,7 @@ whose ``result()`` is the Result as if the run had stopped there:
 from . import steps
 from ._core import Progress, Result
 from ._core import stepwise as _stepwise
-from .metrics import ami, ari, continuity, trustworthiness
+from .metrics import Neighborhood, ami, ari, continuity, trustworthiness
 from .tpe import TPE, TPEResult, choice, integer, loguniform, minimize, uniform
 
 # The fitting functions: each runs its generator in ``steps`` to the end.
@@ -29,6 +29,7 @@ __version__ = "0.1.1"
 
 __all__ = [
     "TPE",
+    "Neighborhood",
     "Progress",
     "Result",
     "TPEResult",

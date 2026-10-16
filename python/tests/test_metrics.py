@@ -71,6 +71,42 @@ def test_trustworthiness_with_grid_ties():
         assert ub.continuity(X, Y, k) == pytest.approx(reference_trustworthiness(Y, X, k))
 
 
+def ties():
+    """Duplicated inputs and an integer grid embedding: exact distance ties in both spaces."""
+    rng = np.random.default_rng(1)
+    X = rng.normal(size=(120, 4))
+    X[10:20] = X[10]
+    return X, rng.integers(0, 4, size=(120, 2)).astype(float)
+
+
+@pytest.mark.parametrize("metric", [ub.trustworthiness, ub.continuity])
+def test_several_k_give_the_values_of_separate_calls_in_their_order(metric):
+    X, Y = ties()
+    ks = [7, 2, 4]
+    values = metric(X, Y, ks)
+    assert isinstance(values, np.ndarray)
+    np.testing.assert_array_equal(values, [metric(X, Y, k) for k in ks])
+
+
+@pytest.mark.parametrize("metric", [ub.trustworthiness, ub.continuity])
+def test_a_neighborhood_gives_the_values_of_its_points(metric):
+    X, Y = ties()
+    nX, nY = ub.Neighborhood(X), ub.Neighborhood(Y)
+    expected = metric(X, Y, [5, 1, 9])
+    for A, B in ((nX, Y), (X, nY), (nX, nY)):
+        np.testing.assert_array_equal(metric(A, B, [5, 1, 9]), expected)
+    assert metric(nX, Y) == metric(X, Y)
+
+
+def test_a_neighborhood_keeps_the_distances_it_was_built_with():
+    X, Y = ties()
+    reference = ub.Neighborhood(X)  # X is float64 already, so it is not copied on input
+    expected = ub.trustworthiness(X, Y, 5)
+    X[:] = 0.0
+    assert ub.trustworthiness(reference, Y, 5) == expected
+    assert repr(reference) == "Neighborhood(n=120)"
+
+
 def test_invalid_arguments():
     X = np.zeros((10, 2))
     with pytest.raises(ValueError):
@@ -82,6 +118,16 @@ def test_invalid_arguments():
     Z = np.random.default_rng(0).normal(size=(10, 2))
     with pytest.raises(ValueError, match="scale"):
         ub.trustworthiness(Z, Z * 1e-170, 2)
+    with pytest.raises(ValueError, match="same number of rows"):
+        ub.trustworthiness(ub.Neighborhood(Z), Z[:9], 2)
+    with pytest.raises(ValueError, match="non-empty"):
+        ub.trustworthiness(Z, Z, [])
+    with pytest.raises(ValueError, match="n / 2"):
+        ub.continuity(Z, Z, [2, 5])
+    with pytest.raises(ValueError, match="k must be an integer"):
+        ub.trustworthiness(Z, Z, [2, 2.5])
+    with pytest.raises(TypeError):
+        ub.fcm(ub.Neighborhood(Z), 2)  # a Neighborhood is not data
     with pytest.raises(ValueError):
         ub.ari([0, 1], [0])
     with pytest.raises(ValueError):

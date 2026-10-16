@@ -33,6 +33,17 @@ In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
 a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
 Inputs should be finite and of ordinary scale; standardize features first.
 
+A search that scores many embeddings of the same `X` computes the distances
+of `X` once with a `Neighborhood` (8 N^2 bytes), which both metrics take in
+place of `X` with the same values; an array of `k` gives a `Float64Array`
+with one value per `k`:
+
+```js
+const reference = new ub.Neighborhood(X);
+ub.trustworthiness(reference, m.embedding, 1);
+ub.continuity(reference, m.embedding, [1]);
+```
+
 From about five dimensions on, FCM with the default `m: 2` can collapse:
 every prototype goes to the mean of the data, every membership to 1/K, and
 the run still reports `converged`. Use `m` closer to 1 there (1.2, for

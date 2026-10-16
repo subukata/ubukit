@@ -14,6 +14,18 @@ const local = {
   tpeSphere: (nTrials, { seed }) => ub.minimize(
     p => (p.x - 1) ** 2 + p.y ** 2, { x: ub.uniform(-5, 5), y: ub.uniform(-5, 5) }, { nTrials, seed },
   ),
+  // Sheared copies of Y stand for the embeddings of a search.
+  neighborhoodReuse: (X, Y, layouts) => {
+    const reference = new ub.Neighborhood(X), ks = [5, 10, 20], { data, rows, cols } = Y;
+    let total = 0;
+    for (let t = 0; t < layouts; t++) {
+      const Z = { data: data.slice(), rows, cols };
+      for (let i = 0; i < rows; i++) Z.data[i * cols] += 0.05 * t * data[i * cols + 1];
+      for (const v of ub.trustworthiness(reference, Z, ks)) total += v;
+      for (const v of ub.continuity(reference, Z, ks)) total += v;
+    }
+    return total;
+  },
 };
 
 // Fields are loaded once, as matrices or label arrays, outside the timed region.

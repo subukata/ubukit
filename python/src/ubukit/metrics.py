@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from types import ModuleType
-from typing import Literal
+from typing import Any, Literal, overload
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -66,63 +66,168 @@ def ami(
     return (mi - emi) / denominator
 
 
-def trustworthiness(X: ArrayLike, Y: ArrayLike, k: int = 5, *, engine: Engine = "numpy") -> float:
+class Neighborhood:
+    """The pairwise distances of N points, computed once to score many embeddings of them.
+
+    ``trustworthiness`` and ``continuity`` take it in place of the points and
+    give the same values without computing their distances again, which is
+    most of the work when the points have many features: a search that
+    scores many embeddings Y of one X builds ``Neighborhood(X)`` once. It
+    holds the (N, N) squared distances, from direct differences as the
+    metrics compute them, in 8 N^2 bytes (72 MB for N = 3,000), and never
+    changes.
+    """
+
+    __slots__ = ("_distances",)
+
+    def __init__(self, X: ArrayLike) -> None:
+        X = as_matrix(X)
+        distances = cdist(X, X, "sqeuclidean")
+        np.fill_diagonal(distances, np.inf)  # a point is not its own neighbor
+        distances.flags.writeable = False
+        self._distances = distances
+
+    def __repr__(self) -> str:
+        return f"Neighborhood(n={len(self._distances)})"
+
+
+@overload
+def trustworthiness(
+    X: ArrayLike | Neighborhood, Y: ArrayLike | Neighborhood, k: int = 5, *, engine: Engine = ...
+) -> float: ...
+@overload
+def trustworthiness(
+    X: ArrayLike | Neighborhood,
+    Y: ArrayLike | Neighborhood,
+    k: Sequence[int],
+    *,
+    engine: Engine = ...,
+) -> np.ndarray: ...
+def trustworthiness(
+    X: ArrayLike | Neighborhood,
+    Y: ArrayLike | Neighborhood,
+    k: int | Sequence[int] = 5,
+    *,
+    engine: Engine = "numpy",
+) -> float | np.ndarray:
     """Trustworthiness of embedding Y of X (Venna & Kaski, 2001).
 
     Penalizes points that are among the k nearest neighbors in Y but not in X,
     by their rank in X. Distances are computed from direct differences, so
     exact ties (e.g. SOM grid coordinates) stay exact and are ordered by index.
+    ``k`` may be a sequence, giving an array with one value per entry, in its
+    order, for the work of the largest. X or Y may be a ``Neighborhood`` of
+    the points, whose distances are then not computed again.
     ``engine="numba"`` computes the same penalties in parallel compiled loops.
     """
-    kernels = numba_kernels(engine)
-    X, Y = as_matrix(X), as_matrix(Y, "Y")
-    n = len(X)
-    if len(Y) != n:
-        raise ValueError("X and Y must have the same number of rows")
-    k = check_int(k, "k", 1)
-    if not 2 * k < n:
-        raise ValueError("k must satisfy 1 <= k < n / 2")
-    if kernels:
-        penalty = int(kernels.trustworthiness_penalties(X, Y, k).sum())
-    else:
-        penalty = _penalty(X, Y, k)
-    return 1.0 - 2.0 * penalty / (n * k * (2.0 * n - 3.0 * k - 1.0))
+    return _trustworthiness(X, Y, k, engine)
 
 
-def continuity(X: ArrayLike, Y: ArrayLike, k: int = 5, *, engine: Engine = "numpy") -> float:
+@overload
+def continuity(
+    X: ArrayLike | Neighborhood, Y: ArrayLike | Neighborhood, k: int = 5, *, engine: Engine = ...
+) -> float: ...
+@overload
+def continuity(
+    X: ArrayLike | Neighborhood,
+    Y: ArrayLike | Neighborhood,
+    k: Sequence[int],
+    *,
+    engine: Engine = ...,
+) -> np.ndarray: ...
+def continuity(
+    X: ArrayLike | Neighborhood,
+    Y: ArrayLike | Neighborhood,
+    k: int | Sequence[int] = 5,
+    *,
+    engine: Engine = "numpy",
+) -> float | np.ndarray:
     """Continuity of embedding Y of X: trustworthiness with the roles swapped."""
-    return trustworthiness(Y, X, k, engine=engine)
+    return _trustworthiness(Y, X, k, engine)
 
 
-def _penalty(X: np.ndarray, Y: np.ndarray, k: int) -> int:
-    """Sum over points of max(rank in X - k, 0) for their k nearest neighbors in Y."""
-    n = len(X)
+def _trustworthiness(X: Any, Y: Any, k: Any, engine: Engine) -> float | np.ndarray:
+    """``trustworthiness(X, Y, k)``, which ``continuity`` takes with X and Y swapped."""
+    kernels = numba_kernels(engine)
+    (A, a_stored), (B, b_stored) = _points(X, "X"), _points(Y, "Y")
+    n = len(A)
+    if len(B) != n:
+        raise ValueError("X and Y must have the same number of rows")
+    ks = _neighbor_counts(k, n)
+    if kernels:
+        counts = np.array(ks, np.int64)
+        penalties = kernels.trustworthiness_penalties(A, a_stored, B, b_stored, counts).sum(axis=0)
+    else:
+        penalties = _penalties(A, a_stored, B, b_stored, ks)
+    values = [
+        1.0 - 2.0 * int(penalty) / (n * q * (2.0 * n - 3.0 * q - 1.0))
+        for penalty, q in zip(penalties, ks, strict=True)
+    ]
+    return values[0] if np.ndim(k) == 0 else np.array(values)
+
+
+def _points(Z: Any, name: str) -> tuple[np.ndarray, bool]:
+    """The rows of Z, or the distances of a Neighborhood, with whether they are distances."""
+    if isinstance(Z, Neighborhood):
+        return Z._distances, True
+    return as_matrix(Z, name), False
+
+
+def _neighbor_counts(k: Any, n: int) -> list[int]:
+    """The numbers of neighbors asked for: one, or a non-empty sequence of them."""
+    ks = [check_int(q, "k", 1) for q in ([k] if np.ndim(k) == 0 else list(k))]
+    if not ks:
+        raise ValueError("k must be an integer or a non-empty sequence of integers")
+    if not all(2 * q < n for q in ks):
+        raise ValueError("k must satisfy 1 <= k < n / 2")
+    return ks
+
+
+def _penalties(
+    A: np.ndarray, a_stored: bool, B: np.ndarray, b_stored: bool, ks: list[int]
+) -> list[int]:
+    """Per k in ks, the sum over points of max(rank in A - k, 0) for their k nearest in B.
+
+    A and B are points, or their distances when stored. The neighbors in B
+    come sorted by (distance, index), so the k nearest for each k are the
+    first k of the largest k's, and one count of their ranks serves every k.
+    """
+    n, top = len(A), max(ks)
     index = np.arange(n)
-    block = max(1, (1 << 22) // (n * (k + 2)))
-    penalty = 0
+    block = max(1, (1 << 22) // (n * (top + 2)))
+    penalty = [0] * len(ks)
     for start in range(0, n, block):
         rows = index[start : start + block]
-        dx = cdist(X[rows], X, "sqeuclidean")
-        dy = cdist(Y[rows], Y, "sqeuclidean")
-        dx[np.arange(len(rows)), rows] = np.inf
-        dy[np.arange(len(rows)), rows] = np.inf
-        neighbors = _nearest(dy, k)
-        target = np.take_along_axis(dx, neighbors, axis=1)[:, :, None]
-        # 1-based rank in X under the (distance, index) order.
-        rank = 1 + (dx[:, None, :] < target).sum(axis=2)
-        rank += ((dx[:, None, :] == target) & (index < neighbors[:, :, None])).sum(axis=2)
-        penalty += int(np.maximum(rank - k, 0).sum())
+        da, db = _rows(A, a_stored, rows), _rows(B, b_stored, rows)
+        neighbors = _nearest(db, top)
+        target = np.take_along_axis(da, neighbors, axis=1)[:, :, None]
+        # 1-based rank in A under the (distance, index) order.
+        rank = 1 + (da[:, None, :] < target).sum(axis=2)
+        rank += ((da[:, None, :] == target) & (index < neighbors[:, :, None])).sum(axis=2)
+        for q, k in enumerate(ks):
+            penalty[q] += int(np.maximum(rank[:, :k] - k, 0).sum())
     return penalty
 
 
+def _rows(A: np.ndarray, stored: bool, rows: np.ndarray) -> np.ndarray:
+    """Squared distances from the given rows to every row, inf at the row itself."""
+    if stored:
+        return A[rows]
+    d = cdist(A[rows], A, "sqeuclidean")
+    d[np.arange(len(rows)), rows] = np.inf
+    return d
+
+
 def _nearest(d: np.ndarray, k: int) -> np.ndarray:
-    """Column indices of the k smallest entries per row, ties broken by index (unordered)."""
+    """Column indices of the k smallest entries per row, in (value, index) order."""
     kth = np.partition(d, k - 1, axis=1)[:, k - 1 : k]
     below = d < kth
     tied = d == kth
     room = k - below.sum(axis=1, keepdims=True)
     chosen = below | (tied & (np.cumsum(tied, axis=1) <= room))
-    return np.nonzero(chosen)[1].reshape(len(d), k)
+    columns = np.nonzero(chosen)[1].reshape(len(d), k)  # increasing index in each row
+    order = np.argsort(np.take_along_axis(d, columns, axis=1), axis=1, kind="stable")
+    return np.take_along_axis(columns, order, axis=1)
 
 
 def _contingency(labels_true, labels_pred):

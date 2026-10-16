@@ -37,7 +37,9 @@ for (const c of cases) {
       if (c.expect.membership) close(r.membership, c.expect.membership, 'membership');
       if (c.expect.embedding) close(r.embedding, c.expect.embedding, 'embedding');
     } else {
-      close([fn(...c.args.map(resolve), options)], [c.expect], c.method, 1e-10);
+      // A number, or one per k when k is a list.
+      const value = fn(...c.args.map(resolve), options);
+      close(typeof value === 'number' ? [value] : value, [c.expect].flat(), c.method, 1e-10);
     }
   });
 }

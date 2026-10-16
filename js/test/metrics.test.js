@@ -17,6 +17,41 @@ test('metrics edge cases', () => {
   assert.throws(() => ub.trustworthiness(X, X, 200), RangeError);
 });
 
+// Ties in both spaces: duplicated inputs and an integer grid embedding.
+const P = X.map((x, i) => (i % 10 === 0 ? X[0] : x)), G = X.map(([a, b]) => [Math.round(a), Math.round(b)]);
+
+test('several k give the values of separate calls, in their order', () => {
+  for (const metric of [ub.trustworthiness, ub.continuity]) {
+    const ks = [7, 2, 4], values = metric(P, G, ks);
+    assert.ok(values instanceof Float64Array);
+    assert.deepEqual(values, Float64Array.from(ks.map(k => metric(P, G, k))), metric.name);
+  }
+});
+
+test('a Neighborhood gives the values of its points', () => {
+  const nP = new ub.Neighborhood(P), nG = new ub.Neighborhood(G);
+  for (const metric of [ub.trustworthiness, ub.continuity]) {
+    const expected = metric(P, G, [5, 1, 9]);
+    for (const [A, B] of [[nP, G], [P, nG], [nP, nG]]) assert.deepEqual(metric(A, B, [5, 1, 9]), expected, metric.name);
+    assert.equal(metric(nP, G), metric(P, G));
+  }
+  // It keeps the distances it was built with, and cannot be changed.
+  const rows = P.map(r => r.slice()), reference = new ub.Neighborhood(rows), before = ub.trustworthiness(reference, G, 5);
+  rows.forEach(r => r.fill(0));
+  assert.equal(ub.trustworthiness(reference, G, 5), before);
+  assert.ok(Object.isFrozen(reference));
+});
+
+test('neighborhoods and lists of k are checked', () => {
+  const reference = new ub.Neighborhood(X);
+  assert.throws(() => ub.trustworthiness(reference, X.slice(1)), /same number of rows/);
+  assert.throws(() => ub.continuity(X.slice(1), reference), /same number of rows/);
+  assert.throws(() => ub.trustworthiness(reference, X, []), RangeError);
+  assert.throws(() => ub.trustworthiness(reference, X, [5, 200]), /n \/ 2/);
+  assert.throws(() => ub.trustworthiness(reference, X, [5, 2.5]), RangeError);
+  assert.throws(() => ub.fcm(reference, 2), TypeError); // not data
+});
+
 test('labels are checked before anything is allocated for them', () => {
   // An object claiming a length is not a labeling (TypeError) and sizes no
   // allocation; the old check accepted it, asked for 2^40 codes (RangeError)
