@@ -103,9 +103,19 @@ def _ubukit(ub) -> dict:
         space = {"x": ub.uniform(-5, 5), "y": ub.uniform(-5, 5)}
         return ub.minimize(lambda p: (p["x"] - 1) ** 2 + p["y"] ** 2, space, n_trials, seed=seed)
 
+    def neighborhood_reuse(X, Y, layouts):
+        # Sheared copies of Y stand for the embeddings of a search.
+        reference, ks, total = ub.Neighborhood(X), [5, 10, 20], 0.0
+        for t in range(layouts):
+            Z = Y.copy()
+            Z[:, 0] += 0.05 * t * Y[:, 1]
+            total += float(ub.trustworthiness(reference, Z, ks).sum())
+            total += float(ub.continuity(reference, Z, ks).sum())
+        return total
+
     # Every public function, so a commit compared with --compare may lack some.
     functions = {name: getattr(ub, name) for name in ub.__all__ if name.islower()}
-    return functions | {"tpe_sphere": tpe_sphere}
+    return functions | {"tpe_sphere": tpe_sphere, "neighborhood_reuse": neighborhood_reuse}
 
 
 def _references() -> dict:

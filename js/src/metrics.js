@@ -48,53 +48,115 @@ export function ami(labelsTrue, labelsPred, { average = 'arithmetic', ...unknown
   return (mi - emi) / denominator;
 }
 
+/** The distances each Neighborhood holds; only this module reads them. */
+const STORED = new WeakMap();
+
+/**
+ * The pairwise distances of N points, computed once to score many
+ * embeddings of them: trustworthiness and continuity take it in place of the
+ * points and give the same values without computing their distances again,
+ * which is most of the work when the points have many features. It holds
+ * the N x N squared distances, from direct differences as the metrics
+ * compute them, in 8 N^2 bytes (72 MB for N = 3,000), and never changes.
+ */
+export class Neighborhood {
+  /** @param {import('./core.js').MatrixLike} X */
+  constructor(X) {
+    const M = matrix(X), n = M.rows, data = new Float64Array(n * n);
+    for (let i = 0; i < n; i++) distances(M, i, data.subarray(i * n, (i + 1) * n));
+    STORED.set(this, { n, data });
+    Object.freeze(this);
+  }
+}
+
+/** @typedef {import('./core.js').MatrixLike | Neighborhood} Points */
+
+/**
+ * @overload
+ * @param {Points} X @param {Points} Y @param {number} [k]
+ * @returns {number}
+ */
+/**
+ * @overload
+ * @param {Points} X @param {Points} Y @param {ArrayLike<number>} k
+ * @returns {Float64Array}
+ */
 /**
  * Trustworthiness of embedding Y of X (Venna & Kaski, 2001): penalizes the k
  * nearest neighbors in Y that are not among those in X, by their rank in X.
- * Distance ties are ordered by sample index.
- * @param {import('./core.js').MatrixLike} X
- * @param {import('./core.js').MatrixLike} Y
+ * Distance ties are ordered by sample index. k may be an array, giving one
+ * value per entry, in its order, for the work of the largest. X or Y may be
+ * a Neighborhood of the points, whose distances are then not computed again.
+ * @param {Points} X @param {Points} Y @param {number | ArrayLike<number>} [k]
+ * @returns {number | Float64Array}
  */
 export function trustworthiness(X, Y, k = 5) {
-  X = matrix(X);
-  Y = matrix(Y, 'Y');
-  const n = X.rows;
-  if (Y.rows !== n) throw new RangeError('X and Y must have the same number of rows');
-  checkInt(k, 'k', 1);
-  if (!(2 * k < n)) throw new RangeError('k must satisfy 1 <= k < n / 2');
-  const dx = new Float64Array(n), dy = new Float64Array(n), nearest = new Int32Array(k);
-  let penalty = 0;
+  const a = points(X, 'X'), b = points(Y, 'Y'), n = a.n;
+  if (b.n !== n) throw new RangeError('X and Y must have the same number of rows');
+  const ks = isList(k) ? Array.from(/** @type {ArrayLike<number>} */ (k)) : [/** @type {number} */ (k)];
+  if (!ks.length) throw new RangeError('k must be a number or a non-empty array of numbers');
+  for (const q of ks) {
+    checkInt(q, 'k', 1);
+    if (!(2 * q < n)) throw new RangeError('k must satisfy 1 <= k < n / 2');
+  }
+  const top = Math.max(...ks), penalty = ks.map(() => 0);
+  const da = new Float64Array(n), db = new Float64Array(n), nearest = new Int32Array(top);
   for (let i = 0; i < n; i++) {
-    distances(X, i, dx);
-    distances(Y, i, dy);
-    // k smallest of dy by (distance, index), kept sorted by insertion.
+    a.row(i, da);
+    b.row(i, db);
+    // The top smallest of db by (distance, index), kept sorted by insertion:
+    // the k nearest for each k are the first k.
     let size = 0;
     for (let j = 0; j < n; j++) {
-      if (size === k && dy[j] >= dy[nearest[k - 1]]) continue;
-      let p = Math.min(size, k - 1);
-      while (p > 0 && dy[nearest[p - 1]] > dy[j]) nearest[p] = nearest[p - 1], p--;
+      if (size === top && db[j] >= db[nearest[top - 1]]) continue;
+      let p = Math.min(size, top - 1);
+      while (p > 0 && db[nearest[p - 1]] > db[j]) nearest[p] = nearest[p - 1], p--;
       nearest[p] = j;
-      size = Math.min(size + 1, k);
+      size = Math.min(size + 1, top);
     }
-    for (let q = 0; q < k; q++) {
-      const j = nearest[q], target = dx[j];
+    for (let r = 0; r < top; r++) {
+      const j = nearest[r], target = da[j];
       let rank = 1;
-      for (let l = 0; l < n; l++) if (dx[l] < target || (dx[l] === target && l < j)) rank++;
-      penalty += Math.max(rank - k, 0);
+      for (let l = 0; l < n; l++) if (da[l] < target || (da[l] === target && l < j)) rank++;
+      // A plain loop: a callback would capture rank, which V8 then keeps in memory.
+      for (let e = 0; e < ks.length; e++) if (r < ks[e]) penalty[e] += Math.max(rank - ks[e], 0);
     }
   }
-  return 1 - (2 * penalty) / (n * k * (2 * n - 3 * k - 1));
+  const values = ks.map((q, e) => 1 - (2 * penalty[e]) / (n * q * (2 * n - 3 * q - 1)));
+  return isList(k) ? Float64Array.from(values) : values[0];
 }
 
 /**
+ * @overload
+ * @param {Points} X @param {Points} Y @param {number} [k]
+ * @returns {number}
+ */
+/**
+ * @overload
+ * @param {Points} X @param {Points} Y @param {ArrayLike<number>} k
+ * @returns {Float64Array}
+ */
+/**
  * Continuity of embedding Y of X: trustworthiness with the roles swapped.
- * @param {import('./core.js').MatrixLike} X
- * @param {import('./core.js').MatrixLike} Y
+ * @param {Points} X @param {Points} Y @param {number | ArrayLike<number>} [k]
+ * @returns {number | Float64Array}
  */
 export function continuity(X, Y, k = 5) {
-  return trustworthiness(Y, X, k);
+  return trustworthiness(Y, X, /** @type {any} */ (k));
 }
 
+/** The squared-distance rows of points, or of the distances a Neighborhood holds. */
+function points(Z, name) {
+  const stored = STORED.get(Z);
+  if (stored) {
+    const { n, data } = stored;
+    return { n, row: (i, out) => out.set(data.subarray(i * n, (i + 1) * n)) };
+  }
+  const M = matrix(Z, name);
+  return { n: M.rows, row: (i, out) => distances(M, i, out) };
+}
+
+/** Squared distances from row i of M to every row, Infinity at i itself. */
 function distances(M, i, out) {
   const { rows: n, cols: d, data } = M;
   for (let j = 0; j < n; j++) {

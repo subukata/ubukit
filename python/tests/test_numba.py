@@ -53,6 +53,15 @@ def test_trustworthiness_kernel_reproduces_the_reference(numba, k):
         assert metric(X, Y, k, engine="numba") == metric(X, Y, k)
 
 
+def test_trustworthiness_kernel_takes_neighborhoods_and_several_k(numba):
+    X, Y = grid_ties(3)
+    ks = [12, 1, 5]
+    for metric in (ub.trustworthiness, ub.continuity):
+        expected = metric(X, Y, ks)
+        for A, B in ((X, Y), (ub.Neighborhood(X), Y), (X, ub.Neighborhood(Y))):
+            np.testing.assert_array_equal(metric(A, B, ks, engine="numba"), expected)
+
+
 @pytest.mark.parametrize(
     ("a", "b"),
     [

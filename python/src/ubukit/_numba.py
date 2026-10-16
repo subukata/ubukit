@@ -62,35 +62,48 @@ def _distances(A, i):
     return out
 
 
+@njit(cache=False)
+def _row(A, stored, i):
+    """Squared distances from row i to every row of A (A's row i when stored), inf at i."""
+    if stored:
+        return A[i].copy()
+    return _distances(A, i)
+
+
 @njit(parallel=True, cache=False)
-def trustworthiness_penalties(X, Y, k):
-    """Per point i, the sum over its k nearest neighbors j in Y of max(rank of j in X - k, 0).
+def trustworthiness_penalties(A, a_stored, B, b_stored, ks):
+    """Per point i and each k in ks, the sum over its k nearest neighbors j in B of
+    max(rank of j in A - k, 0); A and B are points, or their distances when stored.
 
     Neighbors and ranks follow the (distance, index) order, as in ``trustworthiness``.
     """
-    n = X.shape[0]
-    penalty = np.zeros(n, np.int64)
+    n = A.shape[0]
+    top = ks.max()
+    penalty = np.zeros((n, ks.shape[0]), np.int64)
     for i in prange(n):
-        dx, dy = _distances(X, i), _distances(Y, i)
-        # The k smallest of dy, kept sorted by insertion.
-        nearest = np.empty(k, np.int64)
+        da, db = _row(A, a_stored, i), _row(B, b_stored, i)
+        # The top smallest of db, kept sorted by insertion: the k nearest for
+        # each k are the first k.
+        nearest = np.empty(top, np.int64)
         size = 0
         for j in range(n):
-            if size == k and dy[j] >= dy[nearest[k - 1]]:
+            if size == top and db[j] >= db[nearest[top - 1]]:
                 continue
-            p = min(size, k - 1)
-            while p > 0 and dy[nearest[p - 1]] > dy[j]:
+            p = min(size, top - 1)
+            while p > 0 and db[nearest[p - 1]] > db[j]:
                 nearest[p] = nearest[p - 1]
                 p -= 1
             nearest[p] = j
-            size = min(size + 1, k)
-        for r in range(k):
+            size = min(size + 1, top)
+        for r in range(top):
             j = nearest[r]
             rank = 1
             for m in range(n):
-                if dx[m] < dx[j] or (dx[m] == dx[j] and m < j):
+                if da[m] < da[j] or (da[m] == da[j] and m < j):
                     rank += 1
-            penalty[i] += max(rank - k, 0)
+            for q in range(ks.shape[0]):
+                if r < ks[q]:
+                    penalty[i, q] += max(rank - ks[q], 0)
     return penalty
 
 

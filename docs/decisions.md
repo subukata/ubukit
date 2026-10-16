@@ -4,6 +4,34 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Distances computed once for many embeddings (#94)
+
+`Neighborhood(X)` holds the (N, N) squared distances of X, and
+`trustworthiness` and `continuity` take it in place of either set of
+points; a list of k gives one value per k from one count of ranks, since
+the neighbors, sorted by (distance, index), give the k nearest of every
+smaller k as their first k. The scoring is the one there was: the rows of
+distances come from the Neighborhood instead of being computed again, so
+the values are the same bit for bit, and the Numba kernel takes either
+form. *Why:* a user tuning SOM-OLP layouts of one input (848 points, 1049
+features; both metrics at k = 5, 10, 20 in a TPE search) wrote their own
+cache: the six calls took 1.53 s on their machine, almost all of it the
+distances of X, computed again in every call. On ours, for 5 such layouts,
+a Neighborhood took 0.82 s to build and then 0.40 s per layout instead of
+5.69 s in Python (14x), and 3.1 s and 0.34 s instead of 15.3 s in
+JavaScript (45x); on the benchmark's 3000 x 16 data, whose distances cost
+little, the list of k still gives 2.6x and 2.9x. Plain calls are as fast as
+before. *Rejected:* a table of ranks from sorted rows (0.10 s per layout
+instead of 0.40 s in Python), which needs the sort that #60 rejected: plain
+calls ranking by sorted rows were 3.2-4.2x slower on the benchmark's
+3000 x 16 data at k = 5-10 (1.15-1.2x at 1049 features), and counting for
+plain calls beside a table would define the rank twice (principle 2); a
+function returning both metrics (a third name for what two do, while the
+embedding's side costs little); a cache kept inside the metrics (a hidden
+session, wrong once the caller changes X in place); and a raw (N, N)
+matrix with `metric="precomputed"` (an array that could also be data, so a
+flag in every call of both languages).
+
 ## 2026-10-07 A small, written compatibility promise (#90)
 
 `DESIGN.md` states what UbuKit promises (the public names with their

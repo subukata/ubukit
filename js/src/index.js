@@ -46,5 +46,5 @@ export const batchSom = (...args) => run(maps.batchSom(...args));
 export const somOlp = (...args) => run(maps.somOlp(...args));
 
 export { matrix, run, runAsync, toRows } from './core.js';
-export { ami, ari, continuity, trustworthiness } from './metrics.js';
+export { ami, ari, continuity, Neighborhood, trustworthiness } from './metrics.js';
 export { choice, integer, loguniform, minimize, TPE, uniform } from './tpe.js';

@@ -5,6 +5,18 @@ every such change is listed under "Changed results" or "Changed API". Patch
 versions keep the API and change results only to fix bugs, listed under
 "Fixed".
 
+## (unreleased)
+
+### Added
+
+- `Neighborhood(X)` holds the pairwise distances of `X`, computed once, and
+  `trustworthiness` and `continuity` take it in place of `X` or `Y` with the
+  same values, so scoring many embeddings of one `X`, as a search does, no
+  longer computes the distances of `X` in every call.
+- `trustworthiness` and `continuity` take a list of `k` and return one value
+  per entry, in its order (an array; a `Float64Array` in JavaScript), for
+  one count of ranks.
+
 ## 0.1.1 (2026-10-07)
 
 ### Fixed

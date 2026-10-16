@@ -31,6 +31,15 @@ export function search() {
   return ub.minimize(p => Number(p.x), { x: ub.uniform(0, 1) });
 }
 
+/** One Neighborhood of X scores many embeddings, at one k or several. @returns {number} */
+export function scoreManyLayouts() {
+  const reference = new ub.Neighborhood(X);
+  const one = ub.trustworthiness(reference, X, 1);
+  /** @type {Float64Array} */
+  const several = ub.continuity(reference, X, [1, 1]);
+  return one + several[0];
+}
+
 export async function everyOption() {
   const init = [[0, 0], [5, 5]];
   ub.kmeans(X, 2, { init, maxIter: 10, seed: 0 });
@@ -61,4 +70,6 @@ export function wrongArguments() {
   ub.ami([0, 1], [1, 0], { average: 'median' });
   // @ts-expect-error trustworthiness takes a number of neighbors
   ub.trustworthiness(X, X, '1');
+  // @ts-expect-error a Neighborhood is not data to fit
+  ub.fcm(new ub.Neighborhood(X), 2);
 }

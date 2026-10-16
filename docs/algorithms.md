@@ -193,6 +193,11 @@ underflows when the ends are far apart.
   $k$ nearest in $X$ and $r_{ij}$ is the rank of $j$ in $X$.
   `continuity(X, Y, k)` is `trustworthiness(Y, X, k)`. Distances use direct
   differences and ties are ordered by sample index, so grid embeddings are exact.
+  Given a list of $k$, both rank the neighbors of the largest once: sorted by
+  (distance, index), its first $k$ are the $k$ nearest for every smaller $k$.
+  `Neighborhood(X)` holds the squared distances of $X$, computed once, and
+  either metric takes it in place of $X$ (or $Y$) with the same values, so
+  scoring many embeddings of the same $X$ does not compute them again.
 
 ## TPE
 
