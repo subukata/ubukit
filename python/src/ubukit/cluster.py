@@ -7,6 +7,7 @@ Hamerly's bounds. See docs/algorithms.md for the update equations.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -16,12 +17,15 @@ from scipy.spatial import cKDTree
 
 from ._core import (
     TINY,
+    Assign,
     Data,
     Init,
     Loop,
     Result,
+    Schedule,
     Steps,
     Tolerance,
+    Update,
     as_data,
     check_float,
     check_int,
@@ -30,10 +34,13 @@ from ._core import (
     iterate,
     label_mean,
     lloyd,
+    nearest,
     softmin,
     sq_norms,
     sqdist,
     start,
+    start_fixed,
+    unchanged,
     weighted_mean,
 )
 
@@ -110,6 +117,24 @@ def _hamerly(
     return V_new, (labels, lower), float(own.sum())
 
 
+def apply_kmeans(X: ArrayLike, centers: ArrayLike) -> Steps:
+    """The labels of X by the nearest of the fixed ``centers`` (``ubukit.apply.kmeans``).
+
+    Ties go to the lowest index, as in ``kmeans``; ``history`` holds the sum
+    of squared distances to the nearest centers.
+    """
+    data, V, C = start_fixed(X, centers)
+
+    def step(data, V, _, t):
+        labels = nearest(data.X, V, data.xx)
+        return V, labels, float(sq_norms(data.X - V[labels]).sum())
+
+    def view(loop):
+        return fitted(loop, loop.state.copy())
+
+    return (yield from iterate(data, V, step, stopping=Schedule(1), view=view, fixed=C))
+
+
 def fcm(
     X: ArrayLike,
     k: int,
@@ -129,9 +154,23 @@ def fcm(
     isotropic data) can draw every center to the mean of X; see "Degenerate
     solutions" in docs/algorithms.md.
     """
-    m = check_float(m, "m", 1.0, strict=True)
+    assign, update = _fcm(m)
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     data, V = start(X, k, init, seed)
+    step = lloyd(assign, update)
+    return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
+
+
+def apply_fcm(X: ArrayLike, centers: ArrayLike, *, m: float = 2.0) -> Steps:
+    """The FCM memberships of X for the fixed ``centers`` (``ubukit.apply.fcm``);
+    give the m they were trained with."""
+    assign, _ = _fcm(m)
+    return (yield from _applied(X, centers, assign))
+
+
+def _fcm(m: float) -> tuple[Assign, Update]:
+    """FCM's assignment and update for the fuzzifier m."""
+    m = check_float(m, "m", 1.0, strict=True)
 
     def assign(_, D):
         # (d_min / d)^(2/(m-1)), normalized: the softmax of -log d^2 / (m - 1)
@@ -151,8 +190,7 @@ def fcm(
         # keeps u^m from underflowing to all zeros for large m.
         return weighted_mean(data.X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
-    step = lloyd(assign, update)
-    return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
+    return assign, update
 
 
 def efcm(
@@ -171,11 +209,23 @@ def efcm(
     A tau of at least twice the largest variance of X can draw every center to
     the mean of X; see "Degenerate solutions" in docs/algorithms.md.
     """
-    tau = check_float(tau, "tau", 0.0, strict=True)
+    assign = _efcm(tau)
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     data, V = start(X, k, init, seed)
-    step = lloyd(lambda _, D: softmin(D, tau))
+    step = lloyd(assign)
     return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
+
+
+def apply_efcm(X: ArrayLike, centers: ArrayLike, *, tau: float = 1.0) -> Steps:
+    """The EFCM memberships of X for the fixed ``centers`` (``ubukit.apply.efcm``);
+    give the tau they were trained with."""
+    return (yield from _applied(X, centers, _efcm(tau)))
+
+
+def _efcm(tau: float) -> Assign:
+    """EFCM's assignment for the temperature tau."""
+    tau = check_float(tau, "tau", 0.0, strict=True)
+    return lambda _, D: softmin(D, tau)
 
 
 def rcm(
@@ -195,11 +245,26 @@ def rcm(
     and x_i shares unit membership equally among its admissible clusters.
     Stops at a fixed point of the memberships.
     """
+    assign = _rcm(alpha, beta, p)
+    max_iter = check_max_iter(max_iter)
+    data, V = start(X, k, init, seed)
+    step = lloyd(assign)
+    return (yield from iterate(data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft))
+
+
+def apply_rcm(
+    X: ArrayLike, centers: ArrayLike, *, alpha: float = 1.1, beta: float = 0.0, p: float = 1.0
+) -> Steps:
+    """The rough memberships of X for the fixed ``centers`` (``ubukit.apply.rcm``);
+    give the alpha, beta and p they were trained with."""
+    return (yield from _applied(X, centers, _rcm(alpha, beta, p)))
+
+
+def _rcm(alpha: float, beta: float, p: float) -> Assign:
+    """RCM's assignment: an equal share of each admissible cluster."""
     alpha = check_float(alpha, "alpha", 1.0)
     beta = check_float(beta, "beta", 0.0)
     p = check_float(p, "p", 0.0, strict=True)
-    max_iter = check_max_iter(max_iter)
-    data, V = start(X, k, init, seed)
 
     def assign(_, D):
         d = np.sqrt(D)
@@ -212,8 +277,7 @@ def rcm(
         mask = d <= radius
         return mask / mask.sum(axis=1, keepdims=True), None
 
-    step = lloyd(assign)
-    return (yield from iterate(data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft))
+    return assign
 
 
 def rmcm(
@@ -235,26 +299,57 @@ def rmcm(
         delta: neighborhood radius (Euclidean, inclusive).
         max_edges: refuse graphs with more directed edges than this.
     """
+    assign, prepare = _rmcm(delta, max_edges)
+    max_iter = check_max_iter(max_iter)
+    data, V = start(X, k, init, seed, prepare)
+    step = lloyd(assign)
+    return (
+        yield from iterate(
+            data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft, prepare=prepare
+        )
+    )
+
+
+def apply_rmcm(
+    X: ArrayLike, centers: ArrayLike, delta: float, *, max_edges: int = 10_000_000
+) -> Steps:
+    """The rough memberships of X for the fixed ``centers`` (``ubukit.apply.rmcm``).
+
+    The neighborhoods are those within X, so the memberships of a point
+    depend on the points given with it: X given whole and X given in parts
+    differ, and a point given alone gets the hard assignment of k-means.
+    """
+    assign, prepare = _rmcm(delta, max_edges)
+    return (yield from _applied(X, centers, assign, prepare))
+
+
+def _rmcm(delta: float, max_edges: int) -> tuple[Assign, Callable[..., Data]]:
+    """RMCM's assignment, and the preparation that builds each data set's graph."""
     delta = check_float(delta, "delta", 0.0)
     max_edges = check_int(max_edges, "max_edges", 1)
-    max_iter = check_max_iter(max_iter)
 
     def prepare(rows, n_features=None):
         data = as_data(rows, n_features)
         P = _neighborhood(data.X, delta, max_edges)
         return _Neighbors(X=data.X, mean=data.mean, xx=data.xx, radius=data.radius, P=P)
 
-    data, V = start(X, k, init, seed, prepare)
-
     def assign(data, D):
         n = len(D)
         H = sparse.csr_matrix((np.ones(n), D.argmin(axis=1), np.arange(n + 1)), shape=D.shape)
         return (data.P @ H).toarray(), None
 
-    step = lloyd(assign)
+    return assign, prepare
+
+
+def _applied(
+    X: ArrayLike, centers: ArrayLike, assign: Assign, prepare: Callable[..., Data] = as_data
+) -> Steps:
+    """A soft or rough clustering applied: one assignment, the centers fixed."""
+    data, V, C = start_fixed(X, centers, prepare=prepare)
+    step = lloyd(assign, unchanged)
     return (
         yield from iterate(
-            data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft, prepare=prepare
+            data, V, step, stopping=Schedule(1), view=_soft, prepare=prepare, fixed=C
         )
     )
 

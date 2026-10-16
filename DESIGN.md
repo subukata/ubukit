@@ -160,6 +160,14 @@ How the principles are realized today. This section changes with the code.
   such a generator, in `cluster` or `som`: `steps` exposes the generators,
   and the package entry point makes the plain functions that run them to
   the end (`stepwise` in Python's `__init__.py`, `index.js` in JavaScript).
+- **Applications:** `apply` (and `steps.apply`) runs a method's assignment
+  on new data with its prototypes fixed: the loop takes them as given
+  (`fixed`), centers them afresh for each data set and copies them into
+  every Result. Each method builds its rule once (`_fcm(m)`, `fuzzy(m)`,
+  ...: the parameter checks and the assignment) for training and
+  application alike; an application's step updates nothing (`unchanged`)
+  and stops after one assignment (`Schedule(1)`), except SOM-OLP's, which
+  stops when its memberships settle (`Steady`).
 - **Input contract:** `as_matrix` (Python) and `matrix` (JavaScript) reject
   non-finite input and data outside the scale bounds.
 - **Implementations:** Python is vectorized NumPy/SciPy; JavaScript is plain
@@ -183,7 +191,7 @@ How the principles are realized today. This section changes with the code.
   each method, which `--baseline` times against UbuKit.
 
 ```
-python/src/ubukit/  _core.py cluster.py som.py steps.py metrics.py tpe.py _numba.py
+python/src/ubukit/  _core.py cluster.py som.py steps/ apply.py metrics.py tpe.py _numba.py
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
 bench/              cases.py run.py worker.py worker.mjs baseline.py

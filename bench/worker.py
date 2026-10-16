@@ -115,6 +115,9 @@ def _ubukit(ub) -> dict:
 
     # Every public function, so a commit compared with --compare may lack some.
     functions = {name: getattr(ub, name) for name in ub.__all__ if name.islower()}
+    applying = getattr(ub, "apply", None)
+    if applying is not None:
+        functions |= {f"apply.{name}": getattr(applying, name) for name in applying.__all__}
     return functions | {"tpe_sphere": tpe_sphere, "neighborhood_reuse": neighborhood_reuse}
 
 

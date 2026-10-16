@@ -6,6 +6,8 @@
  * { iteration, result } after every iteration, where result() is the Result
  * as if the run had stopped there; drive them by hand or with `runAsync`:
  *   await runAsync(steps.fcm(X, 3), { signal, onProgress: p => draw(p.result()) })
+ * `apply` holds the functions that apply trained prototypes to new data, the
+ * prototypes fixed, and `steps.apply` the same as generators.
  */
 import * as cluster from './cluster.js';
 import { run } from './core.js';
@@ -15,35 +17,59 @@ import * as maps from './som.js';
 /** @typedef {import('./core.js').Progress} Progress */
 /** @typedef {import('./tpe.js').TPEResult} TPEResult */
 
-/** Step generators of every fitting function (yield after each iteration or epoch). */
-export const steps = Object.freeze({
-  kmeans: cluster.kmeans, fcm: cluster.fcm, efcm: cluster.efcm, rcm: cluster.rcm, rmcm: cluster.rmcm,
-  som: maps.som, batchSom: maps.batchSom, somOlp: maps.somOlp,
+/**
+ * The function that runs a generator to the end and returns its Result.
+ * @template {(...args: any[]) => Generator<Progress, Result, any>} G
+ * @param {G} generator
+ * @returns {(...args: Parameters<G>) => Result}
+ */
+const runs = generator => (...args) => run(generator(...args));
+
+/** The generators of apply: trained prototypes, fixed, applied to new data. */
+const applying = Object.freeze({
+  kmeans: cluster.applyKmeans, fcm: cluster.applyFcm, efcm: cluster.applyEfcm, rcm: cluster.applyRcm,
+  rmcm: cluster.applyRmcm, som: maps.applySom, batchSom: maps.applyBatchSom, somOlp: maps.applySomOlp,
 });
 
-/** Lloyd's k-means. @type {(...args: Parameters<typeof cluster.kmeans>) => Result} */
-export const kmeans = (...args) => run(cluster.kmeans(...args));
+/** Step generators of every fitting function (yield after each iteration or epoch), and of apply. */
+export const steps = Object.freeze({
+  kmeans: cluster.kmeans, fcm: cluster.fcm, efcm: cluster.efcm, rcm: cluster.rcm, rmcm: cluster.rmcm,
+  som: maps.som, batchSom: maps.batchSom, somOlp: maps.somOlp, apply: applying,
+});
 
-/** Fuzzy c-means. @type {(...args: Parameters<typeof cluster.fcm>) => Result} */
-export const fcm = (...args) => run(cluster.fcm(...args));
+/**
+ * Trained prototypes applied to new data, the prototypes fixed: each function
+ * takes the data and the prototypes (centers of a Result), with the parameters
+ * they were trained with, and returns the Result of the data under them.
+ */
+export const apply = Object.freeze({
+  kmeans: runs(applying.kmeans), fcm: runs(applying.fcm), efcm: runs(applying.efcm), rcm: runs(applying.rcm),
+  rmcm: runs(applying.rmcm), som: runs(applying.som), batchSom: runs(applying.batchSom), somOlp: runs(applying.somOlp),
+});
 
-/** Entropy-regularized fuzzy c-means. @type {(...args: Parameters<typeof cluster.efcm>) => Result} */
-export const efcm = (...args) => run(cluster.efcm(...args));
+/** Lloyd's k-means. */
+export const kmeans = runs(cluster.kmeans);
 
-/** Rough c-means (p = 1) and ExRCM. @type {(...args: Parameters<typeof cluster.rcm>) => Result} */
-export const rcm = (...args) => run(cluster.rcm(...args));
+/** Fuzzy c-means. */
+export const fcm = runs(cluster.fcm);
 
-/** Rough membership c-means. @type {(...args: Parameters<typeof cluster.rmcm>) => Result} */
-export const rmcm = (...args) => run(cluster.rmcm(...args));
+/** Entropy-regularized fuzzy c-means. */
+export const efcm = runs(cluster.efcm);
 
-/** Online SOM. @type {(...args: Parameters<typeof maps.som>) => Result} */
-export const som = (...args) => run(maps.som(...args));
+/** Rough c-means (p = 1) and ExRCM. */
+export const rcm = runs(cluster.rcm);
 
-/** Batch SOM. @type {(...args: Parameters<typeof maps.batchSom>) => Result} */
-export const batchSom = (...args) => run(maps.batchSom(...args));
+/** Rough membership c-means. */
+export const rmcm = runs(cluster.rmcm);
 
-/** SOM with optimized latent positions. @type {(...args: Parameters<typeof maps.somOlp>) => Result} */
-export const somOlp = (...args) => run(maps.somOlp(...args));
+/** Online SOM. */
+export const som = runs(maps.som);
+
+/** Batch SOM. */
+export const batchSom = runs(maps.batchSom);
+
+/** SOM with optimized latent positions. */
+export const somOlp = runs(maps.somOlp);
 
 export { matrix, run, runAsync, toRows } from './core.js';
 export { ami, ari, continuity, Neighborhood, trustworthiness } from './metrics.js';

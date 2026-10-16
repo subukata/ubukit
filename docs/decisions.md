@@ -4,6 +4,40 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Trained prototypes applied to new data (#97)
+
+`apply.<method>(X, centers, ...)` and its generator `steps.apply.<method>`
+run each method's assignment on new data with the prototypes fixed, taking
+the parameters of the model (m, tau, alpha, grid, lam, ...) and nothing that
+only training uses. Each method builds its rule once, its parameter checks
+and assignment, for training and application alike. The loop takes the
+prototypes as given (`fixed`): it centers them afresh for each data set and
+copies them into every Result, since centering and restoring them moved 0.1
+to 0.10000038 in a reviewer's example. One assignment ends the run
+(`Schedule(1)`, "schedule"); SOM-OLP's memberships depend on the previous
+ones, so they are iterated from the distances alone until they change by at
+most `tol` (`Steady`, "tol" or "limit", `max_iter` 1000 by default). *Why:*
+the maintainer's #89, an app placing new artworks on a trained map, and a
+study needing the memberships of a test split all asked for it; `init` with
+`max_iter=1` gave the memberships for clusterings only, with moved centers,
+k <= N and no documentation. On digits (64 dimensions, 10 x 10 map), new
+points placed this way agreed with the digits around them as often as at
+their best-matching units or in a map retrained with them, and needed 16 to
+117 iterations. The iteration has several fixed points (one point between
+two units: three), and for the points a map was trained on it can settle
+elsewhere than training left them; in the same experiment those that moved
+agreed with the map around them more often after than before. *Rejected:*
+an `update=False` flag on the fitting functions (it makes `init` carry the
+model, keeps every training argument without effect, and leaves training and
+application one call apart); `Result.predict` or model objects (a Result
+holds no method or parameters); functions such as `rcm_membership`
+computing the memberships apart (a second definition of every rule, without
+labels, embedding or history); "tol" for one assignment, so that rows sent
+to the run would continue it (no change was measured, and new points call
+for a new application); training's 100 iterations for SOM-OLP applied. Two
+other models, Codex and Gemini, reviewed the design; the flag and "tol" were
+Gemini's proposals, and both agreed on the rest.
+
 ## 2026-10-16 Maps return their unit coordinates (#96)
 
 The Results of the maps hold `unit_coordinates` (`unitCoordinates`), the

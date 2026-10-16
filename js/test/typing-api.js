@@ -20,6 +20,13 @@ export function unitOfFirstPoint() {
   return ub.toRows(coordinates)[m.labels[0]];
 }
 
+/** Trained prototypes placed on new points. @returns {ub.Result} */
+export function placeNewPoints() {
+  const m = ub.somOlp(X, [2, 2], { lam: 0.5, gamma: 1 });
+  ub.steps.apply.fcm(X, m.centers, { m: 1.5 }).next();
+  return ub.apply.somOlp(X, m.centers, [2, 2], { lam: 0.5, gamma: 1, maxIter: 50, tol: 1e-9 });
+}
+
 /** @returns {boolean} */
 export function stoppedByTolerance() {
   /** @type {'tol' | 'schedule' | 'limit' | null} */
@@ -69,6 +76,16 @@ export async function everyOption() {
   new ub.TPE(space, { seed: 0, nStartup: 5, nCandidates: 8, gamma: 0.2 });
   await ub.minimize(p => Number(p.m), space, { nTrials: 5, seed: 0, nStartup: 2, nCandidates: 8, gamma: 0.2 });
   await ub.runAsync(ub.steps.fcm(X, 2), { signal: AbortSignal.timeout(100), onProgress: p => p.result(), budgetMs: 0 });
+  const C = [[0, 0], [5, 5]], W = [[0, 0], [1, 1], [4, 4], [5, 5]];
+  ub.apply.kmeans(X, C);
+  ub.apply.fcm(X, C, { m: 1.5 });
+  ub.apply.efcm(X, C, { tau: 1 });
+  ub.apply.rcm(X, C, { alpha: 1.2, beta: 0.1, p: 2 });
+  ub.apply.rmcm(X, C, 1, { maxEdges: 100 });
+  ub.apply.som(X, W, [2, 2]);
+  ub.apply.batchSom(X, W, [[0, 0], [0, 1], [1, 0], [1, 1]]);
+  ub.apply.somOlp(X, W, [2, 2], { lam: 0.5, gamma: 1, maxIter: 10, tol: 1e-6 });
+  await ub.runAsync(ub.steps.apply.somOlp(X, W, [2, 2], { lam: 0.5, gamma: 1 }), { budgetMs: 0 });
 }
 
 export function wrongArguments() {
@@ -90,6 +107,12 @@ export function wrongArguments() {
   ub.fcm(X, 2).converged;
   // @ts-expect-error unitCoordinates may be null
   ub.batchSom(X, [2, 2]).unitCoordinates.data;
+  // @ts-expect-error apply takes no training options
+  ub.apply.fcm(X, X, { maxIter: 3 });
+  // @ts-expect-error apply.kmeans takes no options at all
+  ub.apply.kmeans(X, X, { maxIter: 3 });
+  // @ts-expect-error lam is required
+  ub.apply.somOlp(X, X, [2, 2], { gamma: 1 });
   // @ts-expect-error 'max_iter' is not a stop reason
   if (ub.fcm(X, 2).stopReason === 'max_iter') return;
 }

@@ -46,6 +46,28 @@ A pickled `Result` or `TPE` loads in the UbuKit version that wrote it; keep
 results across versions as arrays. Inputs should be finite and of ordinary
 scale; standardize features first.
 
+Trained prototypes apply to new data, fixed: `ub.apply` has a function for
+every method, which takes the data, the prototypes (`centers`) and the
+parameters they were trained with, and returns the `Result` of the new data,
+`centers` unchanged. Retraining is the fitting function's job; these never
+move the prototypes.
+
+```python
+X_new = np.random.default_rng(1).normal(size=(20, 2))
+new = ub.apply.som_olp(X_new, m.centers, m.unit_coordinates, lam=0.5, gamma=1.0)
+new.embedding  # the new points on the trained map
+ub.apply.fcm(X_new, r.centers, m=2.0).membership
+```
+
+Each method assigns once (`stop_reason == "schedule"`), except `som_olp`,
+whose memberships are iterated with the map fixed until they settle
+(`"tol"`, or `"limit"` after `max_iter`, 1000 by default). They start from
+the distances alone, so for the points a map was trained on they need not
+end where training left them: keep the trained `embedding` for those, or
+apply to them too for positions consistent with the final map. `rmcm` builds
+its neighborhoods within the data given, so apply it to new points together.
+`ub.steps.apply` has the same functions as generators.
+
 A search that scores many embeddings of the same `X` computes the distances
 of `X` once with a `Neighborhood` (8 N^2 bytes), which both metrics take in
 place of `X` with the same values; a list of `k` gives one value per `k`:

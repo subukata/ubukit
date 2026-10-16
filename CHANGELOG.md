@@ -30,6 +30,14 @@ versions keep the API and change results only to fix bugs, listed under
 - `trustworthiness` and `continuity` take a list of `k` and return one value
   per entry, in its order (an array; a `Float64Array` in JavaScript), for
   one count of ranks.
+- `apply` (with its generators in `steps.apply`) applies trained prototypes
+  to new data for every method, the prototypes fixed and kept exactly as
+  given: `ub.apply.fcm(X_new, centers, m=...)`,
+  `ub.apply.som_olp(X_new, centers, grid, lam=..., gamma=...)`, and so on,
+  with the parameters the prototypes were trained with. Each method assigns
+  once (`stop_reason` `"schedule"`); SOM-OLP iterates its memberships until
+  they settle (`"tol"`, or `"limit"` after `max_iter`, 1000 by default). Any
+  number of points, including fewer than the prototypes.
 - The Results of `som`, `batch_som` and `som_olp` hold `unit_coordinates`
   (`unitCoordinates`): the (K, Q) coordinates of the units as the run used
   them, not normalized, `centers[j]` being the prototype of unit j. `None`

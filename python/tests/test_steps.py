@@ -269,7 +269,7 @@ def test_steps_lists_every_fitting_function():
     # Each fitting function runs its generator in ubukit.steps, and pickle
     # finds it under its public name (for multiprocessing).
     fitting = ["batch_som", "efcm", "fcm", "kmeans", "rcm", "rmcm", "som", "som_olp"]
-    assert sorted(ub.steps.__all__) == fitting
+    assert sorted(set(ub.steps.__all__) - {"apply"}) == fitting
     for name in fitting:
         function = getattr(ub, name)
         assert function.__wrapped__ is getattr(ub.steps, name)

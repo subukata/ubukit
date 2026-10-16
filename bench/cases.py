@@ -60,6 +60,16 @@ CASES = [
     Case("trustworthiness", "trustworthiness", "embed", ("X", "Y", 10), quality=("value",)),
     # A search's pattern: one Neighborhood of X scores 5 embeddings, both metrics at 3 k.
     Case("neighborhood reuse", "neighborhood_reuse", "embed", ("X", "Y", 5), quality=("value",)),
+    # Trained prototypes applied to new data: the dataset's centers, fixed.
+    Case("fcm apply", "apply.fcm", "blobs", ("X", "init"), quality=("ari",)),
+    Case(
+        "som_olp apply",
+        "apply.som_olp",
+        "small",
+        ("X", "init", (2, 5)),
+        {"lam": 5.0, "gamma": 1.0},
+        ("ari",),
+    ),
     Case("ari", "ari", "labels", ("a", "b"), quality=("value",)),
     Case("ami", "ami", "labels", ("a", "b"), quality=("value",)),
     Case("tpe", "tpe_sphere", "none", (200,), {"seed": 0}, ("value",), parity=False),
