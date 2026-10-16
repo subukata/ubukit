@@ -96,12 +96,14 @@ export class Neighborhood {
 export function trustworthiness(X, Y, k = 5) {
   const a = points(X, 'X'), b = points(Y, 'Y'), n = a.n;
   if (b.n !== n) throw new RangeError('X and Y must have the same number of rows');
-  const ks = isList(k) ? Array.from(/** @type {ArrayLike<number>} */ (k)) : [/** @type {number} */ (k)];
-  if (!ks.length) throw new RangeError('k must be a number or a non-empty array of numbers');
-  for (const q of ks) {
-    checkInt(q, 'k', 1);
-    if (!(2 * q < n)) throw new RangeError('k must satisfy 1 <= k < n / 2');
+  // Each k is checked before the list is copied, holes of a sparse array too.
+  const list = isList(k) ? /** @type {ArrayLike<number>} */ (k) : [/** @type {number} */ (k)];
+  if (!list.length) throw new RangeError('k must be a number or a non-empty array of numbers');
+  for (let e = 0; e < list.length; e++) {
+    checkInt(list[e], 'k', 1);
+    if (!(2 * list[e] < n)) throw new RangeError('k must satisfy 1 <= k < n / 2');
   }
+  const ks = Array.from(list);
   // A reduction, not Math.max(...ks): spreading a long list overflows the stack.
   const top = ks.reduce((a, b) => Math.max(a, b)), penalty = ks.map(() => 0);
   const da = new Float64Array(n), db = new Float64Array(n), nearest = new Int32Array(top);
@@ -178,12 +180,15 @@ function contingency(labelsTrue, labelsPred) {
   if (!isList(labelsTrue) || !isList(labelsPred)) throw new TypeError('labels must be arrays');
   const n = labelsTrue.length;
   if (n !== labelsPred.length) throw new RangeError('labels must have equal length');
+  // Every label, holes of a sparse array too, is checked before anything is
+  // allocated for n of them. A label is a value, as in Python's 1-D labels:
+  // an array or object would be compared by identity, each a cluster of its own.
+  for (const labels of [labelsTrue, labelsPred]) {
+    for (let i = 0; i < n; i++) if (!LABEL_TYPES.has(typeof labels[i])) throw new TypeError('labels must hold numbers, strings or booleans');
+  }
   const encode = labels => {
     const ids = new Map(), codes = new Int32Array(n), counts = [];
     for (let i = 0; i < n; i++) {
-      // A label is a value, as in Python's 1-D labels: an array or object would
-      // be compared by identity, each one a cluster of its own.
-      if (!LABEL_TYPES.has(typeof labels[i])) throw new TypeError('labels must hold numbers, strings or booleans');
       let id = ids.get(labels[i]);
       if (id === undefined) ids.set(labels[i], (id = counts.length)), counts.push(0);
       codes[i] = id;

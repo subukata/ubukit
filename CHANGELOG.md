@@ -125,6 +125,10 @@ versions keep the API and change results only to fix bugs, listed under
   contract, and a `tau` or `lam` so large that the objective overflows,
   raise an error; they gave `NaN` memberships or `-inf` history with
   `"tol"`.
+- JavaScript: sparse arrays (with holes) as rows, labels or a list of `k`
+  are refused before anything is allocated for their length: `every()`
+  skipped the holes, so `matrix([new Array(n)])` and `ari` of such labels
+  allocated for n values before refusing them.
 
 ## 0.1.1 (2026-10-07)
 

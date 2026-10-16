@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as ub from '../src/index.js';
-import { X } from './helpers.js';
+import { X, largeAllocations } from './helpers.js';
 
 test('metrics edge cases', () => {
   assert.equal(ub.ari([0, 0, 1, 1], [5, 5, 3, 3]), 1);
@@ -73,6 +73,16 @@ test('labels are values, as in Python', () => {
     assert.throws(() => metric([0, 1], [{}, {}]), TypeError);
   }
   assert.equal(ub.ari([true, true, false], ['a', 'a', 'b']), 1);
+});
+
+test('sparse labels and lists of k are refused before anything is allocated for them', () => {
+  // Their holes were skipped or checked late, so the encoding of the labels
+  // and the copy of k were sized by the claimed length.
+  for (const call of [() => ub.ari(new Array(5e6), new Array(5e6)), () => ub.ami(new Array(5e6), new Array(5e6))]) {
+    assert.throws(call, { name: 'TypeError', message: 'labels must hold numbers, strings or booleans' });
+    assert.deepEqual(largeAllocations(call), []);
+  }
+  assert.throws(() => ub.trustworthiness(P, G, new Array(2 ** 32 - 1)), /k must be an integer/);
 });
 
 test('any number of k', () => {

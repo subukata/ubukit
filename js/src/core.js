@@ -70,9 +70,11 @@ export function matrix(values, name = 'X') {
     const rows = values.length;
     const cols = rows ? values[0]?.length : 0;
     for (const row of values) {
-      // isList: an array or a typed array, either of which has every.
-      if (!isList(row) || !/** @type {number[]} */ (row).every(v => typeof v === 'number')) throw new TypeError(`${name} rows must be arrays of numbers`);
+      if (!isList(row)) throw new TypeError(`${name} rows must be arrays of numbers`);
       if (row.length !== cols) throw new RangeError(`${name} rows must have equal length`);
+      // Every entry, holes too: every() skips the holes of a sparse array,
+      // whose claimed length would then size the copy.
+      for (let c = 0; c < cols; c++) if (typeof row[c] !== 'number') throw new TypeError(`${name} rows must be arrays of numbers`);
     }
     out = { data: new Float64Array(rows * cols), rows, cols };
     values.forEach((row, i) => out.data.set(row, i * cols));
