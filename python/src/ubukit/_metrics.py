@@ -235,8 +235,11 @@ def _contingency(labels_true, labels_pred):
     t, p = np.asarray(labels_true), np.asarray(labels_pred)
     if t.ndim != 1 or p.ndim != 1 or len(t) != len(p):
         raise ValueError("labels must be 1-D arrays of equal length")
-    u = np.unique(t, return_inverse=True)[1]
-    v = np.unique(p, return_inverse=True)[1]
+    try:
+        u = np.unique(t, return_inverse=True)[1]
+        v = np.unique(p, return_inverse=True)[1]
+    except TypeError as error:  # NumPy sorts the labels; [0, None] does not sort
+        raise TypeError("labels must be values of one kind that sort, such as integers") from error
     a, b = np.bincount(u), np.bincount(v)
     kb = max(len(b), 1)
     cells, nij = np.unique(u * kb + v, return_counts=True)

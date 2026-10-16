@@ -134,3 +134,6 @@ def test_invalid_arguments():
         ub.ami(5, 7)
     with pytest.raises(ValueError):
         ub.ami([0, 1], [0, 1], average="median")
+    # NumPy's own error named neither the labels nor the cause.
+    with pytest.raises(TypeError, match=r"^labels must be values of one kind"):
+        ub.ari([0, None], [0, 1])

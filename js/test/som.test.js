@@ -47,6 +47,15 @@ test('unit coordinates give the embedding', () => {
   for (const r of [ub.kmeans(X, 3, { seed: 0 }), ub.fcm(X, 3, { seed: 0 })]) assert.equal(r.unitCoordinates, null);
 });
 
+test('rows of unit coordinates may be typed arrays, as matrix reads them', () => {
+  // They were taken for a malformed [rows, cols] and refused.
+  const rows = [[0, 0], [0, 1], [1, 0]], typed = rows.map(r => Float64Array.from(r));
+  assert.deepEqual(ub.som(X, typed, { epochs: 1, seed: 0 }), ub.som(X, rows, { epochs: 1, seed: 0 }));
+  assert.deepEqual(ub.apply.somOlp(X, ub.matrix(rows), typed, { lam: 1, gamma: 1 }).embedding,
+    ub.apply.somOlp(X, ub.matrix(rows), rows, { lam: 1, gamma: 1 }).embedding);
+  assert.throws(() => ub.batchSom(X, typed), /grid must be \[rows, cols\]/); // a rectangular grid only
+});
+
 test('somOlp history is the objective', () => {
   // Two iterations from given prototypes, against the definition (the history
   // uses an identity that holds at the memberships of the costs).
