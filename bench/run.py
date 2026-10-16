@@ -66,9 +66,22 @@ def main() -> None:
     _print(report, opts)
     if opts.json:
         Path(opts.json).write_text(json.dumps(report, indent=1), encoding="utf-8")
-    failures = [r for r in report["rows"] if r.get("parity") is False]
-    if opts.check and failures:
-        sys.exit("Python and JavaScript disagree on: " + ", ".join(r["case"] for r in failures))
+    if opts.check:
+        # A case that failed in UbuKit has no quality to compare, so its parity
+        # is unknown: it fails the check rather than passing it unseen.
+        problems = [
+            f"{r['case']} failed in {impl}: {r[impl]['error']}"
+            for r in report["rows"]
+            for impl in ("python", "javascript")
+            if "error" in r.get(impl, {})
+        ]
+        problems += [
+            f"Python and JavaScript disagree on {r['case']}"
+            for r in report["rows"]
+            if r.get("parity") is False
+        ]
+        if problems:
+            sys.exit("\n".join(problems))
 
 
 def _measure(runner, size, cases, fields, seeds, opts) -> list[dict]:
