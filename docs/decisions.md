@@ -4,6 +4,23 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Effort by the weight of a change (#102)
+
+`CONTRIBUTING.md` sorts changes into light, medium and heavy, each with what
+it needs beyond the checks; several light documentation fixes may share a
+pull request; `AGENTS.md` lets agents merge a light pull request once CI
+passes and asks them to match their effort to the weight. *Why:* in
+#94-#100 a pull request took 1.5 to 2 minutes from opening to merge and
+the checks about a minute, but a heavy change took 40 to 110 minutes
+before it was opened: full benchmark comparisons of about 15 minutes, run
+alone and repeated when the machine was busy, two reviews by other models
+of about 10 minutes each, and documents for every change. Light changes
+took 4 to 15 minutes. Every rule had been applied at full strength to
+every change, and improving the library had stopped feeling light.
+*Rejected:* dropping the benchmark or decision rules (they caught a
+regression and record the reasons), and a separate instruction file or
+skill for agents (a second copy of the rules, which #46 ruled out).
+
 ## 2026-10-16 Recipes, run by the tests (#100)
 
 `docs/recipes.md` holds worked uses that users asked for: SOM-OLP's scales
