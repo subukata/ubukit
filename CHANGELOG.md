@@ -60,6 +60,14 @@ versions keep the API and change results only to fix bugs, listed under
   iterations that followed, and the Results that a saved Progress of an
   earlier iteration built afterwards. The run now copies it; JavaScript
   already did.
+- Python: a search space kept in a variable type-checks. Type checkers
+  accepted `TPE` and `minimize` only with the space written as a dict in
+  the call: a variable holding numeric dimensions only, or numeric and
+  categorical ones, was rejected. Both now take any mapping of dimensions,
+  at run time too.
+- Python: the type declarations of `minimize` name the options it passes
+  to `TPE` (`n_startup`, `n_candidates`, `gamma`), as JavaScript's do since
+  0.1.1, so a type checker reports a misspelled or mistyped option.
 
 ## 0.1.1 (2026-10-07)
 

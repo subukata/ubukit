@@ -61,6 +61,26 @@ def score_many_layouts() -> float:
     return one + float(several.sum())
 
 
+def search(labels: np.ndarray) -> float:
+    # Spaces kept in variables: a type checker reads them as dicts of one kind
+    # of dimension (numeric), or of their common base (mixed).
+    numeric = {"m": ub.uniform(1.1, 3.0), "k": ub.integer(2, 8, log=True)}
+    mixed = {"tau": ub.loguniform(0.01, 10.0), "kind": ub.choice("fcm", "efcm")}
+    tpe = ub.TPE(mixed, seed=0, n_startup=5, n_candidates=8, gamma=0.2)
+    params = tpe.ask()
+    tpe.tell(params, 1.0)
+    best: ub.TPEResult = ub.minimize(
+        lambda p: -ub.ari(labels, ub.fcm(X, p["k"], m=p["m"]).labels),
+        numeric,
+        5,
+        seed=0,
+        n_startup=2,
+        n_candidates=8,
+        gamma=0.2,
+    )
+    return best.best_value + tpe.result().best_value + ub.ami(labels, labels, average="max")
+
+
 def wrong_arguments() -> None:
     _ = ub.fcm(X, 3).converged  # type: ignore[attr-defined]  # replaced by stop_reason
     _ = ub.batch_som(X, (2, 3)).unit_coordinates[0]  # type: ignore[index]  # may be None
@@ -71,3 +91,8 @@ def wrong_arguments() -> None:
     ub.fcm(X, "3")  # type: ignore[arg-type]
     ub.steps.fcm(X, "3")  # type: ignore[arg-type]
     ub.steps.som_olp(X, (3, 3), lam=0.5)  # type: ignore[call-arg]
+    space = {"x": ub.uniform(0.0, 1.0)}
+    ub.minimize(lambda p: 0.0, space, 5, n_startpu=2)  # type: ignore[call-arg]
+    ub.minimize(lambda p: 0.0, space, 5, gamma="0.2")  # type: ignore[arg-type]
+    ub.TPE({"x": (0.0, 1.0)})  # type: ignore[dict-item]
+    ub.ami([0, 1], [0, 1], average="median")  # type: ignore[arg-type]

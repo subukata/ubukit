@@ -13,7 +13,7 @@ import math
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from numbers import Real
-from typing import Any
+from typing import Any, TypedDict, Unpack
 
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
@@ -21,8 +21,19 @@ from scipy.special import logsumexp, ndtr, ndtri
 from ._core import MAX_INT, check_float, check_int
 
 
+class _Dimension:
+    """A dimension of a search space, as uniform, loguniform, integer and choice make.
+
+    The common base lets a type checker read a mixed space, such as
+    ``{"x": uniform(0, 1), "kind": choice("a", "b")}``, as a mapping of
+    dimensions rather than of ``object``.
+    """
+
+    __slots__ = ()
+
+
 @dataclass(frozen=True, slots=True)
-class _Numeric:
+class _Numeric(_Dimension):
     low: float
     high: float
     log: bool
@@ -50,7 +61,7 @@ class _Numeric:
 
 
 @dataclass(frozen=True, slots=True)
-class _Choice:
+class _Choice(_Dimension):
     options: tuple
 
     def encode(self, x) -> float:
@@ -93,8 +104,18 @@ def _numeric(low, high, log, integer) -> _Numeric:
     return _Numeric(low, high, log, integer)
 
 
-# A search space: names mapped to uniform, loguniform, integer or choice.
-type Space = dict[str, _Numeric | _Choice]
+# A search space: names mapped to uniform, loguniform, integer or choice. A
+# Mapping, not a dict, so that a space kept in a variable, whose values a
+# type checker reads as one kind of dimension, is accepted too.
+type Space = Mapping[str, _Dimension]
+
+
+class _Options(TypedDict, total=False):
+    """The options of TPE that minimize passes on."""
+
+    n_startup: int
+    n_candidates: int
+    gamma: float
 
 
 @dataclass(frozen=True, slots=True, eq=False)
@@ -127,14 +148,15 @@ class TPE:
         n_candidates: int = 24,
         gamma: float = 0.15,
     ) -> None:
-        if not isinstance(space, dict) or not space:
-            raise ValueError("space must be a non-empty dict")
+        if not isinstance(space, Mapping) or not space:
+            raise ValueError("space must be a non-empty mapping")
+        self._space: dict[str, _Numeric | _Choice] = {}
         for name, dim in space.items():
             if not isinstance(dim, _Numeric | _Choice):
                 raise ValueError(
                     f"space[{name!r}] must come from uniform/loguniform/integer/choice"
                 )
-        self._space = dict(space)
+            self._space[name] = dim
         self._rng = np.random.default_rng(seed)
         self.n_startup = check_int(n_startup, "n_startup", 2)
         self.n_candidates = check_int(n_candidates, "n_candidates", 1)
@@ -198,9 +220,12 @@ def minimize(
     n_trials: int = 100,
     *,
     seed: int | None = None,
-    **options: Any,
+    **options: Unpack[_Options],
 ) -> TPEResult:
-    """Minimize ``f(params)`` over ``space`` with TPE; negate ``f`` to maximize."""
+    """Minimize ``f(params)`` over ``space`` with TPE; negate ``f`` to maximize.
+
+    ``options`` are those of ``TPE``: ``n_startup``, ``n_candidates`` and ``gamma``.
+    """
     tpe = TPE(space, seed=seed, **options)
     for _ in range(check_int(n_trials, "n_trials", 1)):
         params = tpe.ask()
