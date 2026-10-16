@@ -15,8 +15,8 @@ the prototypes fixed.
 from . import apply, steps
 from ._core import Progress, Result
 from ._core import stepwise as _stepwise
-from .metrics import Neighborhood, ami, ari, continuity, trustworthiness
-from .tpe import TPE, TPEResult, choice, integer, loguniform, minimize, uniform
+from ._metrics import Neighborhood, ami, ari, continuity, trustworthiness
+from ._tpe import TPE, TPEResult, choice, integer, loguniform, minimize, uniform
 
 # The fitting functions: each runs its generator in ``steps`` to the end.
 kmeans = _stepwise(steps.kmeans)

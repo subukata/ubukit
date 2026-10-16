@@ -9,6 +9,12 @@ versions keep the API and change results only to fix bugs, listed under
 
 ### Changed API
 
+- Python: the internal modules have an underscore (`ubukit._cluster`,
+  `_som`, `_metrics`, `_tpe`); `ubukit`, `ubukit.steps`, `ubukit.apply` and
+  `ubukit.steps.apply` are the only public modules. `from ubukit.cluster
+  import fcm` gave the generator, not the function `ubukit.fcm`; import
+  every name from the public modules. These paths were never promised, so
+  no alias is kept.
 - `Result.converged` is replaced by `stop_reason` (`stopReason` in
   JavaScript), the stopping rule that holds at the result's iteration:
   `"tol"` (no prototype coordinate moved more than `tol` times the RMS

@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 from scipy.special import softmax, xlogy
 
 import ubukit as ub
-from ubukit.som import _grid, _pca_init
+from ubukit._som import _grid, _pca_init
 
 
 def test_batch_som_matches_dense_kernel_reference(blobs):
