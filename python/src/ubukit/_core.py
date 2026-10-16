@@ -89,6 +89,11 @@ class Result:
     unit_coordinates: np.ndarray | None = None
 
 
+def is_boolean(value: Any) -> bool:
+    """Whether a value is a boolean, Python's or NumPy's (which is no subclass of bool)."""
+    return isinstance(value, bool | np.bool_)
+
+
 def as_matrix(X: ArrayLike, name: str = "X") -> np.ndarray:
     """Return X as a finite, non-empty, C-contiguous float64 matrix of ordinary scale.
 
@@ -99,6 +104,12 @@ def as_matrix(X: ArrayLike, name: str = "X") -> np.ndarray:
     A = np.asarray(X)
     if A.dtype.kind not in "iuf":
         raise TypeError(f"{name} must hold numbers, not {A.dtype}")
+    # Booleans among numbers leave no trace in the dtype ([True, 0.5] is
+    # float64), so the values of rows given as lists are looked at by type.
+    if isinstance(X, list | tuple):
+        types = {type(v) for v in np.asarray(X, dtype=object).flat}
+        if bool in types or np.bool_ in types:
+            raise TypeError(f"{name} must hold numbers, not booleans")
     A = np.ascontiguousarray(A, dtype=np.float64)
     if A.ndim != 2 or 0 in A.shape:
         raise ValueError(f"{name} must be a non-empty 2-D array")

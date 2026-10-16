@@ -114,5 +114,16 @@ def test_a_boolean_is_not_a_numeric_option():
         tpe.tell({"k": True, "flag": True}, 1.0)
     with pytest.raises(ValueError, match="not an option"):
         tpe.tell({"k": 1, "flag": 1}, 1.0)
+    with pytest.raises(ValueError, match="not an option"):
+        tpe.tell({"k": np.True_, "flag": True}, 1.0)  # NumPy's boolean is one too
+    tpe.tell({"k": 1, "flag": np.True_}, 1.0)
     tpe.tell({"k": 1, "flag": True}, 1.0)
-    assert tpe.result().best_params == {"k": 1, "flag": True}
+    assert tpe.result().best_params == {"k": 1, "flag": np.True_}
+
+
+def test_an_option_is_matched_as_ask_gave_it():
+    # Comparing by == alone asked NumPy for the truth of an array, so a search
+    # over arrays refused its own proposals.
+    options = (np.array([1, 2]), np.array([3, 4]))
+    best = ub.minimize(lambda p: float(p["x"].sum()), {"x": ub.choice(*options)}, 12, seed=0)
+    assert best.best_params["x"] is options[0]

@@ -211,6 +211,11 @@ def test_seed_reproducibility(blobs):
         [[True, False], [False, True]],
         [[1.0, None], [2.0, 3.0]],
         np.array([[1 + 2j, 0], [0, 1]]),
+        # Booleans among numbers: NumPy made them 1 and 0 in an integer or
+        # float array, so only a list shows them.
+        [[True, 0], [0, 1]],
+        [[0.5, np.True_], [0.0, 1.0]],
+        [np.array([0.5, 1.0]), np.array([True, False])],
     ],
 )
 def test_rows_must_hold_numbers(rows):

@@ -66,10 +66,10 @@ versions keep the API and change results only to fix bugs, listed under
   `minimize(f, space, 20)`, Python's positional `n_trials`, ran 100
   trials, `integer(1, 8, true)` searched on a linear scale, and
   `fcm(X, 3, 1.5)` used `m = 2`.
-- Python: data must hold numbers, as in JavaScript since 0.1.1. Booleans
-  and numeric strings were converted, the real part of complex numbers
-  kept, and `None` refused only as a missing value; they now raise
-  `TypeError`.
+- Python: data must hold numbers, as in JavaScript since 0.1.1. Booleans,
+  alone or among numbers in lists, and numeric strings were converted, the
+  real part of complex numbers kept, and `None` refused only as a missing
+  value; they now raise `TypeError`.
 - `k`, a named `init` and `seed` are checked before any work on the data,
   as the other arguments are: a wrong one was reported only after
   centering, `rmcm`'s neighborhood graph or the PCA start. Python refuses
@@ -89,7 +89,9 @@ versions keep the API and change results only to fix bugs, listed under
   as Python's are: changing a dimension after the `TPE` was made changed
   its proposals, and a dimension written by hand was not checked.
 - Python: `True` is not the option `1` of a `choice` (in Python `True == 1`),
-  as JavaScript compares options with `===`.
+  as JavaScript compares options with `===`. An option is found first as
+  the object `ask` gave, so options without a truth value of `==`, such as
+  arrays, can be told back; all but the first raised `ValueError`.
 - Python: a search space kept in a variable type-checks. Type checkers
   accepted `TPE` and `minimize` only with the space written as a dict in
   the call: a variable holding numeric dimensions only, or numeric and
