@@ -7,8 +7,8 @@
  */
 import { checkInt, checkNumber, named, random, rejectUnknown } from './core.js';
 
-/** @typedef {{ kind: 'numeric', low: number, high: number, log: boolean, integer: boolean }} NumericDim */
-/** @typedef {{ kind: 'choice', options: readonly unknown[] }} ChoiceDim */
+/** @typedef {{ readonly kind: 'numeric', readonly low: number, readonly high: number, readonly log: boolean, readonly integer: boolean }} NumericDim */
+/** @typedef {{ readonly kind: 'choice', readonly options: readonly unknown[] }} ChoiceDim */
 /** @typedef {Record<string, NumericDim | ChoiceDim>} Space */
 /** @typedef {{ bestParams: Record<string, unknown>, bestValue: number, params: Record<string, unknown>[], values: Float64Array }} TPEResult */
 /** @typedef {{ seed?: number, nStartup?: number, nCandidates?: number, gamma?: number }} TPEOptions */

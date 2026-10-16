@@ -9,7 +9,7 @@
  */
 
 /** @typedef {{ data: Float64Array, rows: number, cols: number }} Matrix */
-/** @typedef {number[][] | Matrix} MatrixLike */
+/** @typedef {ArrayLike<number>[] | Matrix} MatrixLike Rows (arrays or typed arrays of numbers), or a matrix. */
 /**
  * For clusterings and SOM-OLP, labels and membership come from the last
  * assignment step, i.e. for the prototypes before the final update; they
@@ -70,7 +70,8 @@ export function matrix(values, name = 'X') {
     const rows = values.length;
     const cols = rows ? values[0]?.length : 0;
     for (const row of values) {
-      if (!isList(row) || !row.every(v => typeof v === 'number')) throw new TypeError(`${name} rows must be arrays of numbers`);
+      // isList: an array or a typed array, either of which has every.
+      if (!isList(row) || !/** @type {number[]} */ (row).every(v => typeof v === 'number')) throw new TypeError(`${name} rows must be arrays of numbers`);
       if (row.length !== cols) throw new RangeError(`${name} rows must have equal length`);
     }
     out = { data: new Float64Array(rows * cols), rows, cols };

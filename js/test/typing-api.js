@@ -88,6 +88,13 @@ export async function everyOption() {
   await ub.runAsync(ub.steps.apply.somOlp(X, W, [2, 2], { lam: 0.5, gamma: 1 }), { budgetMs: 0 });
 }
 
+/** Inputs the functions accept besides arrays of numbers. @returns {number} */
+export function otherInputs() {
+  const rows = [Float64Array.of(0, 0), Float64Array.of(1, 1), Float64Array.of(5, 5)];
+  ub.som(rows, [Float64Array.of(0, 0), Float64Array.of(0, 1)], { epochs: 1 });
+  return ub.fcm(rows, 2).nIter + ub.ari([true, false, true], ['a', 'b', 'a']) + ub.ami([1n, 2n, 1n], Int32Array.of(0, 1, 0));
+}
+
 export function wrongArguments() {
   // @ts-expect-error k is a number
   ub.fcm(X, '2');
@@ -121,6 +128,12 @@ export function wrongArguments() {
   ub.apply.rmcm(X, X, {});
   // @ts-expect-error the settings of a TPE are read-only
   new ub.TPE({ x: ub.uniform(0, 1) }).gamma = 0.5;
+  // @ts-expect-error dimensions are frozen
+  ub.uniform(0, 1).low = 5;
+  // @ts-expect-error and so are their options
+  ub.choice('a', 'b').options = ['c'];
+  // @ts-expect-error labels are values
+  ub.ari([[0], [1]], [[0], [1]]);
   // @ts-expect-error 'max_iter' is not a stop reason
   if (ub.fcm(X, 2).stopReason === 'max_iter') return;
 }

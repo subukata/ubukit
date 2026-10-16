@@ -107,6 +107,9 @@ versions keep the API and change results only to fix bugs, listed under
 - Python: the type declarations of `minimize` name the options it passes
   to `TPE` (`n_startup`, `n_candidates`, `gamma`), as JavaScript's do since
   0.1.1, so a type checker reports a misspelled or mistyped option.
+- JavaScript: the type declarations say what the functions accept: rows
+  may be typed arrays, labels booleans and bigints, and the properties of
+  search-space dimensions are read-only, as the objects are frozen.
 
 ## 0.1.1 (2026-10-07)
 
