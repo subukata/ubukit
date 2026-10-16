@@ -90,8 +90,16 @@ class Result:
 
 
 def as_matrix(X: ArrayLike, name: str = "X") -> np.ndarray:
-    """Return X as a finite, non-empty, C-contiguous float64 matrix of ordinary scale."""
-    A = np.ascontiguousarray(X, dtype=np.float64)
+    """Return X as a finite, non-empty, C-contiguous float64 matrix of ordinary scale.
+
+    Its values must be numbers (integers or floats): NumPy would convert
+    booleans and numeric strings, and ``None`` would become a missing value,
+    so they are refused, as in JavaScript.
+    """
+    A = np.asarray(X)
+    if A.dtype.kind not in "iuf":
+        raise TypeError(f"{name} must hold numbers, not {A.dtype}")
+    A = np.ascontiguousarray(A, dtype=np.float64)
     if A.ndim != 2 or 0 in A.shape:
         raise ValueError(f"{name} must be a non-empty 2-D array")
     if not np.isfinite(A).all():

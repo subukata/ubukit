@@ -145,7 +145,7 @@ def test_one_assignment_ends_the_run_and_som_olp_takes_new_rows(blobs):
     [
         (lambda X: ub.apply.fcm(X, np.ones((3, 3))), ValueError, "columns"),
         (lambda X: ub.apply.som(X, np.ones((5, 2)), (2, 2)), ValueError, "4 rows"),
-        (lambda X: ub.apply.fcm(X, "k-means++"), ValueError, "string"),
+        (lambda X: ub.apply.fcm(X, "k-means++"), TypeError, "numbers"),
         (lambda X: ub.apply.fcm(X, CENTERS, m=1.0), ValueError, "^m must"),
         # Arguments are checked before the data, which are invalid too.
         (lambda X: ub.apply.fcm(X * np.nan, CENTERS * np.nan, m=1.0), ValueError, "^m must"),
