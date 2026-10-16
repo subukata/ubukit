@@ -61,7 +61,7 @@ def ami(
     mi = float(np.sum(nij / n * (np.log(nij) + np.log(n) - np.log(a[rows]) - np.log(b[cols]))))
     emi = _expected_mutual_information(n, a, b, kernels)
     denominator = _AVERAGES[average](_entropy(a, n), _entropy(b, n)) - emi
-    eps = np.finfo(np.float64).eps
+    eps = float(np.finfo(np.float64).eps)
     denominator = min(denominator, -eps) if denominator < 0 else max(denominator, eps)
     return (mi - emi) / denominator
 

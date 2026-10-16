@@ -107,7 +107,8 @@ closes the pull requests that target it.
 ## CI and dependencies
 
 - CI (`.github/workflows/ci.yml`) runs on every pull request on Ubuntu:
-  Python 3.12 and 3.14, the oldest supported NumPy and SciPy, Node 22 and 24,
+  Python 3.12 and 3.14, the oldest supported NumPy and SciPy (mypy included,
+  since NumPy's type stubs change between versions), Node 22 and 24,
   the package builds and the benchmark's parity check, in about two minutes.
   A new push to the pull request cancels the earlier run. The `main` ruleset
   requires one check, "All checks", which fails when any other job fails, so
