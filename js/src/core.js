@@ -404,20 +404,24 @@ export function asData(X, nFeatures) {
 
 /**
  * The data and the initial centers (centered like the data) of a clustering.
+ * k, a named init and the seed are checked before any work on the data; only
+ * the bound of k by the number of rows waits for them.
  * @param {MatrixLike} X @param {number} k @param {'k-means++' | MatrixLike} [init] @param {number} [seed]
  * @param {(X: MatrixLike, nFeatures?: number) => Data} [prepare]
  * @returns {{ data: Data, V: Matrix }}
  */
 export function start(X, k, init = 'k-means++', seed, prepare = asData) {
+  checkInt(k, 'k', 1);
+  if (typeof init === 'string' && init !== 'k-means++') throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");
+  const rand = random(seed);
   const data = prepare(X), Xc = data.X;
   checkInt(k, 'k', 1, Xc.rows);
   if (init === 'k-means++') {
-    const V = kmeansPlusPlus(Xc, k, random(seed));
+    const V = kmeansPlusPlus(Xc, k, rand);
     // Start from the seeds' cell means: a center on a data point gives that
     // point full weight, and for large m stalls there (docs/algorithms.md).
     return { data, V: labelMean(Xc, nearest(Xc, V), V) };
   }
-  if (typeof init === 'string') throw new RangeError("init must be 'k-means++' or a (k, nFeatures) matrix");
   const V = matrix(init, 'init');
   if (V.rows !== k || V.cols !== Xc.cols) throw new RangeError(`init must have shape (${k}, ${Xc.cols})`);
   return { data, V: shift(V, data.mean.map(v => -v)) };

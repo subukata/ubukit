@@ -30,7 +30,7 @@ export function* som(X, grid = [10, 10], options) {
   checkNumber(lr, 'lr', 0, true);
   checkNumber(lrEnd, 'lrEnd', 0, true);
   if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
-  const { data, W } = setup(X, R, init), k = R.rows, q = R.cols, rand = random(seed);
+  const rand = random(seed), { data, W } = setup(X, R, init), k = R.rows, q = R.cols;
   const epoch = (data, W, _, e) => {
     const { rows: n, cols: d, data: x } = data.X, steps = epochs * n;
     const w = W.data.slice(), diff = new Float64Array(k * d), order = Int32Array.from({ length: n }, (_, i) => i);
@@ -226,9 +226,9 @@ function gridCoordinates(grid) {
 
 /** The data and the initial prototypes of the units at R (centered like the data). */
 function setup(X, R, init, pcaScale = 2) {
+  if (typeof init === 'string' && init !== 'pca') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
   const data = asData(X), Xc = data.X;
   if (init === 'pca') return { data, W: pcaInit(Xc, R, pcaScale) };
-  if (typeof init === 'string') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
   const W = matrix(init, 'init');
   if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
   return { data, W: shift(W, data.mean.map(v => -v)) };

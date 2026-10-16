@@ -60,6 +60,10 @@ versions keep the API and change results only to fix bugs, listed under
   and numeric strings were converted, the real part of complex numbers
   kept, and `None` refused only as a missing value; they now raise
   `TypeError`.
+- `k`, a named `init` and `seed` are checked before any work on the data,
+  as the other arguments are: a wrong one was reported only after
+  centering, `rmcm`'s neighborhood graph or the PCA start. Python refuses
+  `seed=True`, which it took as 1, as JavaScript does.
 - Python: `som` and `som_olp` read the unit coordinates from the array
   passed as `grid`, so changing that array during a run changed the
   iterations that followed, and the Results that a saved Progress of an

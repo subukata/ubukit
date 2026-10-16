@@ -18,7 +18,7 @@ from typing import Any, TypedDict, Unpack
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
 
-from ._core import MAX_INT, check_float, check_int
+from ._core import MAX_INT, check_float, check_int, check_seed
 
 
 class _Dimension:
@@ -157,7 +157,7 @@ class TPE:
                     f"space[{name!r}] must come from uniform/loguniform/integer/choice"
                 )
             self._space[name] = dim
-        self._rng = np.random.default_rng(seed)
+        self._rng = np.random.default_rng(check_seed(seed))
         self.n_startup = check_int(n_startup, "n_startup", 2)
         self.n_candidates = check_int(n_candidates, "n_candidates", 1)
         self.gamma = check_float(gamma, "gamma", 0.0, strict=True)

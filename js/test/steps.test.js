@@ -201,7 +201,12 @@ test('arguments are checked before the data', () => {
     [() => ub.rmcm(bad, 3, 0.5, { maxIter: 0 }), /maxIter/], [() => ub.som(bad, [3, 3], { epochs: 0 }), /epochs/],
     [() => ub.batchSom(bad, [3, 3], { sigma: 0 }), /sigma/],
     [() => ub.somOlp(bad, [3, 3], { lam: 1, gamma: 1, tol: -1 }), /tol/],
-  ]) assert.throws(call, name);
+    // k, a named init and the seed were checked after the data.
+    [() => ub.kmeans(bad, 0), /^k must/], [() => ub.rmcm(bad, 0, 0.5), /^k must/],
+    [() => ub.fcm(bad, 3, { init: 'random' }), /^init must/], [() => ub.efcm(bad, 3, { seed: -1 }), /^seed must/],
+    [() => ub.som(bad, [3, 3], { seed: -1 }), /^seed must/], [() => ub.batchSom(bad, [3, 3], { init: 'random' }), /^init must/],
+    [() => ub.somOlp(bad, [3, 3], { lam: 1, gamma: 1, init: 'random' }), /^init must/],
+  ]) assert.throws(call, { message: name });
 });
 
 test('runAsync reports progress and honors abort', async () => {
