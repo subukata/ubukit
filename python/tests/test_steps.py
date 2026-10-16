@@ -16,11 +16,12 @@ CONVERGING = {
     "rmcm": ((4, 0.5), {"seed": 1}),
     "som_olp": (((3, 3),), {"lam": 0.5, "gamma": 1.0}),
 }
-FIELDS = ("centers", "labels", "membership", "n_iter", "converged", "history", "embedding")
+FIELDS = ("centers", "labels", "membership", "n_iter", "stop_reason", "history", "embedding")
+ITERATES = tuple(f for f in FIELDS if f != "stop_reason")
 
 
-def assert_same(a, b):
-    for field in FIELDS:
+def assert_same(a, b, fields=FIELDS):
+    for field in fields:
         x, y = getattr(a, field), getattr(b, field)
         if x is None or y is None:
             assert x is y, field
@@ -39,16 +40,22 @@ def finish(run):
 
 @pytest.mark.parametrize("name", CONVERGING)
 def test_progress_results_are_the_run_stopped_there(blobs, name):
-    # result() at iteration t equals the run with max_iter = t, even when it is
-    # called after the run has finished (list() runs the generator to the end).
+    # result() at iteration t has the iterates of the run with max_iter = t,
+    # even when it is called after the run has finished (list() runs the
+    # generator to the end). The stop reasons follow each run's own settings:
+    # the run with max_iter = t reaches its limit at t while this one goes on
+    # (None), until both meet the tolerance at the last iteration.
     X, _ = blobs
     args, options = CONVERGING[name]
     progress = list(getattr(ub.steps, name)(X, *args, **options, max_iter=1000))
     assert [p.iteration for p in progress] == list(range(1, len(progress) + 1))
     assert len(progress) > 1
     for t in {1, 2, len(progress)}:
+        snapshot = progress[t - 1].result()
         stopped = getattr(ub, name)(X, *args, **options, max_iter=t)
-        assert_same(progress[t - 1].result(), stopped)
+        assert_same(snapshot, stopped, ITERATES)
+        expected = ("tol", "tol") if t == len(progress) else (None, "limit")
+        assert (snapshot.stop_reason, stopped.stop_reason) == expected
 
 
 @pytest.mark.parametrize("name", CONVERGING)
@@ -72,7 +79,74 @@ def test_scheduled_maps_are_complete_at_their_last_epoch(blobs, name, options):
     X, _ = blobs
     results = [p.result() for p in list(getattr(ub.steps, name)(X, (3, 3), **options))]
     assert_same(results[-1], getattr(ub, name)(X, (3, 3), **options))
-    assert [r.converged for r in results] == [False] * (len(results) - 1) + [True]
+    assert [r.stop_reason for r in results] == [None] * (len(results) - 1) + ["schedule"]
+
+
+def test_stop_reasons(blobs):
+    # "tol" before the limit, "limit" without the tolerance, "tol" when both
+    # hold at the same iteration, and "tol" with no limit.
+    X, _ = blobs
+    free = ub.fcm(X, 4, seed=1)
+    assert free.stop_reason == "tol" and free.n_iter > 2
+    assert ub.fcm(X, 4, seed=1, max_iter=2).stop_reason == "limit"
+    assert ub.fcm(X, 4, seed=1, max_iter=free.n_iter).stop_reason == "tol"
+    assert ub.fcm(X, 4, seed=1, max_iter=None).stop_reason == "tol"
+
+
+@pytest.mark.parametrize("name", ["som", "batch_som"])
+def test_maps_run_their_whole_schedule(name):
+    # Identical points: the prototypes never move, yet a schedule runs every
+    # epoch and reports "schedule", not "tol".
+    r = getattr(ub, name)(np.ones((20, 2)), (2, 2), epochs=4)
+    assert (r.n_iter, r.stop_reason) == (4, "schedule")
+
+
+def test_new_data_after_the_tolerance_holds_continue_the_run(blobs):
+    # A Progress result records the rule that holds at its iteration; new rows
+    # sent then continue the run, and the recorded result does not change.
+    X, _ = blobs
+    run = ub.steps.fcm(X, 3, seed=0, max_iter=None)
+    p = next(run)
+    while p.result().stop_reason is None:
+        p = next(run)
+    held = p.result()
+    after = run.send(X + np.array([0.5, -0.5])).result()
+    assert held.stop_reason == p.result().stop_reason == "tol"
+    assert after.n_iter == held.n_iter + 1
+    assert_same(p.result(), held)
+
+
+@pytest.mark.parametrize(
+    ("start", "reason"),
+    [
+        (lambda X: ub.steps.fcm(X, 3, seed=0, max_iter=1), "limit"),
+        # Identical points meet the tolerance at the limit.
+        (lambda X: ub.steps.fcm(np.ones((5, 2)), 2, seed=0, max_iter=1), "tol"),
+        (lambda X: ub.steps.batch_som(X, (2, 2), epochs=1), "schedule"),
+    ],
+)
+def test_the_limit_and_the_schedule_end_the_run_even_with_new_data(blobs, start, reason):
+    X, _ = blobs
+    run = start(X)
+    first = next(run).result()
+    with pytest.raises(StopIteration) as end:
+        run.send(X + 1.0)
+    assert end.value.value.stop_reason == first.stop_reason == reason
+
+
+def test_som_olp_memberships_can_move_after_the_tolerance_holds():
+    # tol = 0 says only that the prototypes did not move: on identical points
+    # they stay put, yet the latent positions of the first memberships move
+    # the next ones along the grid.
+    X = np.zeros((10, 2))
+    run = ub.steps.som_olp(
+        X, [[0.0], [1.0], [2.0]], lam=0.5, gamma=1.0, init=np.zeros((3, 2)), tol=0
+    )
+    first = next(run).result()
+    second = run.send(X).result()
+    assert first.stop_reason == "tol"
+    np.testing.assert_array_equal(second.centers, first.centers)
+    assert np.abs(second.membership - first.membership).max() > 0.4
 
 
 MAPS = {"som": (((3, 3),), {"epochs": 6, "seed": 2}), "batch_som": (((3, 3),), {"epochs": 6})}

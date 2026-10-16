@@ -13,6 +13,13 @@ export function fit() {
   return ub.fcm(X, 2, { m: 2, seed: 0 }).nIter;
 }
 
+/** @returns {boolean} */
+export function stoppedByTolerance() {
+  /** @type {'tol' | 'schedule' | 'limit' | null} */
+  const reason = ub.fcm(X, 2).stopReason;
+  return reason === 'tol';
+}
+
 /** @returns {ub.Result} */
 export function followMovingData() {
   const run = ub.steps.somOlp(X, [2, 2], { lam: 0.5, gamma: 1, maxIter: Infinity });
@@ -72,4 +79,8 @@ export function wrongArguments() {
   ub.trustworthiness(X, X, '1');
   // @ts-expect-error a Neighborhood is not data to fit
   ub.fcm(new ub.Neighborhood(X), 2);
+  // @ts-expect-error converged was replaced by stopReason
+  ub.fcm(X, 2).converged;
+  // @ts-expect-error 'max_iter' is not a stop reason
+  if (ub.fcm(X, 2).stopReason === 'max_iter') return;
 }

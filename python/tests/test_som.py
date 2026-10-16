@@ -171,7 +171,7 @@ def test_far_apart_schedule_ends_stay_finite(blobs):
             ub.batch_som(X, (3, 3), epochs=3, sigma=1e200, sigma_end=1e-200),
         ]
     for r in runs:
-        assert np.isfinite(r.centers).all() and r.converged
+        assert np.isfinite(r.centers).all() and r.stop_reason == "schedule"
 
 
 def test_online_som_memory_grows_with_the_units_not_their_square():

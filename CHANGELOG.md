@@ -7,6 +7,20 @@ versions keep the API and change results only to fix bugs, listed under
 
 ## (unreleased)
 
+### Changed API
+
+- `Result.converged` is replaced by `stop_reason` (`stopReason` in
+  JavaScript), the stopping rule that holds at the result's iteration:
+  `"tol"` (no prototype coordinate moved more than `tol` times the RMS
+  radius of the data), `"schedule"` (`som` and `batch_som`: every epoch has
+  run) or `"limit"` (`max_iter` reached without the tolerance), and `None`
+  (`null`) in a per-iteration result where none holds yet. `converged` was
+  also true when a map's schedule completed, after even one epoch, and false
+  in both other cases. Where code read `r.converged`, read
+  `r.stop_reason == "tol"`, or `r.stop_reason in {"tol", "schedule"}` for
+  the old meaning across all methods (not `if r.stop_reason`, which is true
+  for `"limit"` too).
+
 ### Added
 
 - `Neighborhood(X)` holds the pairwise distances of `X`, computed once, and

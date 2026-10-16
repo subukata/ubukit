@@ -19,9 +19,14 @@ equal, some feature spanning at least $10^{-150}$, so that squared distances
 neither overflow nor all vanish; other inputs raise an error, so standardize
 data first. A prototype with no mass keeps its previous position. The loop
 stops when no prototype coordinate moves more than `tol` times the RMS radius
-of the centered data (`tol = 0` means an exact fixed point), or after
-`max_iter` iterations; stopping says nothing about the quality of the
-partition (see "Degenerate solutions").
+of the centered data (`tol = 0`: the prototypes did not move at all, which
+for `som_olp` leaves the memberships free to change once more), or after
+`max_iter` iterations; the maps `som` and `batch_som` run a fixed schedule of
+`epochs` instead. `stop_reason` names the rule that holds at a result's
+iteration, `"tol"`, `"limit"` (the iteration limit, without the tolerance)
+or `"schedule"`, and `None` in a per-iteration result where none holds yet.
+Stopping says nothing about the quality of the partition (see "Degenerate
+solutions").
 
 The data are an input of every iteration, so a run can go on with new data,
 for example points that move. The prototypes keep their positions, and the
@@ -34,9 +39,9 @@ without them, as the first does. Rows that are other points, such as
 batches of equal size, must therefore not be sent to `som_olp`, whose next
 iteration would give them the latent positions of the old points. What
 belongs to the old data only, such as Hamerly's bounds or the neighborhood
-graph of `rmcm`, is built again. The run then ends when it converges on unchanged data, or after
-`max_iter` iterations (`None` in Python and `Infinity` in JavaScript for no
-limit). For maps that follow moving data, a constant neighborhood width
+graph of `rmcm`, is built again. The run then ends when the tolerance holds
+and no new data arrive, or after `max_iter` iterations (`None` in Python and
+`Infinity` in JavaScript for no limit). For maps that follow moving data, a constant neighborhood width
 (`sigma = sigma_end`) keeps the schedule from narrowing over time.
 
 The default initialization, shared by the clustering methods, is greedy
@@ -124,8 +129,8 @@ minimum or saddle point of the objective, and which one depends on the start.
 
 A lower objective is not a better partition. Past $m^*$ the collapsed state
 has the lowest $J_m$ yet labels no better than chance (ARI 0.03 to 0.19 in
-the benchmark data), and `converged` only says that the prototypes stopped
-moving. Keep $m$ below $m^*$ (often 1.2 to 1.5 in high dimensions) and
+the benchmark data), and `stop_reason == "tol"` only says that the
+prototypes stopped moving. Keep $m$ below $m^*$ (often 1.2 to 1.5 in high dimensions) and
 $\tau$ below $\tau^*$, and check that the prototypes have not merged, for
 example by their spread around the mean, or compare with known labels.
 

@@ -94,6 +94,7 @@ def build() -> dict:
             expect["membership"] = r.membership
         if r.embedding is not None:
             expect["embedding"] = r.embedding
+        expect["stop_reason"] = r.stop_reason
         cases.append({"method": method, "X": X, "args": args, "options": options, "expect": expect})
     for method, args, options in METRICS:
         value = getattr(ub, method)(*[_resolve(a, data) for a in args], **options)

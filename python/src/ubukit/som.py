@@ -21,7 +21,9 @@ from ._core import (
     Loop,
     MapInit,
     Result,
+    Schedule,
     Steps,
+    Tolerance,
     as_data,
     as_matrix,
     check_float,
@@ -94,7 +96,7 @@ def som(
                 W += (eta * h)[:, None] * diff
         return W, None, None
 
-    return (yield from iterate(data, W, epoch, max_iter=epochs, tol=None, view=_map(R)))
+    return (yield from iterate(data, W, epoch, stopping=Schedule(epochs), view=_map(R)))
 
 
 def batch_som(
@@ -133,7 +135,7 @@ def batch_som(
         out[ok] = num.reshape(len(W), -1)[ok] / den[ok, None]
         return out, labels, None
 
-    return (yield from iterate(data, W, step, max_iter=epochs, tol=None, view=_map(R)))
+    return (yield from iterate(data, W, step, stopping=Schedule(epochs), view=_map(R)))
 
 
 def som_olp(
@@ -185,7 +187,9 @@ def som_olp(
         P = loop.state.copy()  # the next step reads it
         return fitted(loop, P.argmax(axis=1), P, P @ R)
 
-    return (yield from iterate(data, W, step, max_iter=max_iter, tol=tol, view=view, keep=keep))
+    return (
+        yield from iterate(data, W, step, stopping=Tolerance(tol, max_iter), view=view, keep=keep)
+    )
 
 
 def _shape(grid: Any) -> tuple[int, int]:

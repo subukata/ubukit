@@ -88,5 +88,5 @@ test('far-apart schedule ends stay finite', () => {
     ub.som(X, [3, 3], { epochs: 2, sigma: 1e200, sigmaEnd: 1e-200, seed: 0 }),
     ub.som(X, [3, 3], { epochs: 2, lr: 1e-320, lrEnd: 1, seed: 0 }),
     ub.batchSom(X, [3, 3], { epochs: 3, sigma: 1e200, sigmaEnd: 1e-200 }),
-  ]) assert.ok(r.centers.data.every(Number.isFinite) && r.converged);
+  ]) assert.ok(r.centers.data.every(Number.isFinite) && r.stopReason === 'schedule');
 });

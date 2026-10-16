@@ -133,7 +133,7 @@ change. A small, written promise keeps everything else free to improve.
 
 How the principles are realized today. This section changes with the code.
 
-- **Engine:** `iterate(data, V, step, max_iter, tol, view, prepare, keep)`
+- **Engine:** `iterate(data, V, step, stopping, view, prepare, keep)`
   in `python/src/ubukit/_core.py` and `js/src/core.js`, a generator in both;
   a step maps `(data, V, state, t)` to `(V, state, objective)`. The data are
   an input of every step, never kept by it: rows sent into the generator
@@ -146,12 +146,15 @@ How the principles are realized today. This section changes with the code.
   (the history value, from the quantities that normalize the memberships);
   k-means (an exact accelerated step with Hamerly's bounds),
   the batch SOM (separable smoothing), the online SOM (one epoch) and SOM-OLP
-  (memberships that depend on the previous ones) have their own. With
-  `tol=None` the loop runs a fixed schedule, which converges when complete.
+  (memberships that depend on the previous ones) have their own. Each
+  method also gives the loop its stopping rule, a tolerance with an
+  iteration limit or a fixed schedule (the online and batch SOM), and the
+  loop records the rule that holds at each iteration (`stop_reason`).
   Each method passes the loop its `view`, which adds the method's labels,
   memberships and embedding to what every Result has (`fitted`), so every
   yielded iteration can build, on demand, the Result the run would return
-  had it stopped there; steps therefore never modify a state they have
+  had it stopped there (with the stop reason that holds there under the
+  run's own settings); steps therefore never modify a state they have
   returned, and views copy the state they put in a Result, so changing a
   Result leaves the run unchanged. Each fitting function is written once as
   such a generator, in `cluster` or `som`: `steps` exposes the generators,

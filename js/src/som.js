@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
-  matrix, nearest, random, rejectUnknown, shift, softmin, sqdist, weightedMean,
+  matrix, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, tolerance, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -62,7 +62,7 @@ export function* som(X, grid = [10, 10], {
     }
     return { V: { data: w, rows: k, cols: d }, state: null, value: null };
   };
-  return yield* iterate(data, W, epoch, { maxIter: epochs, tol: null, view: mapView(R) });
+  return yield* iterate(data, W, epoch, { stopping: schedule(epochs), view: mapView(R) });
 }
 
 /**
@@ -105,7 +105,7 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
     }
     return { V: { data: out, rows: k, cols: d }, state: labels, value: null };
   };
-  return yield* iterate(data, W, step, { maxIter: epochs, tol: null, view: mapView(R) });
+  return yield* iterate(data, W, step, { stopping: schedule(epochs), view: mapView(R) });
 }
 
 /**
@@ -141,7 +141,7 @@ export function* somOlp(X, grid = [10, 10], options) {
   const keep = (P, data) => (P.rows === data.X.rows ? P : null);
   // A copy of the memberships: the next step reads them.
   const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, R));
-  return yield* iterate(data, W, step, { maxIter, tol, view, keep });
+  return yield* iterate(data, W, step, { stopping: tolerance(tol, maxIter), view, keep });
 }
 
 function multiply(A, B) {

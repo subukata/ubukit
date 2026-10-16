@@ -32,6 +32,7 @@ type Init = Literal["k-means++"] | ArrayLike  # k-means++ seeding or (k, D) cent
 type MapInit = Literal["pca"] | ArrayLike  # principal-plane start or (K, D) prototypes
 type Grid = tuple[int, int] | ArrayLike  # (rows, cols) or (K, Q) unit coordinates
 type Engine = Literal["numpy", "numba"]  # NumPy reference or its compiled Numba kernel
+type StopReason = Literal["tol", "schedule", "limit"]  # the stopping rule that holds
 
 TINY = np.finfo(np.float64).tiny
 # "Ordinary scale": row norms below 1e150 keep every squared distance between
@@ -58,8 +59,13 @@ class Result:
             best-matching unit for ``som`` and ``batch_som``).
         membership: (N, K) soft or rough memberships; ``None`` for hard methods.
         n_iter: iterations performed (epochs for SOMs).
-        converged: whether the stopping rule was met (``som`` and ``batch_som``: the
-            schedule completed); not a sign that the result is good.
+        stop_reason: the stopping rule that holds at this iteration, under the run's
+            own settings: ``"tol"`` (no prototype coordinate moved more than ``tol``
+            times the RMS radius of the data; with ``tol=0``, none moved at all),
+            ``"schedule"`` (``som`` and ``batch_som``: every epoch has run) or
+            ``"limit"`` (``max_iter`` reached without ``"tol"``); ``None`` in a
+            Progress result where none holds. It says nothing about the quality of
+            the result.
         history: objective value per iteration; empty for ``rcm``, ``rmcm``, ``som``
             and ``batch_som``, which have none.
         embedding: (N, Q) map coordinates for SOMs, otherwise ``None``.
@@ -69,7 +75,7 @@ class Result:
     labels: np.ndarray
     membership: np.ndarray | None
     n_iter: int
-    converged: bool
+    stop_reason: StopReason | None
     history: np.ndarray
     embedding: np.ndarray | None = None
 
@@ -290,9 +296,11 @@ Update = Callable[[Data, np.ndarray, np.ndarray], np.ndarray]
 class Progress:
     """Yielded after every iteration (epoch for maps) by the generators in ``ubukit.steps``.
 
-    ``result()`` returns the Result the run would return had it stopped at
-    this iteration; it costs nothing unless called, stays valid as the run
-    goes on, and shares no arrays with the run, so changing it leaves the
+    ``result()`` returns the Result of the run at this iteration: the one it
+    would return had it stopped here, with the ``stop_reason`` that holds
+    here under the run's own settings (``None`` while none does and the run
+    goes on). It costs nothing unless called, stays valid as the run goes
+    on, and shares no arrays with the run, so changing it leaves the
     iterations that follow unchanged. Sending new data into the generator
     (``run.send(X)``) runs the following iterations on them.
     """
@@ -308,7 +316,7 @@ class Loop(NamedTuple):
     V: np.ndarray
     state: Any
     n_iter: int
-    converged: bool
+    stop_reason: StopReason | None
     history: np.ndarray
 
 
@@ -320,7 +328,46 @@ def fitted(
 ) -> Result:
     """The Result of ``loop`` with the labels, memberships and embedding of its method."""
     centers = loop.V + loop.data.mean
-    return Result(centers, labels, membership, loop.n_iter, loop.converged, loop.history, embedding)
+    return Result(
+        centers, labels, membership, loop.n_iter, loop.stop_reason, loop.history, embedding
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class Tolerance:
+    """A run that ends when no prototype coordinate moves more than ``tol``
+    times the RMS radius of the data, or after ``max_iter`` iterations
+    (``None``: no limit)."""
+
+    tol: float
+    max_iter: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class Schedule:
+    """A run of a fixed schedule of ``length`` iterations (the maps' epochs)."""
+
+    length: int
+
+
+# How a method's runs end; the loop applies it.
+type Stopping = Tolerance | Schedule
+
+
+def reason_at(
+    stopping: Stopping, t: int, V: np.ndarray, V_prev: np.ndarray, radius: float
+) -> StopReason | None:
+    """The stopping rule that holds after iteration t ("tol" before "limit")."""
+    if isinstance(stopping, Schedule):
+        return "schedule" if t == stopping.length else None
+    if float(np.max(np.abs(V - V_prev))) <= stopping.tol * radius:
+        return "tol"
+    return "limit" if t == stopping.max_iter else None
+
+
+def is_last(stopping: Stopping, t: int) -> bool:
+    """Whether iteration t ends the run whatever the data: the schedule's end or the limit."""
+    return t == (stopping.length if isinstance(stopping, Schedule) else stopping.max_iter)
 
 
 # A fitting generator (ubukit.steps): it yields a Progress per iteration,
@@ -354,13 +401,12 @@ def iterate(
     V: np.ndarray,
     step: Step,
     *,
-    max_iter: int | None,
-    tol: float | None,
+    stopping: Stopping,
     view: Callable[[Loop], Result],
     prepare: Callable[..., Data] = as_data,
     keep: Callable[[Any, Data], Any] | None = None,
 ) -> Steps:
-    """The one loop: repeat ``step`` until the prototypes stop moving, or max_iter.
+    """The one loop: repeat ``step`` until the method's stopping rule ends the run.
 
     The data are an input of every iteration: rows sent into the generator
     are prepared by ``prepare`` and used from the next iteration on. The
@@ -368,11 +414,12 @@ def iterate(
     the state that ``keep(state, data)`` returns; without ``keep`` the state
     starts again, as caches of the old data must. The schedule (``t``) goes on.
 
-    The run ends when no prototype coordinate moves more than ``tol`` times
-    the RMS radius of the data and no new data arrive (``tol=0``: an exact
-    fixed point), or after ``max_iter`` iterations (``None``: no limit);
-    ``tol=None`` means a fixed schedule, which converges by completing its
-    ``max_iter`` iterations. It yields a Progress after every step
+    ``stopping`` is a ``Tolerance``, whose run ends when no prototype
+    coordinate moves more than ``tol`` times the RMS radius of the data and
+    no new data arrive (``tol=0``: the prototypes did not move at all), or
+    after ``max_iter`` iterations; or a ``Schedule``, whose run ends when its
+    iterations are complete. Each Loop records the rule that holds at its
+    iteration (``stop_reason``). The loop yields a Progress after every step
     and returns ``view`` of the final Loop, the method's Result; a Progress
     builds its Result with the same ``view``, which is why steps never modify
     a state they have returned and views copy the state they put in a Result.
@@ -386,20 +433,17 @@ def iterate(
         t += 1
         if value is not None:
             history.append(value)
-        if tol is None:
-            converged = t == max_iter
-        else:
-            converged = float(np.max(np.abs(V - V_prev))) <= tol * data.radius
-        result = _result(view, Loop(data, V, state, t, converged, np.empty(0)), history)
+        reason = reason_at(stopping, t, V, V_prev, data.radius)
+        result = _result(view, Loop(data, V, state, t, reason, np.empty(0)), history)
         rows = yield Progress(t, result)
-        if t == max_iter:
+        if is_last(stopping, t):
             return result()
         if rows is not None:
             new = prepare(rows, V.shape[1])
             V = V + (data.mean - new.mean)
             state = keep(state, new) if keep else None
             data = new
-        elif converged:
+        elif reason == "tol":
             return result()
 
 

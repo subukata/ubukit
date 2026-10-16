@@ -21,6 +21,7 @@ from ._core import (
     Loop,
     Result,
     Steps,
+    Tolerance,
     as_data,
     check_float,
     check_int,
@@ -63,7 +64,7 @@ def kmeans(
     def view(loop):
         return fitted(loop, loop.state[0].copy())
 
-    return (yield from iterate(data, V, _hamerly, max_iter=max_iter, tol=0.0, view=view))
+    return (yield from iterate(data, V, _hamerly, stopping=Tolerance(0.0, max_iter), view=view))
 
 
 def _hamerly(
@@ -151,7 +152,7 @@ def fcm(
         return weighted_mean(data.X, (U / np.maximum(U.max(axis=0), TINY)) ** m, V)
 
     step = lloyd(assign, update)
-    return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
+    return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
 
 
 def efcm(
@@ -174,7 +175,7 @@ def efcm(
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
     data, V = start(X, k, init, seed)
     step = lloyd(lambda _, D: softmin(D, tau))
-    return (yield from iterate(data, V, step, max_iter=max_iter, tol=tol, view=_soft))
+    return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
 
 
 def rcm(
@@ -212,7 +213,7 @@ def rcm(
         return mask / mask.sum(axis=1, keepdims=True), None
 
     step = lloyd(assign)
-    return (yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft))
+    return (yield from iterate(data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft))
 
 
 def rmcm(
@@ -252,7 +253,9 @@ def rmcm(
 
     step = lloyd(assign)
     return (
-        yield from iterate(data, V, step, max_iter=max_iter, tol=0.0, view=_soft, prepare=prepare)
+        yield from iterate(
+            data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft, prepare=prepare
+        )
     )
 
 

@@ -6,7 +6,7 @@
  */
 import {
   argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelMean,
-  lloyd, rejectUnknown, softmin, start, TINY, weightedMean,
+  lloyd, rejectUnknown, softmin, start, TINY, tolerance, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -29,7 +29,7 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed, ...unkn
   checkMaxIter(maxIter);
   const { data, V } = start(X, k, init, seed);
   const view = loop => fitted(loop, loop.state.labels.slice());
-  return yield* iterate(data, V, hamerly, { maxIter, tol: 0, view });
+  return yield* iterate(data, V, hamerly, { stopping: tolerance(0, maxIter), view });
 }
 
 /**
@@ -112,7 +112,7 @@ export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-
     assign: (_, D) => fuzzyMemberships(D, m),
     update: (data, U, V) => weightedMean(data.X, fuzzyWeights(U, m), V),
   });
-  return yield* iterate(data, V, step, { maxIter, tol, view: soft });
+  return yield* iterate(data, V, step, { stopping: tolerance(tol, maxIter), view: soft });
 }
 
 /**
@@ -158,7 +158,7 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
   checkNumber(tol, 'tol', 0);
   const { data, V } = start(X, k, init, seed);
   const step = lloyd({ assign: (_, D) => softmin(D, tau) });
-  return yield* iterate(data, V, step, { maxIter, tol, view: soft });
+  return yield* iterate(data, V, step, { stopping: tolerance(tol, maxIter), view: soft });
 }
 
 /**
@@ -188,7 +188,7 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
     return { U, value: null };
   };
   const step = lloyd({ assign });
-  return yield* iterate(data, V, step, { maxIter, tol: 0, view: soft });
+  return yield* iterate(data, V, step, { stopping: tolerance(0, maxIter), view: soft });
 }
 
 /**
@@ -217,7 +217,7 @@ export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges
     return { U: R, value: null };
   };
   const step = lloyd({ assign });
-  return yield* iterate(data, V, step, { maxIter, tol: 0, view: soft, prepare });
+  return yield* iterate(data, V, step, { stopping: tolerance(0, maxIter), view: soft, prepare });
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */

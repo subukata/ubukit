@@ -20,15 +20,22 @@
  * @property {Int32Array} labels strongest membership (nearest prototype for kmeans, best-matching unit for som and batchSom).
  * @property {Matrix | null} membership (N, K) memberships; null for hard methods.
  * @property {number} nIter iterations performed (epochs for SOMs).
- * @property {boolean} converged stopping rule met (som and batchSom: schedule completed); not a sign that the result is good.
+ * @property {StopReason | null} stopReason the stopping rule that holds at this iteration, under the
+ *   run's own settings: 'tol' (no prototype coordinate moved more than tol times the RMS radius of the
+ *   data; with tol 0, none moved at all), 'schedule' (som and batchSom: every epoch has run) or 'limit'
+ *   (maxIter reached without 'tol'); null in a Progress result where none holds. It says nothing about
+ *   the quality of the result.
  * @property {Float64Array} history objective per iteration; empty for rcm, rmcm, som and batchSom, which have none.
  * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs.
  */
+/** @typedef {'tol' | 'schedule' | 'limit'} StopReason */
 /**
- * Yielded after every iteration (epoch for SOMs); result() is the Result the
- * run would return had it stopped there. It shares no arrays with the run,
- * so changing it leaves the iterations that follow unchanged. Passing rows to
- * the generator's next(X) runs the following iterations on them.
+ * Yielded after every iteration (epoch for SOMs); result() is the Result of
+ * the run at this iteration: the one it would return had it stopped there,
+ * with the stopReason that holds there under the run's own settings (null
+ * while none does and the run goes on). It shares no arrays with the run, so
+ * changing it leaves the iterations that follow unchanged. Passing rows to the
+ * generator's next(X) runs the following iterations on them.
  * @typedef {{ iteration: number, result: () => Result }} Progress
  */
 
@@ -408,13 +415,45 @@ export function checkMaxIter(value) {
 
 /**
  * What the loop has reached: the data, prototypes, the step's state,
- * iterations, whether the stopping rule held at the last one, and the
+ * iterations, the stopping rule that holds at the last one, and the
  * objective history.
- * @typedef {{ data: Data, V: Matrix, state: any, nIter: number, converged: boolean, history: Float64Array }} Loop
+ * @typedef {{ data: Data, V: Matrix, state: any, nIter: number, stopReason: StopReason | null, history: Float64Array }} Loop
  */
 
 /**
- * The one loop: repeat step until the prototypes stop moving, or maxIter.
+ * How a method's runs end; the loop applies it. A tolerance run ends when no
+ * prototype coordinate moves more than tol times the RMS radius of the data,
+ * or after maxIter iterations (Infinity: no limit); a schedule runs a fixed
+ * number of iterations (the maps' epochs).
+ * @typedef {{ kind: 'tolerance', tol: number, maxIter: number } | { kind: 'schedule', length: number }} Stopping
+ */
+
+/** @param {number} tol @param {number} maxIter @returns {Stopping} */
+export const tolerance = (tol, maxIter) => ({ kind: 'tolerance', tol, maxIter });
+
+/** @param {number} length @returns {Stopping} */
+export const schedule = length => ({ kind: 'schedule', length });
+
+/**
+ * The stopping rule that holds after iteration t ('tol' before 'limit').
+ * @param {Stopping} stopping @param {number} t @param {Matrix} V @param {Matrix} previous @param {number} radius
+ * @returns {StopReason | null}
+ */
+function reasonAt(stopping, t, V, previous, radius) {
+  if (stopping.kind === 'schedule') return t === stopping.length ? 'schedule' : null;
+  let move = 0;
+  for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
+  if (move <= stopping.tol * radius) return 'tol';
+  return t === stopping.maxIter ? 'limit' : null;
+}
+
+/** Whether iteration t ends the run whatever the data: the schedule's end or the limit. */
+function isLast(stopping, t) {
+  return t === (stopping.kind === 'schedule' ? stopping.length : stopping.maxIter);
+}
+
+/**
+ * The one loop: repeat step until the method's stopping rule ends the run.
  *
  * The data are an input of every iteration: rows passed to the generator's
  * next(X) are prepared by prepare and used from the next iteration on. The
@@ -422,41 +461,39 @@ export function checkMaxIter(value) {
  * the state that keep(state, data) returns; without keep the state starts
  * again, as caches of the old data must. The schedule (t) goes on.
  *
- * The run ends when no prototype coordinate moves more than tol times the
- * RMS radius of the data and no new data arrive (tol = 0: an exact fixed
- * point), or after maxIter iterations (Infinity: no limit); tol = null means
- * a fixed schedule, which converges by completing its maxIter iterations.
- * It returns view(loop), the method's Result. After every step it yields
- * { iteration, result }, where result() builds the same Result as if the run
- * had stopped there; it costs nothing unless called and stays valid as the
- * loop goes on, because steps never modify a state they have returned, and
- * it shares no arrays with the run, because views copy the state they put in
- * a Result.
+ * A tolerance run ends when no prototype coordinate moves more than tol times
+ * the RMS radius of the data and no new data arrive (tol = 0: the prototypes
+ * did not move at all), or after maxIter iterations; a schedule ends when its
+ * iterations are complete. Each loop records the rule that holds at its
+ * iteration (stopReason). It returns view(loop), the method's Result. After
+ * every step it yields { iteration, result }, where result() builds the
+ * Result of the run at that iteration; it costs nothing unless called and
+ * stays valid as the loop goes on, because steps never modify a state they
+ * have returned, and it shares no arrays with the run, because views copy the
+ * state they put in a Result.
  * @param {Data} data @param {Matrix} V @param {Step} step
- * @param {{ maxIter: number, tol: number | null, view: (loop: Loop) => Result,
+ * @param {{ stopping: Stopping, view: (loop: Loop) => Result,
  *   prepare?: (X: MatrixLike, nFeatures?: number) => Data, keep?: ((state: any, data: Data) => any) | null }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* iterate(data, V, step, { maxIter, tol, view, prepare = asData, keep = null }) {
+export function* iterate(data, V, step, { stopping, view, prepare = asData, keep = null }) {
   const history = [];
   let state = null;
   for (let t = 1; ; t++) {
     const previous = V, next = step(data, V, state, t - 1);
     ({ V, state } = next);
     if (next.value !== null) history.push(next.value);
-    let move = 0;
-    for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
-    const converged = tol === null ? t === maxIter : move <= tol * data.radius;
-    const loop = { data, V, state, nIter: t, converged }, length = history.length;
+    const reason = reasonAt(stopping, t, V, previous, data.radius);
+    const loop = { data, V, state, nIter: t, stopReason: reason }, length = history.length;
     const result = () => view({ ...loop, history: Float64Array.from(history.slice(0, length)) });
     const rows = yield { iteration: t, result };
-    if (t === maxIter) return result();
+    if (isLast(stopping, t)) return result();
     if (rows !== undefined && rows !== null) {
       const fresh = prepare(rows, V.cols);
       V = shift(V, data.mean.map((m, f) => m - fresh.mean[f]));
       state = keep ? keep(state, fresh) : null;
       data = fresh;
-    } else if (converged) return result();
+    } else if (reason === 'tol') return result();
   }
 }
 
@@ -465,8 +502,8 @@ export function* iterate(data, V, step, { maxIter, tol, view, prepare = asData, 
  * @param {Loop} loop @param {Int32Array} labels @param {Matrix | null} [membership] @param {Matrix | null} [embedding]
  * @returns {Result}
  */
-export function fitted({ data, V, nIter, converged, history }, labels, membership = null, embedding = null) {
-  return { centers: shift(V, data.mean), labels, membership, nIter, converged, history, embedding };
+export function fitted({ data, V, nIter, stopReason, history }, labels, membership = null, embedding = null) {
+  return { centers: shift(V, data.mean), labels, membership, nIter, stopReason, history, embedding };
 }
 
 /** The standard update: the means of the data weighted by the memberships. */
