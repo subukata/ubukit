@@ -4,6 +4,18 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 JavaScript options must be an object (#106)
+
+Every JavaScript function that takes options destructures them in its body
+from `named(options)`, which passes an object or no options and throws
+`TypeError` for anything else; #86's rest element still catches unknown
+names. *Why:* an outside review found that a number or boolean where the
+options go has no keys of its own, so destructuring it in the parameter
+list, as #86 did, ran the call with every default: `minimize(f, space,
+20)`, Python's positional `n_trials`, ran 100 trials. *Rejected:* reading
+the raw argument through `arguments` (its index differs per function) and
+a `typeof` check written out in each of the twenty functions.
+
 ## 2026-10-16 Effort by the weight of a change (#102)
 
 `CONTRIBUTING.md` sorts changes into light, medium and heavy, each with what

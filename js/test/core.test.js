@@ -53,6 +53,29 @@ test('an unknown option is an error, as an unknown keyword is in Python', async 
   await assert.rejects(ub.runAsync(ub.steps.fcm(X, 3), { budgetMS: 0 }), { name: 'TypeError', message: 'unknown option budgetMS' });
 });
 
+test('options that are not an object are an error, not the defaults', async () => {
+  // A number has no keys of its own, so it read as no options at all:
+  // minimize(f, space, 20), with Python's positional n_trials, ran 100 trials,
+  // and integer(1, 8, true) searched on a linear scale.
+  const space = { x: ub.uniform(0, 1) }, C = [[0, 0], [5, 5]], W = [[0, 0], [0, 1], [1, 0], [1, 1]];
+  const calls = {
+    kmeans: () => ub.kmeans(X, 3, 300), fcm: () => ub.fcm(X, 3, 1.5), efcm: () => ub.efcm(X, 3, 0.5),
+    rcm: () => ub.rcm(X, 3, 1.2), rmcm: () => ub.rmcm(X, 3, 0.5, 300), som: () => ub.som(X, [2, 2], 5),
+    batchSom: () => ub.batchSom(X, [2, 2], 5), somOlp: () => ub.somOlp(X, [2, 2], 0.5), steps: () => ub.steps.fcm(X, 3, 1.5).next(),
+    'apply.kmeans': () => ub.apply.kmeans(X, C, 1), 'apply.fcm': () => ub.apply.fcm(X, C, 1.5),
+    'apply.efcm': () => ub.apply.efcm(X, C, 0.5), 'apply.rcm': () => ub.apply.rcm(X, C, 1.2),
+    'apply.rmcm': () => ub.apply.rmcm(X, C, 0.5, 100), 'apply.som': () => ub.apply.som(X, W, [2, 2], 1),
+    'apply.somOlp': () => ub.apply.somOlp(X, W, [2, 2], 0.5), ami: () => ub.ami([0, 1], [1, 0], 'max'),
+    integer: () => ub.integer(1, 8, true), TPE: () => new ub.TPE(space, 0), array: () => ub.fcm(X, 3, [1.5]),
+  };
+  const error = { name: 'TypeError', message: /^options must be an object of named options, not / };
+  for (const [name, call] of Object.entries(calls)) assert.throws(call, error, name);
+  await assert.rejects(ub.minimize(() => 0, space, 20), { ...error, message: /not 20$/ });
+  await assert.rejects(ub.runAsync(ub.steps.fcm(X, 3), 0), error);
+  // No options at all are still the defaults (batchSom: no random start).
+  assert.deepEqual(ub.batchSom(X, [2, 2], undefined), ub.batchSom(X, [2, 2]));
+});
+
 test('row entries must be numbers', () => {
   // The copy into a Float64Array read null as 0 (Python rejects None), true
   // as 1 and '3' as 3; a BigInt made it throw an unrelated error.

@@ -167,6 +167,23 @@ export function rejectUnknown(unknown) {
   throw new TypeError(`unknown option ${name}${camel === name ? '' : ` (options are camelCase: ${camel})`}`);
 }
 
+/**
+ * The named options of a call: an object, or none. A number or boolean where
+ * the options go, such as Python's positional n_trials in
+ * minimize(f, space, 20), has no keys of its own, so destructuring it would
+ * run the call with every default.
+ * @template T
+ * @param {T} options
+ * @returns {T}
+ */
+export function named(options) {
+  if (options === undefined) return /** @type {T} */ ({});
+  if (typeof options !== 'object' || options === null || Array.isArray(options)) {
+    throw new TypeError(`options must be an object of named options, not ${typeof options === 'string' ? JSON.stringify(options) : String(options)}`);
+  }
+  return options;
+}
+
 /** Seeded uniform [0, 1) generator (Mulberry32); random seed when omitted. */
 export function random(seed) {
   let s = seed === undefined ? (Math.random() * 2 ** 32) >>> 0 : checkInt(seed, 'seed', 0, 2 ** 32 - 1);
@@ -599,7 +616,8 @@ export function run(steps) {
  * @param {{ signal?: AbortSignal, onProgress?: (p: Progress) => void, budgetMs?: number }} [options]
  * @returns {Promise<T>}
  */
-export async function runAsync(steps, { signal, onProgress, budgetMs = 12, ...unknown } = {}) {
+export async function runAsync(steps, options) {
+  const { signal, onProgress, budgetMs = 12, ...unknown } = named(options);
   rejectUnknown(unknown);
   checkNumber(budgetMs, 'budgetMs', 0);
   let deadline = performance.now() + budgetMs;

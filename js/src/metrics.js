@@ -1,5 +1,5 @@
 /** External agreement (ARI, AMI) and neighborhood preservation (trustworthiness, continuity). */
-import { checkInt, isList, matrix, rejectUnknown } from './core.js';
+import { checkInt, isList, matrix, named, rejectUnknown } from './core.js';
 
 const AVERAGES = {
   arithmetic: (a, b) => (a + b) / 2,
@@ -30,7 +30,8 @@ export function ari(labelsTrue, labelsPred) {
  * @param {ArrayLike<number | string>} labelsPred
  * @param {{ average?: 'arithmetic' | 'geometric' | 'min' | 'max' }} [options]
  */
-export function ami(labelsTrue, labelsPred, { average = 'arithmetic', ...unknown } = {}) {
+export function ami(labelsTrue, labelsPred, options) {
+  const { average = 'arithmetic', ...unknown } = named(options);
   rejectUnknown(unknown);
   if (!Object.hasOwn(AVERAGES, average)) throw new RangeError(`average must be one of ${Object.keys(AVERAGES).join(', ')}`);
   const { n, a, b, cells } = contingency(labelsTrue, labelsPred);
