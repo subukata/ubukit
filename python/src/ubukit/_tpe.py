@@ -166,14 +166,30 @@ class TPE:
                 )
             self._space[name] = dim
         self._rng = np.random.default_rng(check_seed(seed))
-        self.n_startup = check_int(n_startup, "n_startup", 2)
-        self.n_candidates = check_int(n_candidates, "n_candidates", 1)
-        self.gamma = check_float(gamma, "gamma", 0.0, strict=True)
-        if self.gamma >= 1:
+        self._n_startup = check_int(n_startup, "n_startup", 2)
+        self._n_candidates = check_int(n_candidates, "n_candidates", 1)
+        self._gamma = check_float(gamma, "gamma", 0.0, strict=True)
+        if self._gamma >= 1:
             raise ValueError("gamma must be < 1")
         self._encoded: list[np.ndarray] = []
         self._params: list[dict] = []
         self._values: list[float] = []
+
+    # The settings are read-only: a value set later would skip the checks above.
+    @property
+    def n_startup(self) -> int:
+        """Random trials before the model is used."""
+        return self._n_startup
+
+    @property
+    def n_candidates(self) -> int:
+        """Candidates drawn from l(x) per proposal."""
+        return self._n_candidates
+
+    @property
+    def gamma(self) -> float:
+        """Fraction of trials treated as good."""
+        return self._gamma
 
     def ask(self) -> dict[str, Any]:
         """Propose parameters to evaluate next."""

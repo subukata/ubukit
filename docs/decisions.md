@@ -4,6 +4,18 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 TPE's settings are read-only (#111)
+
+`TPE` exposes `n_startup`, `n_candidates` and `gamma` as read-only
+properties (getters in JavaScript) of the values its constructor checked.
+*Why:* the outside reviews found them plain attributes, so a value set
+later skipped the checks: `n_candidates = 0` made the next proposal fail
+in both languages, and `n_startup = -1` in Python. A search whose settings
+change midway would need a contract of its own. *Rejected:* private names
+that cannot be read (code that reports a search reads its settings), and
+setters that check again (a second place for each check, for a use nobody
+has).
+
 ## 2026-10-16 The public API reviewed; rmcm's delta by name (#110)
 
 The review of the whole public API that #89 asked for before 1.0 compared

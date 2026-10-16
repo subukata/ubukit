@@ -31,6 +31,10 @@ versions keep the API and change results only to fix bugs, listed under
   `ub.rmcm(X, k, delta=0.5)` and `ub.apply.rmcm(X, centers, delta=0.5)` in
   Python, `ub.rmcm(X, k, { delta: 0.5 })` in JavaScript. It was the third
   positional argument, the only method parameter passed by position.
+- The settings of a `TPE`, `n_startup`, `n_candidates` and `gamma`
+  (`nStartup`, `nCandidates`, `gamma`), are read-only. They were plain
+  attributes, so a value set after construction skipped the checks:
+  `n_candidates = 0` made the next proposal fail.
 
 ### Added
 

@@ -86,7 +86,7 @@ function decode(dim, u) {
 
 /** Ask/tell TPE minimizer. */
 export class TPE {
-  #space; #dims; #rand; #encoded = []; #params = []; #values = [];
+  #space; #dims; #rand; #encoded = []; #params = []; #values = []; #nStartup; #nCandidates; #gamma;
 
   /**
    * @param {Space} space
@@ -99,11 +99,19 @@ export class TPE {
     this.#space = Object.fromEntries(Object.entries(space).map(([name, dim]) => [name, dimension(dim, name)]));
     this.#dims = Object.values(this.#space);
     this.#rand = random(seed);
-    this.nStartup = checkInt(nStartup, 'nStartup', 2);
-    this.nCandidates = checkInt(nCandidates, 'nCandidates', 1);
-    this.gamma = checkNumber(gamma, 'gamma', 0, true);
+    this.#nStartup = checkInt(nStartup, 'nStartup', 2);
+    this.#nCandidates = checkInt(nCandidates, 'nCandidates', 1);
+    this.#gamma = checkNumber(gamma, 'gamma', 0, true);
     if (gamma >= 1) throw new RangeError('gamma must be < 1');
   }
+
+  // The settings are read-only: a value set later would skip the checks above.
+  /** Random trials before the model is used. @returns {number} */
+  get nStartup() { return this.#nStartup; }
+  /** Candidates drawn from l(x) per proposal. @returns {number} */
+  get nCandidates() { return this.#nCandidates; }
+  /** Fraction of trials treated as good. @returns {number} */
+  get gamma() { return this.#gamma; }
 
   /** Propose parameters to evaluate next. @returns {Record<string, unknown>} */
   ask() {

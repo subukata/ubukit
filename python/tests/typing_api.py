@@ -97,4 +97,5 @@ def wrong_arguments() -> None:
     ub.minimize(lambda p: 0.0, space, 5, n_startpu=2)  # type: ignore[call-arg]
     ub.minimize(lambda p: 0.0, space, 5, gamma="0.2")  # type: ignore[arg-type]
     ub.TPE({"x": (0.0, 1.0)})  # type: ignore[dict-item]
+    ub.TPE(space).gamma = 0.5  # type: ignore[misc]  # the settings are read-only
     ub.ami([0, 1], [0, 1], average="median")  # type: ignore[arg-type]

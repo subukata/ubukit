@@ -62,6 +62,16 @@ def test_minimize_passes_only_the_options_of_tpe():
         ub.minimize(objective, SPACE, 5, n_startpu=2)
 
 
+def test_the_settings_are_read_only():
+    # They were plain attributes: n_candidates = 0 set later skipped the check
+    # and made the next proposal fail.
+    tpe = ub.TPE(SPACE, n_startup=3, n_candidates=5, gamma=0.2)
+    assert (tpe.n_startup, tpe.n_candidates, tpe.gamma) == (3, 5, 0.2)
+    for name in ("n_startup", "n_candidates", "gamma"):
+        with pytest.raises(AttributeError):
+            setattr(tpe, name, 0)
+
+
 @pytest.mark.parametrize(
     "call",
     [
