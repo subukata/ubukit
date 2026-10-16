@@ -193,6 +193,19 @@ def test_tiny_widths_and_temperatures_reach_their_limits(blobs):
     assert set(np.unique(olp.membership)) == {0.0, 1.0}
 
 
+def test_gamma_keeps_the_latent_costs_finite():
+    # gamma times the squared extent of the units above 1e300 overflowed the
+    # latent costs: the memberships were NaN, and the run reported "tol".
+    X, R = [[0.0], [1.0]], [[0.0], [4.0]]
+    with pytest.raises(ValueError, match="gamma is too large"):
+        ub.som_olp(X, R, lam=1.0, gamma=1e308)
+    with pytest.raises(ValueError, match="gamma is too large"):
+        ub.apply.som_olp([[0.5]], [[0.0], [1.0]], R, lam=1.0, gamma=1e308)
+    # Up to the bound (extent 16 here) the costs stay finite.
+    r = ub.som_olp(X, R, init=[[0.0], [0.0]], lam=1.0, gamma=6e298, max_iter=3)
+    assert np.isfinite(r.membership).all() and np.isfinite(r.history).all()
+
+
 def test_far_apart_schedule_ends_stay_finite(blobs):
     # sigma from 1e200 to 1e-200 (and lr from 1e-320 to 1): the ratio of the
     # ends over- or underflows, but the schedule never forms it. (Updates of

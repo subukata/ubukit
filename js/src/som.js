@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
-  matrix, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
+  matrix, MAX_SQ_NORM, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -182,6 +182,22 @@ export function* applySomOlp(X, centers, grid, options) {
 function olp(R, lam, gamma) {
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
+  // The latent costs gamma ||v - r_j||^2 must stay finite beside the data's,
+  // which the scale contract keeps below about 4e300. A latent position v lies
+  // among the units, so ||v - r_j||^2 is at most their squared extent, bounded
+  // by four times their largest squared distance from their mean.
+  const { rows: k, cols: q, data: r } = R, mean = new Float64Array(q);
+  for (let j = 0; j < k; j++) for (let c = 0; c < q; c++) mean[c] += r[j * q + c] / k;
+  let largest = 0;
+  for (let j = 0; j < k; j++) {
+    let s = 0;
+    for (let c = 0; c < q; c++) s += (r[j * q + c] - mean[c]) ** 2;
+    largest = Math.max(largest, s);
+  }
+  const extent = 4 * largest;
+  if (gamma * extent > MAX_SQ_NORM) {
+    throw new RangeError(`gamma is too large for the unit coordinates: gamma times their squared extent (${extent}) must be at most ${MAX_SQ_NORM}`);
+  }
   return (data, W, P) => {
     let cost = sqdist(data.X, W);
     if (P) {

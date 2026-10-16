@@ -110,6 +110,14 @@ versions keep the API and change results only to fix bugs, listed under
 - JavaScript: the type declarations say what the functions accept: rows
   may be typed arrays, labels booleans and bigints, and the properties of
   search-space dimensions are read-only, as the objects are frozen.
+- `som_olp` and `apply.som_olp` refuse a `gamma` too large for the unit
+  coordinates (`gamma` times their squared extent above 1e300, the bound
+  of the data's squared norms): the latent costs overflowed, and the run
+  gave `NaN` memberships and reported `"tol"`.
+- JavaScript: `rcm` with a `p` whose reciprocal overflows (about 1e-320)
+  gave `NaN` memberships and reported `"tol"`, where Python gives the
+  limit; it now computes what Python does (`1 ** Infinity` is `NaN` in
+  JavaScript, 1 in IEEE arithmetic).
 
 ## 0.1.1 (2026-10-07)
 
