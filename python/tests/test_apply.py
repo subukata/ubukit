@@ -99,8 +99,9 @@ def test_som_olp_applied_iterates_the_memberships_with_the_prototypes_fixed(blob
 
 
 def test_som_olp_applied_places_each_point_on_its_own(blobs):
-    # Each point's memberships depend on it alone, so applying to part of
-    # the points gives their rows of applying to all (to the tolerance).
+    # Each point's update depends on it alone; with points away from the
+    # midpoints between units and a tight tolerance, applying to part of the
+    # points gives their rows of applying to all.
     X, _ = blobs
     m = ub.som_olp(X, (3, 4), lam=0.5, gamma=1.0)
     options = {"lam": 0.5, "gamma": 1.0, "tol": 1e-12}

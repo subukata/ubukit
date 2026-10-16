@@ -216,7 +216,9 @@ def apply_som_olp(
     alone, as a training run's first iteration does, and are iterated with
     the prototypes fixed until no membership changes by more than ``tol``,
     or ``max_iter`` iterations (more than training's default: they settle
-    slowly for some settings). Each point's memberships depend on it alone.
+    slowly for some settings). Each point's update depends on it alone, but
+    the rule stops all points together, so a point's result can depend on
+    the points applied with it, mostly for one midway between two units.
     The latent positions of earlier memberships pull later ones, so the
     iteration can settle elsewhere than training left the same points.
     """

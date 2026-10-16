@@ -120,7 +120,10 @@ m \ge m^* = \frac{1}{1 - 2\lambda_{\max}(M)} \;\;(\lambda_{\max}(M) < \tfrac12),
 $$
 
 the second being the critical temperature of deterministic annealing (Rose,
-1998), which also applies to $\lambda$ in `som_olp`. The eigenvalues of $M$
+1998), which also applies to $\lambda$ in `som_olp` with $\gamma = 0$ (the
+latent term changes it: with $X = \{-1, 1\}$, two units, $\gamma = 10$ and
+the prototypes started on the points, $\lambda = 3 > \tau^* = 2$ leaves them
+apart). The eigenvalues of $M$
 sum to 1, so in two dimensions $\lambda_{\max}(M) \ge \frac12$ and `fcm`
 never collapses, while for $D$ roughly isotropic features $m^* \approx
 D/(D-2)$: already 1.14 for $D = 16$, so the default $m = 2$ can collapse from
@@ -209,8 +212,11 @@ $$
 
 until no membership changes by more than `tol` (`"tol"`; never at the
 first iteration) or after `max_iter` iterations (1000 by default, as the
-memberships can settle slowly). Each point's memberships depend on it
-alone. Every update minimizes the objective over $P$ for the latent
+memberships can settle slowly). Each point's update depends on it alone,
+but the rule stops all points together, so a point's result can depend on
+the points applied with it; and a small change can also be a slow
+departure from an unstable point (one midway between two units), which a
+smaller `tol` or more iterations would carry further. Every update minimizes the objective over $P$ for the latent
 positions of the previous memberships, and those positions minimize it for
 them, so `history` does not increase from the second iteration on (the
 first lacks the latent term). The iteration can have several fixed points

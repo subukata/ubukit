@@ -26,6 +26,8 @@ kernels); JavaScript has no dependencies.
 pip install ubukit
 ```
 
+It needs Python 3.12 or newer.
+
 ```python
 import numpy as np
 import ubukit as ub
@@ -58,6 +60,8 @@ example) and check that the centers are apart
 npm install ubukit
 ```
 
+It needs Node.js 22 or newer, or a current browser.
+
 ```js
 import { fcm, batchSom, trustworthiness, steps, runAsync } from 'ubukit';
 
@@ -70,6 +74,12 @@ const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
   onProgress: p => console.log(p.iteration, p.result().centers),
 });
 ```
+
+## More
+
+[docs/recipes.md](docs/recipes.md) has worked uses: SOM-OLP's scales and
+diagnostics, watching rough c-means converge, held-out data, adding points
+to a trained map, and federated rough c-means.
 
 ## Development
 

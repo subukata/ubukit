@@ -196,7 +196,8 @@ python/src/ubukit/  _core.py _cluster.py _som.py steps/ apply.py _metrics.py _tp
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
 bench/              cases.py run.py worker.py worker.mjs baseline.py
-docs/               algorithms.md (the equations), decisions.md (the reasons)
+docs/               algorithms.md (the equations), decisions.md (the reasons),
+                    recipes.md (worked uses, run by tests/test_recipes.py)
 ```
 
 ## Non-goals

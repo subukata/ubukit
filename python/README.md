@@ -7,6 +7,8 @@ and TPE search on NumPy and SciPy.
 pip install ubukit
 ```
 
+It needs Python 3.12 or newer.
+
 ```python
 import numpy as np
 import ubukit as ub
@@ -140,4 +142,5 @@ parallel ones (trustworthiness, continuity, ami) use every core unless
 `NUMBA_NUM_THREADS` limits them; their results do not depend on it.
 
 Equations, defaults and references: <https://github.com/subukata/ubukit/blob/main/docs/algorithms.md>.
+Worked uses (SOM-OLP's scales, held-out data, adding points to a map, federated RCM): <https://github.com/subukata/ubukit/blob/main/docs/recipes.md>.
 A JavaScript package with the same API in camelCase is available as `ubukit` on npm.

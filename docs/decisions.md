@@ -4,6 +4,28 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Recipes, run by the tests (#100)
+
+`docs/recipes.md` holds worked uses that users asked for: SOM-OLP's scales
+(lambda in squared data units, gamma converting squared grid units into
+them, so scaling the data by a and the grid by b keeps the memberships
+with lambda a^2 and gamma a^2 / b^2) and diagnostics (effective number of
+units, points on a unit), watching rough c-means converge through its
+generator, held-out data, adding points to a trained map, federated rough
+c-means (the centralized run's updates in exact arithmetic), and points
+separated on screen only. `tests/test_recipes.py` runs its blocks in order, so they
+stay true as the API changes. *Why:* the feedback of #94-#97 asked for
+these uses; each one is a few lines on the public API. *Rejected:* the
+READMEs (their PyPI and npm pages would grow long, twice), helper functions
+for the diagnostics (formulas of a line each, as #62 decided for m*), and
+notebooks (unrun by the tests, and their diffs carry outputs). Codex's
+review of the recipes also corrected two statements of earlier changes:
+the collapse threshold 2 lambda_max(S) holds for SOM-OLP only with
+gamma = 0, and an applied SOM-OLP point's result can depend on the points
+applied with it, since one rule stops them all (a point midway between two
+units stopped after 2 iterations at 0.5 alone and after 33 at 0.98 with
+another point).
+
 ## 2026-10-16 Python data must hold numbers too (#99)
 
 `as_matrix` refuses arrays whose values are not integers or floats with
