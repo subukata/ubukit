@@ -1,3 +1,5 @@
+from types import MappingProxyType
+
 import numpy as np
 import pytest
 
@@ -47,6 +49,17 @@ def test_tell_accepts_external_trials():
     tpe = ub.TPE({"x": ub.uniform(0, 1)}, seed=0)
     tpe.tell({"x": 0.25}, 3.0)
     assert tpe.result().best_params == {"x": 0.25}
+
+
+def test_a_space_may_be_any_mapping():
+    # The type of a space is a Mapping, so a read-only mapping works as a dict does.
+    proxy = ub.minimize(objective, MappingProxyType(SPACE), 15, seed=3)
+    assert proxy.params == ub.minimize(objective, SPACE, 15, seed=3).params
+
+
+def test_minimize_passes_only_the_options_of_tpe():
+    with pytest.raises(TypeError, match="n_startpu"):
+        ub.minimize(objective, SPACE, 5, n_startpu=2)
 
 
 @pytest.mark.parametrize(
