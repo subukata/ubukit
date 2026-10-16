@@ -4,6 +4,31 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 The public API reviewed; rmcm's delta by name (#110)
+
+The review of the whole public API that #89 asked for before 1.0 compared
+every public function of both languages, with its parameter order and
+defaults, and the Result fields. The defaults agree between the languages.
+One change: `rmcm` and `apply.rmcm` take `delta` by name, required, as
+`som_olp` takes `lam` and `gamma`, so every function takes the data and what
+the run is about (`k`, the `centers`, the `grid`) by position and the
+method's parameters by name; the Python tests needed a helper that popped
+`delta` to call the clusterings alike. 0.2.0 introduces `apply.rmcm`, so
+changing it now spares its users a second change. Kept as they are, with
+the outside reviews (Codex and Antigravity CLI) divided on the first two:
+`pca_scale` only on `som_olp` (the batch SOM replaces its start within the
+first epoch and the online SOM's updates soon outweigh it, while SOM-OLP's
+softmax depends on the spread of its start), the type aliases `Space`,
+`Grid`, `Init` and `MapInit` private (typed code infers its spaces since
+#104, and each public name is a promise), `k` naming the clusters of a
+clustering and the neighbors of the metrics (each function's meaning is
+plain, and a rename would touch every call), and Python's positional
+`n_trials` beside JavaScript's `nTrials` option (each language's own way to
+pass a count, which #106 makes an error to confuse). *Rejected:* positional
+`lam` and `gamma` for `som_olp` (they could not follow its optional
+`grid`), a default `delta` (no radius suits data of every scale), and
+keeping `delta` positional (the one exception, now in `apply` too).
+
 ## 2026-10-16 JavaScript options must be an object (#106)
 
 Every JavaScript function that takes options destructures them in its body

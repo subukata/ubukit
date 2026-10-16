@@ -12,11 +12,11 @@ test('matrix input accepts {data, rows, cols} and validates', () => {
   assert.throws(() => ub.kmeans(X.map(row => row.map(v => v * 1e200)), 3), /scale/);
   assert.throws(() => ub.kmeans(X.map(row => row.map(v => v * 1e-170)), 3), /scale/);
   assert.deepEqual(Array.from(ub.fcm([[1, 1], [1, 1], [1, 1]], 2, { seed: 0 }).centers.data), [1, 1, 1, 1]);
-  assert.throws(() => ub.rmcm(X, 3, 0, { maxEdges: 10 }), /maxEdges/);
+  assert.throws(() => ub.rmcm(X, 3, { delta: 0, maxEdges: 10 }), /maxEdges/);
   assert.throws(() => ub.somOlp(X, [3, 3], { lam: 1, gamma: 1, pcaScale: 0 }), RangeError);
   assert.throws(() => ub.kmeans(X, 0), RangeError);
   assert.throws(() => ub.fcm(X, 3, { m: 1 }), RangeError);
-  assert.throws(() => ub.rmcm(X, 3, 100, { maxEdges: 1000 }), /maxEdges/);
+  assert.throws(() => ub.rmcm(X, 3, { delta: 100, maxEdges: 1000 }), /maxEdges/);
   assert.throws(() => ub.kmeans(X, 3, { init: 'random' }), RangeError);
   assert.throws(() => ub.som(X, [3, 3], { init: 'random' }), /init/);
   assert.throws(() => ub.somOlp(X, [3, 3], { lam: 0, gamma: 1 }), RangeError);
@@ -43,7 +43,7 @@ test('an unknown option is an error, as an unknown keyword is in Python', async 
   const space = { x: ub.uniform(0, 1) };
   const calls = {
     kmeans: o => ub.kmeans(X, 3, o), fcm: o => ub.fcm(X, 3, o), efcm: o => ub.efcm(X, 3, o), rcm: o => ub.rcm(X, 3, o),
-    rmcm: o => ub.rmcm(X, 3, 0.5, o), som: o => ub.som(X, [2, 2], o), batchSom: o => ub.batchSom(X, [2, 2], o),
+    rmcm: o => ub.rmcm(X, 3, { delta: 0.5, ...o }), som: o => ub.som(X, [2, 2], o), batchSom: o => ub.batchSom(X, [2, 2], o),
     somOlp: o => ub.somOlp(X, [2, 2], { lam: 1, gamma: 1, ...o }), ami: o => ub.ami([0, 1], [1, 0], o),
     integer: o => ub.integer(1, 3, o), TPE: o => new ub.TPE(space, o),
   };
@@ -60,11 +60,11 @@ test('options that are not an object are an error, not the defaults', async () =
   const space = { x: ub.uniform(0, 1) }, C = [[0, 0], [5, 5]], W = [[0, 0], [0, 1], [1, 0], [1, 1]];
   const calls = {
     kmeans: () => ub.kmeans(X, 3, 300), fcm: () => ub.fcm(X, 3, 1.5), efcm: () => ub.efcm(X, 3, 0.5),
-    rcm: () => ub.rcm(X, 3, 1.2), rmcm: () => ub.rmcm(X, 3, 0.5, 300), som: () => ub.som(X, [2, 2], 5),
+    rcm: () => ub.rcm(X, 3, 1.2), rmcm: () => ub.rmcm(X, 3, 0.5), som: () => ub.som(X, [2, 2], 5),
     batchSom: () => ub.batchSom(X, [2, 2], 5), somOlp: () => ub.somOlp(X, [2, 2], 0.5), steps: () => ub.steps.fcm(X, 3, 1.5).next(),
     'apply.kmeans': () => ub.apply.kmeans(X, C, 1), 'apply.fcm': () => ub.apply.fcm(X, C, 1.5),
     'apply.efcm': () => ub.apply.efcm(X, C, 0.5), 'apply.rcm': () => ub.apply.rcm(X, C, 1.2),
-    'apply.rmcm': () => ub.apply.rmcm(X, C, 0.5, 100), 'apply.som': () => ub.apply.som(X, W, [2, 2], 1),
+    'apply.rmcm': () => ub.apply.rmcm(X, C, 0.5), 'apply.som': () => ub.apply.som(X, W, [2, 2], 1),
     'apply.somOlp': () => ub.apply.somOlp(X, W, [2, 2], 0.5), ami: () => ub.ami([0, 1], [1, 0], 'max'),
     integer: () => ub.integer(1, 8, true), TPE: () => new ub.TPE(space, 0), array: () => ub.fcm(X, 3, [1.5]),
   };

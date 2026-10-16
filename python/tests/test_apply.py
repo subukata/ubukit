@@ -15,7 +15,7 @@ CLUSTERINGS = {
     "fcm": ((), {"m": 1.5}),
     "efcm": ((), {"tau": 0.7}),
     "rcm": ((), {"alpha": 1.3, "beta": 0.2}),
-    "rmcm": ((0.8,), {}),
+    "rmcm": ((), {"delta": 0.8}),
 }
 
 
@@ -115,9 +115,11 @@ def test_rmcm_applied_depends_on_the_points_given_with_it():
     # all in the first cluster beside another at 4, half in each beside 6,
     # and given alone it gets the hard assignment.
     C = np.array([[0.0], [10.0]])
-    np.testing.assert_array_equal(ub.apply.rmcm([[4.0], [4.0]], C, 3.0).membership[0], [1, 0])
-    np.testing.assert_array_equal(ub.apply.rmcm([[4.0], [6.0]], C, 3.0).membership[0], [0.5, 0.5])
-    np.testing.assert_array_equal(ub.apply.rmcm([[4.0]], C, 3.0).membership, [[1, 0]])
+    np.testing.assert_array_equal(ub.apply.rmcm([[4.0], [4.0]], C, delta=3.0).membership[0], [1, 0])
+    np.testing.assert_array_equal(
+        ub.apply.rmcm([[4.0], [6.0]], C, delta=3.0).membership[0], [0.5, 0.5]
+    )
+    np.testing.assert_array_equal(ub.apply.rmcm([[4.0]], C, delta=3.0).membership, [[1, 0]])
 
 
 def test_fewer_points_than_centers(blobs):

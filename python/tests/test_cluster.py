@@ -16,16 +16,10 @@ SOFT = [
 ]
 
 
-def fit(method, X, k, options):
-    options = dict(options)
-    delta = options.pop("delta", None)
-    return method(X, k, delta, **options) if delta is not None else method(X, k, **options)
-
-
 @pytest.mark.parametrize(("method", "options"), [(ub.kmeans, {}), *SOFT])
 def test_recovers_blobs(blobs, method, options):
     X, centers = blobs
-    r = fit(method, X, 3, {"seed": 0, **options})
+    r = method(X, 3, seed=0, **options)
     assert r.stop_reason == "tol"
     assert r.centers.shape == (3, 2)
     assert r.labels.shape == (300,)
@@ -35,7 +29,7 @@ def test_recovers_blobs(blobs, method, options):
 @pytest.mark.parametrize(("method", "options"), SOFT)
 def test_memberships_are_row_stochastic(blobs, method, options):
     X, _ = blobs
-    U = fit(method, X, 3, {"seed": 1, **options}).membership
+    U = method(X, 3, seed=1, **options).membership
     assert U.shape == (300, 3)
     assert (U >= 0).all()
     np.testing.assert_allclose(U.sum(axis=1), 1.0)
@@ -185,14 +179,14 @@ def test_rmcm_with_zero_radius_is_kmeans(blobs):
     X, _ = blobs
     init = np.array([[1.0, 1.0], [4.0, 1.0], [1.0, 4.0]])
     np.testing.assert_allclose(
-        ub.rmcm(X, 3, 0.0, init=init).centers, ub.kmeans(X, 3, init=init).centers
+        ub.rmcm(X, 3, delta=0.0, init=init).centers, ub.kmeans(X, 3, init=init).centers
     )
 
 
 def test_rmcm_refuses_dense_graphs(blobs):
     X, _ = blobs
     with pytest.raises(ValueError, match="max_edges"):
-        ub.rmcm(X, 3, 100.0, max_edges=1000)
+        ub.rmcm(X, 3, delta=100.0, max_edges=1000)
 
 
 def test_translation_invariance(blobs):
@@ -264,7 +258,7 @@ def test_fewer_distinct_points_than_clusters(k):
     ]
     with np.errstate(divide="raise", invalid="raise", over="raise"):
         for method, options in methods:
-            r = fit(method, X, k, {"seed": 0, **options})
+            r = method(X, k, seed=0, **options)
             assert cdist(r.centers, [[0, 0], [1, 1]]).min(axis=1).max() < 1e-6, method
             if r.membership is not None:
                 np.testing.assert_allclose(r.membership.sum(axis=1), 1.0)
@@ -302,11 +296,11 @@ def test_collapse_to_the_mean_follows_the_thresholds():
         (lambda X: ub.fcm(X, 3, m=1.0), "m"),
         (lambda X: ub.efcm(X, 3, tau=0), "tau"),
         (lambda X: ub.rcm(X, 3, alpha=0.9), "alpha"),
-        (lambda X: ub.rmcm(X, 3, -1.0), "delta"),
+        (lambda X: ub.rmcm(X, 3, delta=-1.0), "delta"),
         (lambda X: ub.kmeans(np.where(X > 4, np.nan, X), 3), "finite"),
         (lambda X: ub.kmeans(X * 1e200, 3), "scale"),
         (lambda X: ub.kmeans(X * 1e-170, 3), "scale"),
-        (lambda X: ub.rmcm(X, 3, 0.0, max_edges=10), "max_edges"),
+        (lambda X: ub.rmcm(X, 3, delta=0.0, max_edges=10), "max_edges"),
         (lambda X: ub.kmeans(X[:, 0], 3), "2-D"),
         (lambda X: ub.kmeans(X, True), "k"),
     ],

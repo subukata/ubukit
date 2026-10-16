@@ -283,8 +283,8 @@ def _rcm(alpha: float, beta: float, p: float) -> Assign:
 def rmcm(
     X: ArrayLike,
     k: int,
-    delta: float,
     *,
+    delta: float,
     init: Init = "k-means++",
     max_iter: int | None = 300,
     max_edges: int = 10_000_000,
@@ -296,7 +296,7 @@ def rmcm(
     the one-hot nearest-center assignment, memberships are R = P H.
 
     Args:
-        delta: neighborhood radius (Euclidean, inclusive).
+        delta: neighborhood radius (Euclidean, inclusive); required, by name.
         max_edges: refuse graphs with more directed edges than this.
     """
     assign, prepare = _rmcm(delta, max_edges)
@@ -311,7 +311,7 @@ def rmcm(
 
 
 def apply_rmcm(
-    X: ArrayLike, centers: ArrayLike, delta: float, *, max_edges: int = 10_000_000
+    X: ArrayLike, centers: ArrayLike, *, delta: float, max_edges: int = 10_000_000
 ) -> Steps:
     """The rough memberships of X for the fixed ``centers`` (``ubukit.apply.rmcm``).
 

@@ -95,7 +95,7 @@ def rcm(X, k, *, init, alpha=1.1, beta=0.0, p=1.0, max_iter=300):
     return _clusters(X, init, step, max_iter, 0.0)
 
 
-def rmcm(X, k, delta, *, init, max_iter=300):
+def rmcm(X, k, *, delta, init, max_iter=300):
     X = np.asarray(X, float)
     A = sum((X[:, f, None] - X[None, :, f]) ** 2 for f in range(X.shape[1])) <= delta**2
     P = A / A.sum(axis=1, keepdims=True)  # dense (N, N)

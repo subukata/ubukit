@@ -11,7 +11,7 @@ test('a clustering applied assigns as its training does', () => {
   // memberships and labels with the same objective; applying never moves the centers.
   for (const [name, args, options] of [
     ['kmeans', [], {}], ['fcm', [], { m: 1.5 }], ['efcm', [], { tau: 0.7 }],
-    ['rcm', [], { alpha: 1.3, beta: 0.2 }], ['rmcm', [0.8], {}],
+    ['rcm', [], { alpha: 1.3, beta: 0.2 }], ['rmcm', [], { delta: 0.8 }],
   ]) {
     const applied = ub.apply[name](X, C, ...args, options), first = ub[name](X, 3, ...args, { init: C, maxIter: 1, ...options });
     assert.deepEqual(applied.labels, first.labels, name);
@@ -100,9 +100,9 @@ test('rmcm applied depends on the points given with it', () => {
   // the first cluster beside another at 4, half in each beside 6, and given
   // alone it gets the hard assignment.
   const centers = [[0], [10]];
-  assert.deepEqual(Array.from(ub.apply.rmcm([[4], [4]], centers, 3).membership.data.slice(0, 2)), [1, 0]);
-  assert.deepEqual(Array.from(ub.apply.rmcm([[4], [6]], centers, 3).membership.data.slice(0, 2)), [0.5, 0.5]);
-  assert.deepEqual(Array.from(ub.apply.rmcm([[4]], centers, 3).membership.data), [1, 0]);
+  assert.deepEqual(Array.from(ub.apply.rmcm([[4], [4]], centers, { delta: 3 }).membership.data.slice(0, 2)), [1, 0]);
+  assert.deepEqual(Array.from(ub.apply.rmcm([[4], [6]], centers, { delta: 3 }).membership.data.slice(0, 2)), [0.5, 0.5]);
+  assert.deepEqual(Array.from(ub.apply.rmcm([[4]], centers, { delta: 3 }).membership.data), [1, 0]);
 });
 
 test('fewer points than centers, and one assignment ends the run', () => {

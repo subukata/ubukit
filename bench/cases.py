@@ -43,7 +43,7 @@ CASES = [
     Case("fcm overlap", "fcm", "overlap", ("X", 10), GIVEN, CLUSTERING, seeded=True),
     Case("efcm", "efcm", "blobs", ("X", 10), GIVEN | {"tau": 5.0}, CLUSTERING, seeded=True),
     Case("rcm", "rcm", "blobs", ("X", 10), GIVEN | {"alpha": 1.2}, CLUSTERING, seeded=True),
-    Case("rmcm", "rmcm", "small", ("X", 10, 3.0), GIVEN, CLUSTERING, seeded=True),
+    Case("rmcm", "rmcm", "small", ("X", 10), GIVEN | {"delta": 3.0}, CLUSTERING, seeded=True),
     Case("batch_som", "batch_som", "blobs", ("X", (10, 10)), {"epochs": 20}),
     Case(
         "som", "som", "small", ("X", (10, 10)), {"epochs": 2, "seed": 0}, parity=False, seeded=True

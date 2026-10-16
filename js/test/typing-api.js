@@ -67,7 +67,7 @@ export async function everyOption() {
   ub.fcm(X, 2, { m: 1.5, init, maxIter: 10, tol: 1e-6, seed: 0 });
   ub.efcm(X, 2, { tau: 1, init, maxIter: 10, tol: 1e-6, seed: 0 });
   ub.rcm(X, 2, { alpha: 1.2, beta: 0.1, p: 2, init, maxIter: 10, seed: 0 });
-  ub.rmcm(X, 2, 1, { init, maxIter: 10, maxEdges: 100, seed: 0 });
+  ub.rmcm(X, 2, { delta: 1, init, maxIter: 10, maxEdges: 100, seed: 0 });
   ub.som(X, [2, 2], { epochs: 2, sigma: 1, sigmaEnd: 0.5, lr: 0.5, lrEnd: 0.01, init: 'pca', shuffle: false, seed: 0 });
   ub.batchSom(X, [2, 2], { epochs: 2, sigma: 1, sigmaEnd: 0.5, init: 'pca' });
   ub.somOlp(X, [2, 2], { lam: 0.5, gamma: 1, init: 'pca', pcaScale: 2, maxIter: 10, tol: 1e-6 });
@@ -81,7 +81,7 @@ export async function everyOption() {
   ub.apply.fcm(X, C, { m: 1.5 });
   ub.apply.efcm(X, C, { tau: 1 });
   ub.apply.rcm(X, C, { alpha: 1.2, beta: 0.1, p: 2 });
-  ub.apply.rmcm(X, C, 1, { maxEdges: 100 });
+  ub.apply.rmcm(X, C, { delta: 1, maxEdges: 100 });
   ub.apply.som(X, W, [2, 2]);
   ub.apply.batchSom(X, W, [[0, 0], [0, 1], [1, 0], [1, 1]]);
   ub.apply.somOlp(X, W, [2, 2], { lam: 0.5, gamma: 1, maxIter: 10, tol: 1e-6 });
@@ -115,6 +115,10 @@ export function wrongArguments() {
   ub.apply.somOlp(X, X, [2, 2], { gamma: 1 });
   // @ts-expect-error the number of trials is an option, { nTrials: 20 }
   ub.minimize(p => Number(p.x), { x: ub.uniform(0, 1) }, 20);
+  // @ts-expect-error delta is an option, { delta: 1 }
+  ub.rmcm(X, 2, 1);
+  // @ts-expect-error delta is required
+  ub.apply.rmcm(X, X, {});
   // @ts-expect-error 'max_iter' is not a stop reason
   if (ub.fcm(X, 2).stopReason === 'max_iter') return;
 }

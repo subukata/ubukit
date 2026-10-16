@@ -266,11 +266,12 @@ function rough(alpha, beta, p) {
 /**
  * Rough membership c-means: R = P H with P the row-normalized
  * delta-neighborhood graph (self included) and H the nearest-center one-hot.
- * @param {MatrixLike} X @param {number} k @param {number} delta @param {Common & { maxEdges?: number }} [options]
+ * delta, the neighborhood radius, is a required option.
+ * @param {MatrixLike} X @param {number} k @param {Common & { delta: number, maxEdges?: number }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* rmcm(X, k, delta, options) {
-  const { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed, ...unknown } = named(options);
+export function* rmcm(X, k, options) {
+  const { delta, init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed, ...unknown } = named(options);
   rejectUnknown(unknown);
   const { assign, prepare } = roughMembership(delta, maxEdges);
   checkMaxIter(maxIter);
@@ -282,11 +283,11 @@ export function* rmcm(X, k, delta, options) {
  * The rough memberships of X for the fixed centers (apply.rmcm). The neighborhoods are those
  * within X, so the memberships of a point depend on the points given with it: X given whole and
  * X given in parts differ, and a point given alone gets the hard assignment of k-means.
- * @param {MatrixLike} X @param {MatrixLike} centers @param {number} delta @param {{ maxEdges?: number }} [options]
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ delta: number, maxEdges?: number }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* applyRmcm(X, centers, delta, options) {
-  const { maxEdges = 10_000_000, ...unknown } = named(options);
+export function* applyRmcm(X, centers, options) {
+  const { delta, maxEdges = 10_000_000, ...unknown } = named(options);
   rejectUnknown(unknown);
   const { assign, prepare } = roughMembership(delta, maxEdges);
   return yield* applied(X, centers, assign, prepare);

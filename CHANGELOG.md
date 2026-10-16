@@ -26,6 +26,11 @@ versions keep the API and change results only to fix bugs, listed under
   `r.stop_reason == "tol"`, or `r.stop_reason in {"tol", "schedule"}` for
   the old meaning across all methods (not `if r.stop_reason`, which is true
   for `"limit"` too).
+- `rmcm` and `apply.rmcm` take `delta`, the neighborhood radius, by name and
+  require it, as `som_olp` takes `lam` and `gamma`:
+  `ub.rmcm(X, k, delta=0.5)` and `ub.apply.rmcm(X, centers, delta=0.5)` in
+  Python, `ub.rmcm(X, k, { delta: 0.5 })` in JavaScript. It was the third
+  positional argument, the only method parameter passed by position.
 
 ### Added
 

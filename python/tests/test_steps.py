@@ -13,7 +13,7 @@ CONVERGING = {
     "fcm": ((4,), {"seed": 1}),
     "efcm": ((4,), {"seed": 1, "tau": 0.5}),
     "rcm": ((4,), {"seed": 1}),
-    "rmcm": ((4, 0.5), {"seed": 1}),
+    "rmcm": ((4,), {"delta": 0.5, "seed": 1}),
     "som_olp": (((3, 3),), {"lam": 0.5, "gamma": 1.0}),
 }
 MAPS = {"som": (((3, 3),), {"epochs": 6, "seed": 2}), "batch_som": (((3, 3),), {"epochs": 6})}
@@ -289,14 +289,14 @@ def test_steps_validate_when_they_start():
         (lambda X: ub.fcm(X, 3, tol=-1.0), "tol"),
         (lambda X: ub.efcm(X, 3, max_iter=0), "max_iter"),
         (lambda X: ub.rcm(X, 3, max_iter=0), "max_iter"),
-        (lambda X: ub.rmcm(X, 3, 0.5, max_iter=0), "max_iter"),
+        (lambda X: ub.rmcm(X, 3, delta=0.5, max_iter=0), "max_iter"),
         (lambda X: ub.som(X, (3, 3), epochs=0), "epochs"),
         (lambda X: ub.batch_som(X, (3, 3), sigma=0.0), "sigma"),
         (lambda X: ub.som_olp(X, (3, 3), lam=1.0, gamma=1.0, tol=-1.0), "tol"),
         # k, a named init and the seed were checked after the data (or, for a
         # seed, by NumPy after the PCA start).
         (lambda X: ub.kmeans(X, 0), "^k must"),
-        (lambda X: ub.rmcm(X, 0, 0.5), "^k must"),
+        (lambda X: ub.rmcm(X, 0, delta=0.5), "^k must"),
         (lambda X: ub.fcm(X, 3, init="random"), "^init must"),
         (lambda X: ub.efcm(X, 3, seed=-1), "^seed must"),
         (lambda X: ub.rcm(X, 3, seed=True), "^seed must"),

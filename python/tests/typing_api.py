@@ -30,7 +30,7 @@ def place_new_points() -> ub.Result:
     ub.apply.kmeans(X, C)
     ub.apply.efcm(X, C, tau=1.0)
     ub.apply.rcm(X, C, alpha=1.2, beta=0.1, p=2.0)
-    ub.apply.rmcm(X, C, 0.5, max_edges=100)
+    ub.apply.rmcm(X, C, delta=0.5, max_edges=100)
     ub.apply.som(X, m.centers, (3, 3))
     ub.apply.batch_som(X, m.centers, np.zeros((9, 2)))
     ub.apply.som_olp(X, m.centers, (3, 3), lam=0.5, gamma=1.0, max_iter=None, tol=0.0)
@@ -91,6 +91,8 @@ def wrong_arguments() -> None:
     ub.fcm(X, "3")  # type: ignore[arg-type]
     ub.steps.fcm(X, "3")  # type: ignore[arg-type]
     ub.steps.som_olp(X, (3, 3), lam=0.5)  # type: ignore[call-arg]
+    ub.rmcm(X, 3, 0.5)  # type: ignore[call-arg]  # delta is named
+    ub.apply.rmcm(X, X)  # type: ignore[call-arg]  # and required
     space = {"x": ub.uniform(0.0, 1.0)}
     ub.minimize(lambda p: 0.0, space, 5, n_startpu=2)  # type: ignore[call-arg]
     ub.minimize(lambda p: 0.0, space, 5, gamma="0.2")  # type: ignore[arg-type]
