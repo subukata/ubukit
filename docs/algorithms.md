@@ -156,7 +156,10 @@ in scaled form to avoid overflow and underflow of the powers.
 $P$ is the row-normalized adjacency of $\lVert x_i - x_j \rVert \le \delta$
 (self included) and $H$ the one-hot nearest-center assignment; memberships are
 $R = P H$, the fraction of each point's neighborhood assigned to each cluster.
-`max_edges` refuses graphs that would not fit in memory before building them.
+`max_edges` bounds the number of directed edges, self loops included: a
+graph with more raises an error, which Python finds by counting them before
+it builds the graph and JavaScript by stopping when the count passes the
+bound.
 
 ## Self-organizing maps
 

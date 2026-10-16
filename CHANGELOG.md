@@ -29,8 +29,9 @@ versions keep the API and change results only to fix bugs, listed under
 - `rmcm` and `apply.rmcm` take `delta`, the neighborhood radius, by name and
   require it, as `som_olp` takes `lam` and `gamma`:
   `ub.rmcm(X, k, delta=0.5)` and `ub.apply.rmcm(X, centers, delta=0.5)` in
-  Python, `ub.rmcm(X, k, { delta: 0.5 })` in JavaScript. It was the third
-  positional argument, the only method parameter passed by position.
+  Python, `ub.rmcm(X, k, { delta: 0.5 })` in JavaScript. `rmcm` took it as
+  its third positional argument, the only method parameter passed by
+  position; `apply.rmcm` is new.
 - The settings of a `TPE`, `n_startup`, `n_candidates` and `gamma`
   (`nStartup`, `nCandidates`, `gamma`), are read-only. They were plain
   attributes, so a value set after construction skipped the checks:
@@ -42,9 +43,9 @@ versions keep the API and change results only to fix bugs, listed under
   `trustworthiness` and `continuity` take it in place of `X` or `Y` with the
   same values, so scoring many embeddings of one `X`, as a search does, no
   longer computes the distances of `X` in every call.
-- `trustworthiness` and `continuity` take a list of `k` and return one value
-  per entry, in its order (an array; a `Float64Array` in JavaScript), for
-  one count of ranks.
+- `trustworthiness` and `continuity` take a list of `k`, of any length, and
+  return one value per entry, in its order (an array; a `Float64Array` in
+  JavaScript), for one count of ranks.
 - `apply` (with its generators in `steps.apply`) applies trained prototypes
   to new data for every method, the prototypes fixed and kept exactly as
   given: `ub.apply.fcm(X_new, centers, m=...)`,
@@ -92,16 +93,15 @@ versions keep the API and change results only to fix bugs, listed under
 - Python: a search space kept in a variable type-checks. Type checkers
   accepted `TPE` and `minimize` only with the space written as a dict in
   the call: a variable holding numeric dimensions only, or numeric and
-  categorical ones, was rejected. Both now take any mapping of dimensions,
-  at run time too.
-- JavaScript: labels must be numbers, strings or booleans, as Python's form
-  a 1-D array: arrays or objects as labels were compared by identity, each
-  a cluster of its own. Python's error for labels that do not sort, such as
-  `[0, None]`, says so; NumPy's named neither.
-- JavaScript: `trustworthiness` and `continuity` take a list of `k` of any
-  length (200,000 overflowed the stack), and rows of unit coordinates may
-  be typed arrays, as `matrix` reads them; they were refused as a malformed
-  `[rows, cols]`.
+  categorical ones, was rejected. The space is now typed as a mapping of
+  dimensions, and at run time `TPE` accepts any mapping too, where it
+  required a dict.
+- JavaScript: labels must be numbers (bigints too), strings or booleans, as
+  Python's form a 1-D array: arrays or objects as labels were compared by
+  identity, each a cluster of its own. Python's error for labels that do
+  not sort, such as `[0, None]`, says so; NumPy's named neither.
+- JavaScript: rows of unit coordinates may be typed arrays, as `matrix`
+  reads them; they were refused as a malformed `[rows, cols]`.
 - Python: the type declarations of `minimize` name the options it passes
   to `TPE` (`n_startup`, `n_candidates`, `gamma`), as JavaScript's do since
   0.1.1, so a type checker reports a misspelled or mistyped option.

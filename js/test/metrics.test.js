@@ -77,7 +77,7 @@ test('labels are values, as in Python', () => {
 
 test('any number of k', () => {
   // Math.max(...ks) overflowed the stack for 200,000 of them.
-  const values = ub.trustworthiness(P, G, Array(200_000).fill(3));
+  const values = ub.trustworthiness(P, G, Array(200_000).fill(3)), one = ub.trustworthiness(P, G, 3);
   assert.equal(values.length, 200_000);
-  assert.ok(values.every(v => v === ub.trustworthiness(P, G, 3)));
+  assert.ok(values.every(v => v === one)); // one reference: computing it per entry took minutes
 });
