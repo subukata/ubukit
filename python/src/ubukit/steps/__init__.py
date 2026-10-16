@@ -11,8 +11,8 @@ the end. ``steps.apply`` holds the generators of ``ubukit.apply``.
         draw(p.result())
 """
 
-from ..cluster import efcm, fcm, kmeans, rcm, rmcm
-from ..som import batch_som, som, som_olp
+from .._cluster import efcm, fcm, kmeans, rcm, rmcm
+from .._som import batch_som, som, som_olp
 from . import apply
 
 __all__ = ["apply", "batch_som", "efcm", "fcm", "kmeans", "rcm", "rmcm", "som", "som_olp"]

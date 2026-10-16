@@ -106,15 +106,16 @@ Each principle states a rule and the failure it prevents.
 What UbuKit promises is written down and kept small; everything else may
 change in any release.
 
-- **Promised:** the public names, which are `__all__` of `ubukit` and of
-  `ubukit.steps` in Python and the exports of the package entry
-  (`index.js`, with its types) in JavaScript, each with its parameters,
-  defaults and Result fields; and the equations of `docs/algorithms.md`,
-  which the fixtures check. Tests compare the names each package exposes
-  with `__all__`, and the two languages with each other, so a change to
-  them is a visible diff.
+- **Promised:** the public names, which are `__all__` of the public modules
+  `ubukit`, `ubukit.steps`, `ubukit.apply` and `ubukit.steps.apply` in
+  Python and the exports of the package entry (`index.js`, with its types)
+  in JavaScript, each with its parameters, defaults and Result fields; and
+  the equations of `docs/algorithms.md`, which the fixtures check. Every
+  other module has an underscore. Tests compare the names each package
+  exposes with `__all__`, and the two languages with each other, so a
+  change to them is a visible diff.
 - **Not promised:** where a name is defined (module files and the import
-  paths into them, such as `ubukit.cluster`), names with an underscore,
+  paths into them, such as `ubukit._cluster`), names with an underscore,
   pickles across versions (a pickle loads in the version that wrote it;
   keep results across versions as arrays), and identical bits (see
   "Non-goals").
@@ -157,7 +158,7 @@ How the principles are realized today. This section changes with the code.
   holds there under the run's own settings); steps therefore never modify
   a state they have returned, and views copy the state they put in a
   Result, so changing a Result leaves the run unchanged. Each fitting function is written once as
-  such a generator, in `cluster` or `som`: `steps` exposes the generators,
+  such a generator, in `_cluster` or `_som`: `steps` exposes the generators,
   and the package entry point makes the plain functions that run them to
   the end (`stepwise` in Python's `__init__.py`, `index.js` in JavaScript).
 - **Applications:** `apply` (and `steps.apply`) runs a method's assignment
@@ -191,7 +192,7 @@ How the principles are realized today. This section changes with the code.
   each method, which `--baseline` times against UbuKit.
 
 ```
-python/src/ubukit/  _core.py cluster.py som.py steps/ apply.py metrics.py tpe.py _numba.py
+python/src/ubukit/  _core.py _cluster.py _som.py steps/ apply.py _metrics.py _tpe.py _numba.py
 js/src/             core.js  cluster.js som.js metrics.js tpe.js index.js
 fixtures/           generate.py -> fixtures.json
 bench/              cases.py run.py worker.py worker.mjs baseline.py

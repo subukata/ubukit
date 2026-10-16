@@ -4,6 +4,19 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Internal modules with an underscore (#98)
+
+`cluster`, `som`, `metrics` and `tpe` became `_cluster`, `_som`, `_metrics`
+and `_tpe`, so the public modules are exactly those without one: `ubukit`,
+`ubukit.steps`, `ubukit.apply` and `ubukit.steps.apply`. The test of the
+public names now counts modules too, and the "Compatibility" section lists
+the four (it had missed `apply` since #97). *Why:* #89, after #90 wrote down
+that import paths are not promised: the old paths looked public, and
+`from ubukit.cluster import fcm` gave the generator rather than the function
+`ubukit.fcm`. *Rejected:* modules under the old names that import the new
+ones, or a module `__getattr__` warning about them (a compatibility layer
+for paths never promised, which #90 rules out in 0.x).
+
 ## 2026-10-16 Trained prototypes applied to new data (#97)
 
 `apply.<method>(X, centers, ...)` and its generator `steps.apply.<method>`
