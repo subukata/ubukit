@@ -1,6 +1,8 @@
 /** External agreement (ARI, AMI) and neighborhood preservation (trustworthiness, continuity). */
 import { checkInt, isList, matrix, named, rejectUnknown } from './core.js';
 
+/** @typedef {ArrayLike<number | bigint | string | boolean>} Labels A labeling: an array or typed array of values. */
+
 const AVERAGES = {
   arithmetic: (a, b) => (a + b) / 2,
   geometric: (a, b) => Math.sqrt(a * b),
@@ -10,8 +12,8 @@ const AVERAGES = {
 
 /**
  * Adjusted Rand index (Hubert & Arabie, 1985).
- * @param {ArrayLike<number | string>} labelsTrue
- * @param {ArrayLike<number | string>} labelsPred
+ * @param {Labels} labelsTrue
+ * @param {Labels} labelsPred
  */
 export function ari(labelsTrue, labelsPred) {
   const { n, a, b, cells } = contingency(labelsTrue, labelsPred);
@@ -26,8 +28,8 @@ export function ari(labelsTrue, labelsPred) {
 
 /**
  * Adjusted mutual information (Vinh, Epps & Bailey, 2010).
- * @param {ArrayLike<number | string>} labelsTrue
- * @param {ArrayLike<number | string>} labelsPred
+ * @param {Labels} labelsTrue
+ * @param {Labels} labelsPred
  * @param {{ average?: 'arithmetic' | 'geometric' | 'min' | 'max' }} [options]
  */
 export function ami(labelsTrue, labelsPred, options) {
