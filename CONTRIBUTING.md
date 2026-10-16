@@ -175,7 +175,8 @@ Every release:
 2. In one pull request, set the version in `python/src/ubukit/__init__.py`,
    `js/package.json` and the two version fields of `js/package-lock.json`
    (by hand: `npm version` rewrites the formatting of `package.json`), and
-   replace "(unreleased)" in `CHANGELOG.md` with the date.
+   replace "(unreleased)" in `CHANGELOG.md` with the date;
+   `tests/test_packaging.py` fails until all five agree.
 3. After merging it, tag the merge and push the tag
    (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` tests both
    packages, builds them in a separate job with only the build tools after
