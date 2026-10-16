@@ -14,6 +14,39 @@ test('maps produce grid embeddings', () => {
   assert.equal(ub.somOlp(X, undefined, { lam: 0.5, gamma: 1, maxIter: 2 }).centers.rows, 100);
 });
 
+test('unit coordinates of rectangular grids', () => {
+  // (row, col) in grid steps, unit j = row * cols + col: not normalized.
+  for (const [rows, cols] of [[3, 4], [1, 5], [5, 1], [1, 1]]) {
+    const expected = Float64Array.from({ length: rows * cols * 2 }, (_, i) => (i % 2 ? (i >> 1) % cols : Math.floor((i >> 1) / cols)));
+    for (const r of [
+      ub.som(X, [rows, cols], { epochs: 1, seed: 0 }),
+      ub.batchSom(X, [rows, cols], { epochs: 2 }),
+      ub.somOlp(X, [rows, cols], { lam: 1, gamma: 1, maxIter: 3 }),
+    ]) {
+      assert.deepEqual(r.unitCoordinates, { data: expected, rows: rows * cols, cols: 2 }, `${rows} x ${cols}`);
+      assert.equal(r.centers.rows, rows * cols);
+    }
+  }
+});
+
+test('unit coordinates give the embedding', () => {
+  // Given coordinates come back as given; the embedding is read from them.
+  const coordinates = Array.from({ length: 7 }, (_, j) => [2.5 * Math.sin(j) - 1, -j / 2, 3 * Math.cos(3 * j)]);
+  const online = ub.som(X, coordinates, { epochs: 1, seed: 0 }), olp = ub.somOlp(X, coordinates, { lam: 1, gamma: 1, maxIter: 5 });
+  const batch = ub.batchSom(X, [3, 4], { epochs: 3 });
+  for (const r of [online, olp]) assert.deepEqual(ub.toRows(r.unitCoordinates), coordinates);
+  for (const r of [online, batch]) {
+    const units = ub.toRows(r.unitCoordinates);
+    assert.deepEqual(ub.toRows(r.embedding), Array.from(r.labels, j => units[j]));
+  }
+  const P = ub.toRows(olp.membership), units = ub.toRows(olp.unitCoordinates);
+  ub.toRows(olp.embedding).forEach((v, i) => v.forEach((e, c) => {
+    assert.ok(Math.abs(e - P[i].reduce((s, p, j) => s + p * units[j][c], 0)) < 1e-12);
+  }));
+  assert.deepEqual(ub.toRows(ub.somOlp(X, [[-2], [0.5], [3]], { lam: 1, gamma: 1, maxIter: 3 }).unitCoordinates), [[-2], [0.5], [3]]);
+  for (const r of [ub.kmeans(X, 3, { seed: 0 }), ub.fcm(X, 3, { seed: 0 })]) assert.equal(r.unitCoordinates, null);
+});
+
 test('somOlp history is the objective', () => {
   // Two iterations from given prototypes, against the definition (the history
   // uses an identity that holds at the memberships of the costs).

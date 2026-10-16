@@ -45,6 +45,7 @@ def test_som_kernel_reproduces_the_reference(numba, blobs, shuffle, grid, sigma,
     np.testing.assert_allclose(new.centers, ref.centers, rtol=0, atol=1e-12)
     np.testing.assert_array_equal(new.labels, ref.labels)
     assert new.stop_reason == ref.stop_reason == "schedule"
+    np.testing.assert_array_equal(new.unit_coordinates, ref.unit_coordinates)
 
 
 @pytest.mark.parametrize("k", [1, 5, 12])

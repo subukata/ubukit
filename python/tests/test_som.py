@@ -94,6 +94,40 @@ def test_som_olp_accepts_arbitrary_unit_coordinates(blobs):
     np.testing.assert_array_equal(ub.som_olp(X, R.tolist(), lam=1.0, gamma=1.0).centers, r.centers)
 
 
+@pytest.mark.parametrize("shape", [(3, 4), (1, 5), (5, 1), (1, 1)])
+def test_unit_coordinates_of_rectangular_grids(blobs, shape):
+    # (row, col) in grid steps, unit j = row * cols + col: not normalized.
+    X, _ = blobs
+    rows, cols = shape
+    expected = np.array([(j // cols, j % cols) for j in range(rows * cols)], dtype=float)
+    runs = [
+        ub.som(X, shape, epochs=1, seed=0),
+        ub.batch_som(X, shape, epochs=2),
+        ub.som_olp(X, shape, lam=1.0, gamma=1.0, max_iter=3),
+    ]
+    for r in runs:
+        np.testing.assert_array_equal(r.unit_coordinates, expected)
+        assert len(r.centers) == rows * cols
+
+
+def test_unit_coordinates_give_the_embedding(blobs):
+    # Given coordinates come back as given; the embedding is read from them.
+    X, _ = blobs
+    coordinates = np.random.default_rng(4).normal(size=(7, 3)) * 2.5 - 1.0
+    online = ub.som(X, coordinates, epochs=1, seed=0)
+    olp = ub.som_olp(X, coordinates, lam=1.0, gamma=1.0, max_iter=5)
+    batch = ub.batch_som(X, (3, 4), epochs=3)
+    for r in (online, olp):
+        np.testing.assert_array_equal(r.unit_coordinates, coordinates)
+    for r in (online, batch):
+        np.testing.assert_array_equal(r.embedding, r.unit_coordinates[r.labels])
+    np.testing.assert_allclose(olp.embedding, olp.membership @ olp.unit_coordinates, atol=1e-12)
+    line = ub.som_olp(X, [[-2.0], [0.5], [3.0]], lam=1.0, gamma=1.0, max_iter=3)
+    np.testing.assert_array_equal(line.unit_coordinates, [[-2.0], [0.5], [3.0]])
+    for r in (ub.kmeans(X, 3, seed=0), ub.fcm(X, 3, seed=0)):
+        assert r.unit_coordinates is None
+
+
 def test_pca_init_spans_principal_axes():
     rng = np.random.default_rng(0)
     X = rng.normal(size=(500, 3)) * [5.0, 2.0, 0.1]

@@ -13,6 +13,14 @@ import ubukit as ub
 X = np.zeros((10, 2))
 
 
+def unit_of_each_point() -> np.ndarray:
+    m = ub.batch_som(X, (2, 3))
+    coordinates = m.unit_coordinates  # None for clusterings
+    if coordinates is None:
+        raise ValueError("a map has unit coordinates")
+    return coordinates[m.labels]
+
+
 def stopped_by_tolerance() -> bool:
     reason: Literal["tol", "schedule", "limit"] | None = ub.fcm(X, 3).stop_reason
     return reason == "tol"
@@ -39,6 +47,7 @@ def score_many_layouts() -> float:
 
 def wrong_arguments() -> None:
     _ = ub.fcm(X, 3).converged  # type: ignore[attr-defined]  # replaced by stop_reason
+    _ = ub.batch_som(X, (2, 3)).unit_coordinates[0]  # type: ignore[index]  # may be None
     ub.trustworthiness(X, X, "3")  # type: ignore[arg-type]
     ub.fcm(ub.Neighborhood(X), 3)  # type: ignore[arg-type]
     ub.fcm(X, "3")  # type: ignore[arg-type]

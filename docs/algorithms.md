@@ -157,9 +157,14 @@ $R = P H$, the fraction of each point's neighborhood assigned to each cluster.
 ## Self-organizing maps
 
 Units $j$ sit at grid coordinates $r_j$ (unit $j$ = `row * cols + col` at
-`(row, col)`). Unless `init` is given, prototypes start on the plane of the two
-leading principal axes (grid rows along the first), spread over
-$\pm$`pca_scale` standard deviations (2 for `som` and `batch_som`). Each axis
+`(row, col)`), or at the coordinates given as a (K, Q) array (`som`,
+`som_olp`); a map's Result holds them, as used and not normalized, in
+`unit_coordinates`, and `centers[j]` is the prototype of unit $j$. Unless
+`init` is given, prototypes start along the leading principal axes, one for
+each column of the coordinates up to $D$: on a rectangular grid the plane of
+the two leading axes, grid rows along the first. Each column is centered and
+spread over $\pm$`pca_scale` standard deviations of its axis (2 for `som`
+and `batch_som`). Each axis
 is oriented so that its first clearly nonzero component is positive, which
 stays well defined when components tie in magnitude, as for standardized
 2-D data. Python takes the axes from the smaller of $X^\top X$ and $X X^\top$;

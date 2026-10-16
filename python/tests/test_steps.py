@@ -16,7 +16,17 @@ CONVERGING = {
     "rmcm": ((4, 0.5), {"seed": 1}),
     "som_olp": (((3, 3),), {"lam": 0.5, "gamma": 1.0}),
 }
-FIELDS = ("centers", "labels", "membership", "n_iter", "stop_reason", "history", "embedding")
+MAPS = {"som": (((3, 3),), {"epochs": 6, "seed": 2}), "batch_som": (((3, 3),), {"epochs": 6})}
+FIELDS = (
+    "centers",
+    "labels",
+    "membership",
+    "n_iter",
+    "stop_reason",
+    "history",
+    "embedding",
+    "unit_coordinates",
+)
 ITERATES = tuple(f for f in FIELDS if f != "stop_reason")
 
 
@@ -58,18 +68,42 @@ def test_progress_results_are_the_run_stopped_there(blobs, name):
         assert (snapshot.stop_reason, stopped.stop_reason) == expected
 
 
-@pytest.mark.parametrize("name", CONVERGING)
+@pytest.mark.parametrize("name", [*CONVERGING, *MAPS])
 def test_changing_a_progress_result_leaves_the_run_unchanged(blobs, name):
     # A Result shares no arrays with the run: SOM-OLP's next step reads the
-    # memberships, so changing them in place used to change the run.
+    # memberships, so changing them in place used to change the run, and
+    # the maps' steps read their unit coordinates.
     X, _ = blobs
-    args, options = CONVERGING[name]
+    args, options = {**CONVERGING, **MAPS}[name]
     run = getattr(ub.steps, name)(X, *args, **options)
     first = next(run).result()
     first.labels[:] = 0
     if first.membership is not None:
         first.membership[:] = 1.0 / first.membership.shape[1]
+    if first.unit_coordinates is not None:
+        first.unit_coordinates[:] = 0.0
     assert_same(finish(run), getattr(ub, name)(X, *args, **options))
+
+
+COORDINATE_MAPS = {
+    "som": lambda X, R: ub.steps.som(X, R, epochs=3, seed=2),
+    "som_olp": lambda X, R: ub.steps.som_olp(X, R, lam=1.0, gamma=1.0, max_iter=4),
+}
+
+
+@pytest.mark.parametrize("name", COORDINATE_MAPS)
+def test_a_map_owns_the_unit_coordinates_it_was_given(blobs, name):
+    # Changing the array passed in after the first iteration changes neither
+    # the run nor the Results it gives; the run used to read that array, so
+    # the embeddings of earlier iterations moved with it.
+    X, _ = blobs
+    R = np.random.default_rng(4).normal(size=(7, 3))
+    expected = list(COORDINATE_MAPS[name](X, R.copy()))
+    run = COORDINATE_MAPS[name](X, R)
+    first = next(run)
+    R += 100.0
+    for a, b in zip([first, *run], expected, strict=True):
+        assert_same(a.result(), b.result())
 
 
 @pytest.mark.parametrize(
@@ -149,10 +183,7 @@ def test_som_olp_memberships_can_move_after_the_tolerance_holds():
     assert np.abs(second.membership - first.membership).max() > 0.4
 
 
-MAPS = {"som": (((3, 3),), {"epochs": 6, "seed": 2}), "batch_som": (((3, 3),), {"epochs": 6})}
-
-
-def assert_close(a, b, fields=("centers", "labels", "membership", "embedding")):
+def assert_close(a, b, fields=("centers", "labels", "membership", "embedding", "unit_coordinates")):
     for field in fields:
         x, y = getattr(a, field), getattr(b, field)
         if x is None or y is None:

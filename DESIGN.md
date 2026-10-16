@@ -151,12 +151,12 @@ How the principles are realized today. This section changes with the code.
   iteration limit or a fixed schedule (the online and batch SOM), and the
   loop records the rule that holds at each iteration (`stop_reason`).
   Each method passes the loop its `view`, which adds the method's labels,
-  memberships and embedding to what every Result has (`fitted`), so every
-  yielded iteration can build, on demand, the Result the run would return
-  had it stopped there (with the stop reason that holds there under the
-  run's own settings); steps therefore never modify a state they have
-  returned, and views copy the state they put in a Result, so changing a
-  Result leaves the run unchanged. Each fitting function is written once as
+  memberships, embedding and unit coordinates to what every Result has
+  (`fitted`), so every yielded iteration can build, on demand, the Result
+  the run would return had it stopped there (with the stop reason that
+  holds there under the run's own settings); steps therefore never modify
+  a state they have returned, and views copy the state they put in a
+  Result, so changing a Result leaves the run unchanged. Each fitting function is written once as
   such a generator, in `cluster` or `som`: `steps` exposes the generators,
   and the package entry point makes the plain functions that run them to
   the end (`stepwise` in Python's `__init__.py`, `index.js` in JavaScript).

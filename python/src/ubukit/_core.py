@@ -68,7 +68,13 @@ class Result:
             the result.
         history: objective value per iteration; empty for ``rcm``, ``rmcm``, ``som``
             and ``batch_som``, which have none.
-        embedding: (N, Q) map coordinates for SOMs, otherwise ``None``.
+        embedding: (N, Q) map coordinates for SOMs, otherwise ``None``:
+            ``unit_coordinates[labels]`` for ``som`` and ``batch_som``,
+            ``membership @ unit_coordinates`` for ``som_olp``.
+        unit_coordinates: (K, Q) coordinates of a map's units as the run used them,
+            not normalized: (row, col) on a rectangular grid, unit j = row * cols + col,
+            or the coordinates given; ``centers[j]`` is the prototype of unit j.
+            ``None`` for clusterings.
     """
 
     centers: np.ndarray
@@ -78,6 +84,7 @@ class Result:
     stop_reason: StopReason | None
     history: np.ndarray
     embedding: np.ndarray | None = None
+    unit_coordinates: np.ndarray | None = None
 
 
 def as_matrix(X: ArrayLike, name: str = "X") -> np.ndarray:
@@ -325,11 +332,20 @@ def fitted(
     labels: np.ndarray,
     membership: np.ndarray | None = None,
     embedding: np.ndarray | None = None,
+    unit_coordinates: np.ndarray | None = None,
 ) -> Result:
-    """The Result of ``loop`` with the labels, memberships and embedding of its method."""
+    """The Result of ``loop`` with the labels, memberships, embedding and unit
+    coordinates of its method (arrays the view has made or copied for it)."""
     centers = loop.V + loop.data.mean
     return Result(
-        centers, labels, membership, loop.n_iter, loop.stop_reason, loop.history, embedding
+        centers,
+        labels,
+        membership,
+        loop.n_iter,
+        loop.stop_reason,
+        loop.history,
+        embedding,
+        unit_coordinates,
     )
 
 

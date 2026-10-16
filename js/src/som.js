@@ -140,7 +140,7 @@ export function* somOlp(X, grid = [10, 10], options) {
   // of rows stays the same, row i being the same point.
   const keep = (P, data) => (P.rows === data.X.rows ? P : null);
   // A copy of the memberships: the next step reads them.
-  const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, R));
+  const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, R), copyMatrix(R));
   return yield* iterate(data, W, step, { stopping: tolerance(tol, maxIter), view, keep });
 }
 
@@ -159,7 +159,7 @@ function shape(grid) {
 }
 
 function gridCoordinates(grid) {
-  if (!Array.isArray(grid) || Array.isArray(grid[0])) return matrix(grid, 'grid');
+  if (!Array.isArray(grid) || Array.isArray(grid[0])) return matrix(grid, 'grid'); // a copy: the run owns it
   const [rows, cols] = shape(grid);
   const data = new Float64Array(rows * cols * 2);
   for (let j = 0; j < rows * cols; j++) data[2 * j] = Math.floor(j / cols), data[2 * j + 1] = j % cols;
@@ -203,7 +203,7 @@ function mapView(R) {
   return loop => {
     const labels = nearest(loop.data.X, loop.V), q = R.cols, emb = new Float64Array(labels.length * q);
     labels.forEach((j, i) => emb.set(R.data.subarray(j * q, (j + 1) * q), i * q));
-    return fitted(loop, labels, null, { data: emb, rows: labels.length, cols: q });
+    return fitted(loop, labels, null, { data: emb, rows: labels.length, cols: q }, copyMatrix(R));
   };
 }
 

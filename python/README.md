@@ -32,7 +32,8 @@ best = ub.minimize(
 
 Every fit returns a `Result`: `centers` (K, D), `labels` (N,), `membership`
 (N, K; `None` for `kmeans`, `som` and `batch_som`), `embedding` ((N, Q) map
-positions, for the maps), `n_iter`, `stop_reason` and `history`, the
+positions, for the maps), `unit_coordinates` ((K, Q), for the maps; see below),
+`n_iter`, `stop_reason` and `history`, the
 objective at each iteration (empty for `rcm`, `rmcm`, `som` and `batch_som`,
 which have none). `stop_reason` is the stopping rule that holds at the
 result's iteration: `"tol"` (no prototype moved more than the tolerance),
@@ -67,6 +68,13 @@ every prototype goes to the mean of the data, every membership to 1/K, and
 the run still stops with `"tol"`. Use `m` closer to 1 there (1.2, for
 example) and check that the centers are apart; `efcm` collapses likewise
 when `tau` is too large ([degenerate solutions](https://github.com/subukata/ubukit/blob/main/docs/algorithms.md#degenerate-solutions-fcm-efcm)).
+
+A map's `unit_coordinates` are the coordinates of its units as the run used
+them, not normalized: `(row, col)` in grid steps on a rectangular grid (unit
+`j = row * cols + col`, so a plot can take x = col and y = row), or the
+`(K, Q)` array given to `som` or `som_olp`. `centers[j]` is the prototype of
+unit `j`, and `embedding` is `unit_coordinates[labels]` for `som` and
+`batch_som` and `membership @ unit_coordinates` for `som_olp`.
 
 `ub.steps` has every fitting function as a generator that yields after each
 iteration (each epoch for maps). `p.result()` is the `Result` the run would

@@ -4,6 +4,28 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Maps return their unit coordinates (#96)
+
+The Results of the maps hold `unit_coordinates` (`unitCoordinates`), the
+(K, Q) coordinates the run used, not normalized, with `centers[j]` the
+prototype of unit j; clusterings have `None`. The run owns its coordinates
+(Python copies a given array, as JavaScript did) and every Result gets its
+own copy, as views copy all the state they put in a Result. *Why:* an app's
+developer rebuilt the grid to draw the map, matching orientation and
+normalization by hand, while the run already held the coordinates that
+`embedding` is made of. Python read the array passed as `grid` during the
+run, so changing it moved the iterations that followed, and the Results a
+saved Progress of an earlier iteration built afterwards; a test now changes
+it after the first iteration. *Rejected:*
+`units` (it reads as the units themselves, or physical units), `grid` (the
+argument's name, a (rows, cols) pair there) and `positions` (beside
+`centers` and `embedding`, unclear); a public function building a grid's
+coordinates (the caller would still rebuild what the run used); one
+read-only array shared by the Results (NumPy's flag can be cleared and a
+Float64Array cannot be frozen); and the grid's shape, mesh edges or
+normalized coordinates in the Result (the caller has the shape it passed,
+any coordinates have no edges, and drawing is out of scope).
+
 ## 2026-10-16 A stop reason instead of `converged` (#95)
 
 `Result.converged` is replaced by `stop_reason` (`stopReason`): `"tol"`,
