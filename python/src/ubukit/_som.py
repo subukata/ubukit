@@ -30,6 +30,7 @@ from ._core import (
     check_float,
     check_int,
     check_max_iter,
+    check_seed,
     fitted,
     iterate,
     label_sums,
@@ -74,8 +75,8 @@ def som(
     lr_end = check_float(lr_end, "lr_end", 0.0, strict=True)
     if max(lr, lr_end) > 1:
         raise ValueError("lr and lr_end must be at most 1")
+    rng = np.random.default_rng(check_seed(seed))
     data, W = _setup(X, R, init)
-    rng = np.random.default_rng(seed)
 
     def epoch(data, W, _, e):
         X, n = data.X, len(data.X)
@@ -301,10 +302,10 @@ def _setup(
     X: ArrayLike, R: np.ndarray, init: MapInit, pca_scale: float = 2.0
 ) -> tuple[Data, np.ndarray]:
     """The data and the initial prototypes of the units at R (centered like the data)."""
+    if isinstance(init, str) and init != "pca":
+        raise ValueError("init must be 'pca' or a (n_units, n_features) array")
     data = as_data(X)
     if isinstance(init, str):
-        if init != "pca":
-            raise ValueError("init must be 'pca' or a (n_units, n_features) array")
         return data, _pca_init(data.X, R, pca_scale)
     W = as_matrix(init, "init")
     if W.shape != (len(R), data.X.shape[1]):

@@ -65,6 +65,7 @@ def test_minimize_passes_only_the_options_of_tpe():
 @pytest.mark.parametrize(
     "call",
     [
+        lambda: ub.TPE({"x": ub.uniform(0, 1)}, seed=True),
         lambda: ub.uniform(1, 1),
         lambda: ub.loguniform(0, 1),
         lambda: ub.integer(3, 2),

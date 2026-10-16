@@ -130,6 +130,11 @@ def check_float(value: Any, name: str, low: float = -np.inf, *, strict: bool = F
     return v
 
 
+def check_seed(value: Any) -> int | None:
+    """A random seed: None for a fresh one, or an integer >= 0 (not a boolean, as in JavaScript)."""
+    return None if value is None else check_int(value, "seed", 0)
+
+
 def numba_kernels(engine: Engine) -> ModuleType | None:
     """None for ``engine="numpy"``; for ``"numba"``, the kernels, importing Numba on first use."""
     if engine == "numpy":
@@ -280,12 +285,18 @@ def start(
     seed: int | None,
     prepare: Callable[..., Data] = as_data,
 ) -> tuple[Data, np.ndarray]:
-    """The data and the initial centers (centered like the data) of a clustering."""
+    """The data and the initial centers (centered like the data) of a clustering.
+
+    k, a named init and the seed are checked before any work on the data;
+    only the bound of k by the number of rows waits for them.
+    """
+    k = check_int(k, "k", 1)
+    if isinstance(init, str) and init != "k-means++":
+        raise ValueError("init must be 'k-means++' or a (k, n_features) array")
+    seed = check_seed(seed)
     data = prepare(X)
     k = check_int(k, "k", 1, len(data.X))
     if isinstance(init, str):
-        if init != "k-means++":
-            raise ValueError("init must be 'k-means++' or a (k, n_features) array")
         V = kmeans_plus_plus(data.X, k, np.random.default_rng(seed))
         # Start from the seeds' cell means: a center on a data point gives that
         # point full weight, and for large m stalls there (docs/algorithms.md).
