@@ -4,6 +4,24 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-17 SOM-OLP's gamma bounded; rcm's radius as Python has it (#115)
+
+`som_olp` and `apply.som_olp` require `gamma` times the squared extent of
+the units, bounded by four times their largest squared distance from their
+mean, to be at most 1e300, the bound the scale contract sets for the
+data's squared norms; it is checked with the other arguments, before the
+data. JavaScript's `rcm` takes the radius at a ratio of 0 as the larger
+term itself, the value of (1 + 0)^(1/p) for every p. *Why:* Codex's review
+before 0.2.0 found both giving NaN memberships that the loop reported as
+"tol" (the prototypes, weighted by NaN, kept their place), against
+principle 3; the plan had left them for 0.3.0. The bound keeps the latent
+costs in the range the data's already have. *Rejected:* refusing a `p`
+whose reciprocal overflows, as Codex proposed (Python already gives the
+limit there, and IEEE arithmetic defines 1^inf = 1: only JavaScript's `**`
+differed), scaling the latent costs inside (a rescue path), and a check
+for non-finite memberships in the loop (it finds the symptom, as #77
+decided).
+
 ## 2026-10-16 TPE's settings are read-only (#111)
 
 `TPE` exposes `n_startup`, `n_candidates` and `gamma` as read-only

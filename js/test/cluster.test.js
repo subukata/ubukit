@@ -132,3 +132,10 @@ test('efcm reaches k-means as tau vanishes', () => {
     r.centers.data.forEach((c, i) => assert.ok(Math.abs(c - hard.centers.data[i]) <= 1e-12 * Math.abs(hard.centers.data[i]), `scale ${scale}`));
   }
 });
+
+test('rcm with a p whose reciprocal overflows gives what Python does', () => {
+  // (1 + 0)^(1/p) is 1, but 1 ** Infinity is NaN in JavaScript: the memberships
+  // were NaN and the run reported 'tol'. The fixtures hold Python's values too.
+  const r = ub.rcm([[0], [1], [2]], 2, { init: [[0], [2]], p: 1e-320 });
+  assert.deepEqual(Array.from(r.membership.data), [1, 0, 0.5, 0.5, 0, 1]);
+});

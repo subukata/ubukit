@@ -254,7 +254,10 @@ function rough(alpha, beta, p) {
       let dmin = Infinity;
       for (let j = 0; j < k; j++) dmin = Math.min(dmin, Math.sqrt(D.data[i * k + j]));
       const a = alpha * dmin, large = Math.max(a, beta), ratio = large > 0 ? Math.min(a, beta) / large : 0;
-      const radius = large * (1 + ratio ** p) ** (1 / p);
+      // 1 ** Infinity is NaN in JavaScript but 1 in IEEE pow, Python's included,
+      // which is what (1 + 0)^(1/p) is for any p: a p whose 1 / p overflows
+      // gave NaN memberships here, where Python gives the limit.
+      const radius = ratio > 0 ? large * (1 + ratio ** p) ** (1 / p) : large;
       let count = 0;
       for (let j = 0; j < k; j++) if (Math.sqrt(D.data[i * k + j]) <= radius) U.data[i * k + j] = 1, count++;
       for (let j = 0; j < k; j++) U.data[i * k + j] /= count;

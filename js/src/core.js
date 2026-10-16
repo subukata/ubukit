@@ -50,7 +50,7 @@ export const TINY = 2.2250738585072014e-308;
 // data, prototypes and grid points (~1e301 at most) far from float64 overflow,
 // and some feature spanning at least 1e-150 (unless all rows are equal) keeps
 // the squared distances of the data from underflowing to zero.
-const MAX_SQ_NORM = 1e300;
+export const MAX_SQ_NORM = 1e300;
 const MIN_SPAN = 1e-150;
 
 /**

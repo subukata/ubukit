@@ -123,6 +123,17 @@ test('tiny widths and temperatures reach their limits', () => {
   assert.ok(olp.membership.data.every(p => p === 0 || p === 1));
 });
 
+test('gamma keeps the latent costs finite', () => {
+  // gamma times the squared extent of the units above 1e300 overflowed the
+  // latent costs: the memberships were NaN, and the run reported 'tol'.
+  const P = [[0], [1]], R = [[0], [4]];
+  assert.throws(() => ub.somOlp(P, R, { lam: 1, gamma: 1e308 }), /gamma is too large/);
+  assert.throws(() => ub.apply.somOlp([[0.5]], [[0], [1]], R, { lam: 1, gamma: 1e308 }), /gamma is too large/);
+  // Up to the bound (extent 16 here) the costs stay finite.
+  const r = ub.somOlp(P, R, { init: [[0], [0]], lam: 1, gamma: 6e298, maxIter: 3 });
+  assert.ok(r.membership.data.every(Number.isFinite) && r.history.every(Number.isFinite));
+});
+
 test('far-apart schedule ends stay finite', () => {
   // sigma from 1e200 to 1e-200 (and lr from 1e-320 to 1): the ratio of the
   // ends over- or underflows, but the schedule never forms it.

@@ -73,6 +73,8 @@ CASES = [
     ("apply.fcm", "one", ["centers"], {}),
     ("apply.efcm", "probe", ["centers"], {"tau": 2.0}),
     ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "beta": 0.2}),
+    # A p whose reciprocal overflows: (1 + 0)^(1/p) is 1, which JavaScript's ** is not.
+    ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "p": 1e-320}),
     ("apply.rmcm", "probe", ["centers"], {"delta": 1.5}),
     ("apply.som", "probe", ["grid_init", [3, 4]], {}),
     ("apply.batch_som", "probe", ["grid_init", [3, 4]], {}),

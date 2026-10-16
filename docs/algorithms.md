@@ -193,7 +193,12 @@ underflows when the ends are far apart.
 - `som_olp` (Ubukata): minimizes
   $\sum_{ij} p_{ij}\big(\lVert x_i - w_j\rVert^2 + \gamma\lVert v_i - r_j\rVert^2\big) + \lambda \sum_{ij} p_{ij}\log p_{ij}$
   with latent positions $v_i = \sum_j p_{ij} r_j$ taken from the previous
-  memberships. `embedding` is $V$, `history` the objective.
+  memberships. `embedding` is $V$, `history` the objective. A latent
+  position lies among the units, so $\lVert v_i - r_j \rVert^2$ is at most
+  their squared extent, bounded by $4 \max_j \lVert r_j - \bar r \rVert^2$;
+  $\gamma$ times that bound must be at most $10^{300}$, as the squared norms
+  of the data must be, so that the costs stay finite. A larger $\gamma$
+  raises an error.
 
 ## Applying trained prototypes
 
