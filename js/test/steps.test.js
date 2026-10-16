@@ -14,20 +14,81 @@ const converging = {
 };
 
 test('progress results are the run stopped at that iteration', () => {
-  // result() at iteration t equals the run with maxIter = t, even when called
-  // after the loop has moved on (spreading the generator runs it to the end).
+  // result() at iteration t has the iterates of the run with maxIter = t, even
+  // when called after the loop has moved on (spreading the generator runs it to
+  // the end). The stop reasons follow each run's own settings: the run with
+  // maxIter = t reaches its limit at t while this one goes on (null), until
+  // both meet the tolerance at the last iteration.
   for (const [name, start] of Object.entries(converging)) {
     const results = [...start(1000)].map(p => p.result());
     assert.ok(results.length > 1, name);
-    for (const t of new Set([1, 2, results.length])) assert.deepEqual(results[t - 1], ub.run(start(t)), `${name} at ${t}`);
+    for (const t of new Set([1, 2, results.length])) {
+      const snapshot = results[t - 1], stopped = ub.run(start(t)), last = t === results.length;
+      assert.deepEqual({ ...snapshot, stopReason: null }, { ...stopped, stopReason: null }, `${name} at ${t}`);
+      assert.deepEqual([snapshot.stopReason, stopped.stopReason], last ? ['tol', 'tol'] : [null, 'limit'], `${name} at ${t}`);
+    }
     assert.deepEqual(results.at(-1), ub.run(start(1000)), name);
   }
   // Scheduled maps: the last epoch is the result; earlier ones are not complete.
   for (const start of [() => ub.steps.som(X, [3, 3], { epochs: 3, seed: 2 }), () => ub.steps.batchSom(X, [3, 3], { epochs: 4 })]) {
     const results = [...start()].map(p => p.result());
     assert.deepEqual(results.at(-1), ub.run(start()));
-    assert.ok(results.slice(0, -1).every(r => !r.converged) && results.at(-1).converged);
+    assert.deepEqual(results.map(r => r.stopReason), [...results.slice(1).map(() => null), 'schedule']);
   }
+});
+
+test('stop reasons', () => {
+  // 'tol' before the limit, 'limit' without the tolerance, 'tol' when both hold
+  // at the same iteration, and 'tol' with no limit.
+  const free = ub.fcm(X, 4, { seed: 1 });
+  assert.ok(free.stopReason === 'tol' && free.nIter > 2);
+  assert.equal(ub.fcm(X, 4, { seed: 1, maxIter: 2 }).stopReason, 'limit');
+  assert.equal(ub.fcm(X, 4, { seed: 1, maxIter: free.nIter }).stopReason, 'tol');
+  assert.equal(ub.fcm(X, 4, { seed: 1, maxIter: Infinity }).stopReason, 'tol');
+  // Identical points: the prototypes never move, yet a schedule runs every
+  // epoch and reports 'schedule', not 'tol'.
+  const same = Array.from({ length: 20 }, () => [1, 1]);
+  for (const fit of [ub.som, ub.batchSom]) {
+    const r = fit(same, [2, 2], { epochs: 4 });
+    assert.deepEqual([r.nIter, r.stopReason], [4, 'schedule'], fit.name);
+  }
+});
+
+test('new data after the tolerance holds continue the run; the limit ends it', () => {
+  // A Progress result records the rule that holds at its iteration; rows
+  // passed then continue the run, and the recorded result does not change.
+  const shifted = X.map(([a, b]) => [a + 0.5, b - 0.5]);
+  let run = ub.steps.fcm(X, 3, { seed: 0, maxIter: Infinity }), p = run.next().value;
+  while (p.result().stopReason === null) p = run.next().value;
+  const held = p.result(), after = run.next(shifted).value.result();
+  assert.equal(held.stopReason, 'tol');
+  assert.equal(after.nIter, held.nIter + 1);
+  assert.deepEqual(p.result(), held);
+  // The limit and the schedule end the run whatever the reason; identical
+  // points meet the tolerance at the limit.
+  const same = Array.from({ length: 5 }, () => [1, 1]);
+  for (const [start, reason] of [
+    [() => ub.steps.fcm(X, 3, { seed: 0, maxIter: 1 }), 'limit'],
+    [() => ub.steps.fcm(same, 2, { seed: 0, maxIter: 1 }), 'tol'],
+    [() => ub.steps.batchSom(X, [2, 2], { epochs: 1 }), 'schedule'],
+  ]) {
+    run = start();
+    const first = run.next().value.result(), end = run.next(shifted);
+    assert.ok(end.done, reason);
+    assert.deepEqual([first.stopReason, end.value.stopReason], [reason, reason]);
+  }
+});
+
+test('somOlp memberships can move after the tolerance holds', () => {
+  // tol = 0 says only that the prototypes did not move: on identical points
+  // they stay put, yet the latent positions of the first memberships move the
+  // next ones along the grid.
+  const P = Array.from({ length: 10 }, () => [0, 0]), zeros = [[0, 0], [0, 0], [0, 0]];
+  const run = ub.steps.somOlp(P, [[0], [1], [2]], { lam: 0.5, gamma: 1, init: zeros, tol: 0 });
+  const first = run.next().value.result(), second = run.next(P).value.result();
+  assert.equal(first.stopReason, 'tol');
+  assert.deepEqual(second.centers, first.centers);
+  assert.ok(second.membership.data.some((u, i) => Math.abs(u - first.membership.data[i]) > 0.4));
 });
 
 test('changing a progress result leaves the run unchanged', () => {

@@ -26,6 +26,9 @@ def test_fixtures_are_current():
         assert old["method"] == new["method"]
         if isinstance(new["expect"], dict):
             for key, value in new["expect"].items():
-                np.testing.assert_allclose(old["expect"][key], value, atol=1e-10, err_msg=key)
+                if isinstance(value, str):  # the stop reason
+                    assert old["expect"][key] == value, key
+                else:
+                    np.testing.assert_allclose(old["expect"][key], value, atol=1e-10, err_msg=key)
         else:
             assert old["expect"] == pytest.approx(new["expect"], abs=1e-12)

@@ -32,7 +32,7 @@ import ubukit as ub
 
 X = np.random.default_rng(0).normal(size=(500, 2))
 r = ub.fcm(X, 3, m=2.0, seed=0)
-r.centers, r.membership, r.labels, r.converged
+r.centers, r.membership, r.labels, r.stop_reason
 
 m = ub.batch_som(X, (8, 8), epochs=30)
 ub.trustworthiness(X, m.embedding, k=5)
@@ -47,8 +47,8 @@ best.best_params, best.best_value
 ```
 
 From about five dimensions on, FCM with the default `m = 2` can send every
-prototype to the mean of the data and still report `converged`, which says
-only that the prototypes stopped moving. Use `m` closer to 1 there (1.2, for
+prototype to the mean of the data and still stop with `stop_reason == "tol"`,
+which says only that the prototypes stopped moving. Use `m` closer to 1 there (1.2, for
 example) and check that the centers are apart
 ([degenerate solutions](docs/algorithms.md#degenerate-solutions-fcm-efcm)).
 

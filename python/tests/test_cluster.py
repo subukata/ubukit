@@ -26,7 +26,7 @@ def fit(method, X, k, options):
 def test_recovers_blobs(blobs, method, options):
     X, centers = blobs
     r = fit(method, X, 3, {"seed": 0, **options})
-    assert r.converged
+    assert r.stop_reason == "tol"
     assert r.centers.shape == (3, 2)
     assert r.labels.shape == (300,)
     assert match_centers(r.centers, centers) < 0.15
@@ -132,7 +132,7 @@ def test_fcm_is_stable_for_extreme_fuzzifiers(blobs, m):
     assert np.isfinite(r.membership).all()
     # No n_iter check: with greedy seeding, m near 1 converges in one step. A
     # stall (u^m underflowing, the centers never moving) fails the check below.
-    assert r.converged
+    assert r.stop_reason == "tol"
     # Centers are the u^m-weighted means of the memberships; u^m itself
     # underflows for large m, so the reference weights use logarithms.
     with np.errstate(divide="ignore"):
@@ -154,7 +154,7 @@ def test_fcm_near_one_approaches_kmeans(blobs):
 @pytest.mark.parametrize(("scale", "tau"), [(1.0, 1e-320), (1e148, 1e-12)])
 def test_efcm_reaches_kmeans_as_tau_vanishes(blobs, scale, tau):
     # Costs over tau beyond float64 (data of the largest allowed scale, or a
-    # subnormal tau) give hard memberships, the limit, not NaN marked converged.
+    # subnormal tau) give hard memberships, the limit, not NaN that stops with "tol".
     X, _ = blobs
     init = np.array([[1.0, 1.0], [4.0, 1.0], [1.0, 4.0]])
     with np.errstate(all="raise"):
@@ -213,7 +213,7 @@ def test_seed_reproducibility(blobs):
 def test_identical_points_have_zero_span_and_are_accepted():
     r = ub.fcm(np.ones((5, 2)), 2, seed=0)
     np.testing.assert_allclose(r.centers, 1.0)
-    assert r.converged
+    assert r.stop_reason == "tol"  # a radius of 0: the centers cannot move
 
 
 def test_coincident_points_and_centers():

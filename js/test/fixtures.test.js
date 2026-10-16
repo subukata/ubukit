@@ -34,6 +34,7 @@ for (const c of cases) {
       const r = fn(data[c.X], ...c.args, options);
       close(r.centers, c.expect.centers, 'centers');
       assert.deepEqual(Array.from(r.labels), c.expect.labels);
+      assert.equal(r.stopReason, c.expect.stop_reason);
       if (c.expect.membership) close(r.membership, c.expect.membership, 'membership');
       if (c.expect.embedding) close(r.embedding, c.expect.embedding, 'embedding');
     } else {

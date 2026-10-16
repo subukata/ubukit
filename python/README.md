@@ -14,7 +14,7 @@ import ubukit as ub
 X = np.random.default_rng(0).normal(size=(500, 2))
 
 r = ub.fcm(X, 3, m=2.0, seed=0)  # also kmeans, efcm, rcm, rmcm
-r.centers, r.membership, r.labels, r.n_iter, r.converged, r.history
+r.centers, r.membership, r.labels, r.n_iter, r.stop_reason, r.history
 
 m = ub.som_olp(X, (8, 8), lam=0.5, gamma=1.0)  # also som, batch_som
 m.embedding  # latent positions
@@ -32,10 +32,13 @@ best = ub.minimize(
 
 Every fit returns a `Result`: `centers` (K, D), `labels` (N,), `membership`
 (N, K; `None` for `kmeans`, `som` and `batch_som`), `embedding` ((N, Q) map
-positions, for the maps), `n_iter`, `converged` and `history`, the objective
-at each iteration (empty for `rcm`, `rmcm`, `som` and `batch_som`, which have
-none). `converged` says only that the prototypes stopped moving (for `som`
-and `batch_som`, that the schedule completed), not that the result is good.
+positions, for the maps), `n_iter`, `stop_reason` and `history`, the
+objective at each iteration (empty for `rcm`, `rmcm`, `som` and `batch_som`,
+which have none). `stop_reason` is the stopping rule that holds at the
+result's iteration: `"tol"` (no prototype moved more than the tolerance),
+`"schedule"` (`som` and `batch_som`: every epoch has run) or `"limit"`
+(`max_iter` was reached first), and `None` in a per-iteration result while
+the run goes on; none of them says that the result is good.
 In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
 a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
 A pickled `Result` or `TPE` loads in the UbuKit version that wrote it; keep
@@ -61,7 +64,7 @@ ub.continuity(reference, m.embedding, k=[5, 10, 20])  # an array of three values
 
 From about five dimensions on, FCM with the default `m = 2` can collapse:
 every prototype goes to the mean of the data, every membership to 1/K, and
-the run still reports `converged`. Use `m` closer to 1 there (1.2, for
+the run still stops with `"tol"`. Use `m` closer to 1 there (1.2, for
 example) and check that the centers are apart; `efcm` collapses likewise
 when `tau` is too large ([degenerate solutions](https://github.com/subukata/ubukit/blob/main/docs/algorithms.md#degenerate-solutions-fcm-efcm)).
 

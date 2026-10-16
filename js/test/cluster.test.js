@@ -14,7 +14,7 @@ for (const [name, fit] of [
 ]) {
   test(`${name} recovers the blobs`, () => {
     const r = fit();
-    assert.ok(r.converged);
+    assert.equal(r.stopReason, 'tol');
     assert.ok(nearestError(r.centers) < 0.2);
     if (r.membership) {
       for (const row of ub.toRows(r.membership)) assert.ok(Math.abs(row.reduce((a, b) => a + b) - 1) < 1e-12);
@@ -61,7 +61,7 @@ test('default seeding rarely merges separated blobs', () => {
 
 test('fcm with a large fuzzifier keeps moving', () => {
   const m = 1000, r = ub.fcm(X, 3, { m, seed: 0, maxIter: 1000 });
-  assert.ok(r.converged && r.nIter > 1);
+  assert.ok(r.stopReason === 'tol' && r.nIter > 1);
   // Centers are the u^m-weighted means; u^m underflows, so weigh with logarithms.
   const U = ub.toRows(r.membership), C = ub.toRows(r.centers);
   for (let c = 0; c < 3; c++) {
@@ -123,7 +123,7 @@ test('objective never increases', () => {
 
 test('efcm reaches k-means as tau vanishes', () => {
   // Costs over tau beyond float64 (data of the largest allowed scale, or a
-  // subnormal tau) give hard memberships, the limit, not NaN marked converged.
+  // subnormal tau) give hard memberships, the limit, not NaN that stops with "tol".
   const init = [[1, 1], [4, 1], [1, 4]];
   for (const [scale, tau] of [[1, 1e-320], [1e148, 1e-12]]) {
     const Y = X.map(r => r.map(v => v * scale)), start = init.map(r => r.map(v => v * scale));

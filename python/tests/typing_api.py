@@ -4,11 +4,18 @@ Each ``type: ignore`` marks a call that must be rejected; mypy reports an
 ignore that is not needed, so a part of the API that loses its types fails.
 """
 
+from typing import Literal
+
 import numpy as np
 
 import ubukit as ub
 
 X = np.zeros((10, 2))
+
+
+def stopped_by_tolerance() -> bool:
+    reason: Literal["tol", "schedule", "limit"] | None = ub.fcm(X, 3).stop_reason
+    return reason == "tol"
 
 
 def fit() -> ub.Result:
@@ -31,6 +38,7 @@ def score_many_layouts() -> float:
 
 
 def wrong_arguments() -> None:
+    _ = ub.fcm(X, 3).converged  # type: ignore[attr-defined]  # replaced by stop_reason
     ub.trustworthiness(X, X, "3")  # type: ignore[arg-type]
     ub.fcm(ub.Neighborhood(X), 3)  # type: ignore[arg-type]
     ub.fcm(X, "3")  # type: ignore[arg-type]

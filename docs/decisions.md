@@ -4,6 +4,33 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 A stop reason instead of `converged` (#95)
+
+`Result.converged` is replaced by `stop_reason` (`stopReason`): `"tol"`,
+`"schedule"` or `"limit"`, the rule that holds at the result's iteration
+under the run's own settings, with "tol" before "limit" when both hold, and
+`None` (`null`) in a Progress result where none holds yet. Each method gives
+`iterate` its stopping rule as a value, a tolerance with an iteration limit
+or a fixed schedule, in place of `tol=None` as the mark of a schedule; the
+loop still makes every decision (principle 1). A Progress result keeps the
+iterates of the run whose `max_iter` is its iteration, but not that run's
+reason: that run reaches its limit there, while this one goes on. `tol = 0`
+is now said to mean only that the prototypes did not move, since SOM-OLP's
+memberships can still change once more. The fixtures record the reason, so
+the languages are checked to agree on it. This replaces the part of #65 by
+which a fixed schedule "converges" in the loop. *Why:* an app's developer
+had to read `converged` per method: true once a map's schedule completed,
+after even one epoch, and false both when the limit came first and while a
+run went on; inside, the absence of a tolerance stood for a schedule, an
+existing concept carrying another (principle 9). *Rejected:* keeping
+`converged` beside the reason (two fields for one fact); `"interrupted"` for
+Progress results (when one is made, nobody knows whether the caller will
+stop, go on or send data; the field records rules, not the caller's
+choices); `"max_iter"` (it reads wrongly beside JavaScript's `maxIter`); a
+`schedule=True` flag beside `tol` and `max_iter` (combinations that
+contradict each other); and a value for applying fixed prototypes now (a
+reason names a rule, not an operation; that change will settle it).
+
 ## 2026-10-16 Distances computed once for many embeddings (#94)
 
 `Neighborhood(X)` holds the (N, N) squared distances of X, and
