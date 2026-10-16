@@ -30,3 +30,28 @@ test('tpe minimizes a mixed objective', async () => {
   for (let t = 0; t < 200_000; t++) many.tell({ x: 0.5 }, 200_000 - t);
   assert.equal(many.result().bestValue, 1);
 });
+
+test('a space too narrow to search is refused', () => {
+  // Its logarithms coincide, so the third ask, the first from the model, gave NaN.
+  assert.throws(() => ub.loguniform(1000, 1000.0000000000001), /too narrow to search on a log scale/);
+  assert.throws(() => new ub.TPE({ x: ub.uniform(0, 1) }).tell({ x: 0.5 }, Infinity), { message: 'value must be a finite number' });
+});
+
+test('a TPE keeps checked copies of its dimensions', () => {
+  // Changing a dimension after the TPE was made changed its proposals; the
+  // factories' dimensions are frozen, as Python's are, and a dimension written
+  // by hand is copied and checked as its factory would.
+  const made = ub.uniform(0, 1), options = ub.choice('a', 'b');
+  assert.throws(() => { /** @type {any} */ (made).low = 10; }, TypeError);
+  assert.throws(() => { options.options.push('c'); }, TypeError);
+  const hand = { kind: 'numeric', low: 0, high: 1, log: false, integer: false };
+  const tpe = new ub.TPE({ x: /** @type {any} */ (hand) }, { seed: 0, nStartup: 2 });
+  Object.assign(hand, { low: 10, high: 20 });
+  for (let t = 0; t < 5; t++) {
+    const p = tpe.ask();
+    assert.ok(p.x >= 0 && p.x <= 1, `${p.x}`);
+    tpe.tell(p, Number(p.x));
+  }
+  assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ ...hand, low: 30 }) }), /high/);
+  assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ kind: 'numeric', low: 1000, high: 1000.0000000000001, log: true }) }), /too narrow/);
+});

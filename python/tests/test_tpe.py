@@ -87,3 +87,22 @@ def test_minimize_passes_only_the_options_of_tpe():
 def test_invalid_arguments(call):
     with pytest.raises(ValueError):
         call()
+
+
+def test_a_space_too_narrow_to_search_is_refused():
+    # Its logarithms coincide, so the first ask from the model divided by zero.
+    with pytest.raises(ValueError, match="too narrow to search on a log scale"):
+        ub.loguniform(1000, 1000.0000000000001)
+    with pytest.raises(ValueError, match=r"^value must be a finite number$"):
+        ub.TPE({"x": ub.uniform(0, 1)}).tell({"x": 0.5}, float("inf"))
+
+
+def test_a_boolean_is_not_a_numeric_option():
+    # True == 1 in Python, so True was taken for the option 1; JavaScript compares with ===.
+    tpe = ub.TPE({"k": ub.choice(1, 2), "flag": ub.choice(False, True)}, seed=0)
+    with pytest.raises(ValueError, match="not an option"):
+        tpe.tell({"k": True, "flag": True}, 1.0)
+    with pytest.raises(ValueError, match="not an option"):
+        tpe.tell({"k": 1, "flag": 1}, 1.0)
+    tpe.tell({"k": 1, "flag": True}, 1.0)
+    assert tpe.result().best_params == {"k": 1, "flag": True}

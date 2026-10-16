@@ -126,7 +126,8 @@ def check_float(value: Any, name: str, low: float = -np.inf, *, strict: bool = F
     """Validate a finite real number >= low (> low when strict)."""
     v = float(value) if isinstance(value, Real) and not isinstance(value, bool) else math.nan
     if not (math.isfinite(v) and (v > low if strict else v >= low)):
-        raise ValueError(f"{name} must be a finite number {'>' if strict else '>='} {low}")
+        bound = "" if low == -np.inf else f" {'>' if strict else '>='} {low}"
+        raise ValueError(f"{name} must be a finite number{bound}")
     return v
 
 

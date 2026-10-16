@@ -69,6 +69,17 @@ versions keep the API and change results only to fix bugs, listed under
   iterations that followed, and the Results that a saved Progress of an
   earlier iteration built afterwards. The run now copies it; JavaScript
   already did.
+- A numeric range too narrow to search, such as
+  `loguniform(1000, 1000.0000000000001)`, whose logarithms coincide, raises
+  an error when it is made; once TPE used its model, it gave `NaN` in
+  JavaScript and `ZeroDivisionError` in Python. A non-finite objective
+  value reads "value must be a finite number" (it read ">= -inf").
+- JavaScript: a `TPE` keeps checked copies of the dimensions of its space,
+  and `uniform`, `loguniform`, `integer` and `choice` return frozen objects,
+  as Python's are: changing a dimension after the `TPE` was made changed
+  its proposals, and a dimension written by hand was not checked.
+- Python: `True` is not the option `1` of a `choice` (in Python `True == 1`),
+  as JavaScript compares options with `===`.
 - Python: a search space kept in a variable type-checks. Type checkers
   accepted `TPE` and `minimize` only with the space written as a dict in
   the call: a variable holding numeric dimensions only, or numeric and

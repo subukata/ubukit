@@ -149,7 +149,7 @@ export function checkInt(value, name, low, high = Infinity) {
  */
 export function checkNumber(value, name, low = -Infinity, strict = false) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < low || (strict && value === low)) {
-    throw new RangeError(`${name} must be a finite number ${strict ? '>' : '>='} ${low}`);
+    throw new RangeError(`${name} must be a finite number${low === -Infinity ? '' : ` ${strict ? '>' : '>='} ${low}`}`);
   }
   return value;
 }
