@@ -14,7 +14,8 @@ U = \mathrm{assign}(D)
 v_c = \frac{\sum_i w(u_{ic})\, x_i}{\sum_i w(u_{ic})}
 $$
 
-Inputs must be finite with row norms below $10^{150}$ and, unless all rows are
+Inputs must be numbers (not booleans, strings or missing values), finite,
+with row norms below $10^{150}$ and, unless all rows are
 equal, some feature spanning at least $10^{-150}$, so that squared distances
 neither overflow nor all vanish; other inputs raise an error, so standardize
 data first. A prototype with no mass keeps its previous position. The loop

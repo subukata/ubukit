@@ -4,6 +4,16 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-16 Python data must hold numbers too (#99)
+
+`as_matrix` refuses arrays whose values are not integers or floats with
+`TypeError`, before converting them, as JavaScript's `matrix` has since
+0.1.1 (#84). *Why:* NumPy's conversion read `"1.5"` as 1.5, `True` as 1,
+complex numbers as their real part, and `None` as a missing value, so the
+two languages took different data. *Rejected:* converting in JavaScript
+too (a string column is almost always a mistake) and refusing only some
+kinds (each kept conversion is an exception to explain).
+
 ## 2026-10-16 Internal modules with an underscore (#98)
 
 `cluster`, `som`, `metrics` and `tpe` became `_cluster`, `_som`, `_metrics`

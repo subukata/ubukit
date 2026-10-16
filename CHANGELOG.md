@@ -51,6 +51,10 @@ versions keep the API and change results only to fix bugs, listed under
 
 ### Fixed
 
+- Python: data must hold numbers, as in JavaScript since 0.1.1. Booleans
+  and numeric strings were converted, the real part of complex numbers
+  kept, and `None` refused only as a missing value; they now raise
+  `TypeError`.
 - Python: `som` and `som_olp` read the unit coordinates from the array
   passed as `grid`, so changing that array during a run changed the
   iterations that followed, and the Results that a saved Progress of an

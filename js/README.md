@@ -35,7 +35,7 @@ result's iteration: `'tol'` (no prototype moved more than the tolerance),
 the run goes on; none of them says that the result is good.
 In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
 a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
-Inputs should be finite and of ordinary scale; standardize features first.
+Inputs should be numbers, finite and of ordinary scale; standardize features first.
 
 Trained prototypes apply to new data, fixed: `ub.apply` has a function for
 every method, which takes the data, the prototypes (`centers`) and the

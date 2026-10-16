@@ -210,6 +210,27 @@ def test_seed_reproducibility(blobs):
     np.testing.assert_array_equal(a.centers, b.centers)
 
 
+@pytest.mark.parametrize(
+    "rows",
+    [
+        [["1.5", "2"], ["3", "4"]],
+        [[True, False], [False, True]],
+        [[1.0, None], [2.0, 3.0]],
+        np.array([[1 + 2j, 0], [0, 1]]),
+    ],
+)
+def test_rows_must_hold_numbers(rows):
+    # NumPy converted booleans, numeric strings and the real part of complex
+    # numbers, and None became a missing value; as in JavaScript, all are refused.
+    with pytest.raises(TypeError, match="must hold numbers"):
+        ub.kmeans(rows, 1)
+
+
+def test_integers_are_numbers():
+    np.testing.assert_array_equal(ub.kmeans([[1, 2], [3, 4]], 1).centers, [[2.0, 3.0]])
+    np.testing.assert_array_equal(ub.kmeans(np.array([[1, 2]], np.uint8), 1).centers, [[1, 2]])
+
+
 def test_identical_points_have_zero_span_and_are_accepted():
     r = ub.fcm(np.ones((5, 2)), 2, seed=0)
     np.testing.assert_allclose(r.centers, 1.0)
