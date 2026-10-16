@@ -65,9 +65,11 @@ class _Choice(_Dimension):
     options: tuple
 
     def encode(self, x) -> float:
-        if x not in self.options:
-            raise ValueError(f"{x!r} is not an option")
-        return float(self.options.index(x))
+        # A boolean matches only a boolean, as in JavaScript: True is not the option 1.
+        for i, option in enumerate(self.options):
+            if option == x and isinstance(option, bool) == isinstance(x, bool):
+                return float(i)
+        raise ValueError(f"{x!r} is not an option")
 
     def decode(self, u: float):
         return self.options[int(u)]
@@ -90,7 +92,7 @@ def integer(low: int, high: int, *, log: bool = False) -> _Numeric:
 
 
 def choice(*options: Any) -> _Choice:
-    """One of the given options (compared with ``==``)."""
+    """One of the given options (compared with ``==``; a boolean only with a boolean)."""
     if not options:
         raise ValueError("choice needs at least one option")
     return _Choice(tuple(options))
@@ -101,7 +103,13 @@ def _numeric(low, high, log, integer) -> _Numeric:
     high = check_float(high, "high", low, strict=not integer)
     if not math.isfinite(high - low):
         raise ValueError("high - low must be finite")
-    return _Numeric(low, high, log, integer)
+    dim = _Numeric(low, high, log, integer)
+    # Values are searched as positions between the ends, in logarithms on a
+    # log scale, where ends close together can coincide.
+    lo, hi = dim._bounds()
+    if not lo < hi:
+        raise ValueError(f"[{low}, {high}] is too narrow to search on a log scale")
+    return dim
 
 
 # A search space: names mapped to uniform, loguniform, integer or choice. A

@@ -8,7 +8,7 @@
 import { checkInt, checkNumber, random, rejectUnknown } from './core.js';
 
 /** @typedef {{ kind: 'numeric', low: number, high: number, log: boolean, integer: boolean }} NumericDim */
-/** @typedef {{ kind: 'choice', options: unknown[] }} ChoiceDim */
+/** @typedef {{ kind: 'choice', options: readonly unknown[] }} ChoiceDim */
 /** @typedef {Record<string, NumericDim | ChoiceDim>} Space */
 /** @typedef {{ bestParams: Record<string, unknown>, bestValue: number, params: Record<string, unknown>[], values: Float64Array }} TPEResult */
 /** @typedef {{ seed?: number, nStartup?: number, nCandidates?: number, gamma?: number }} TPEOptions */
@@ -29,15 +29,33 @@ export const integer = (low, high, { log = false, ...unknown } = {}) => {
 /** One of the given options (compared with ===). @param {...unknown} options @returns {ChoiceDim} */
 export function choice(...options) {
   if (!options.length) throw new RangeError('choice needs at least one option');
-  return { kind: 'choice', options };
+  return Object.freeze({ kind: 'choice', options: Object.freeze(options) });
 }
 
-/** @returns {NumericDim} */
+/** A frozen numeric dimension, as Python's are. @returns {NumericDim} */
 function numeric(low, high, log, integer) {
   checkNumber(low, 'low', log ? 0 : -Infinity, log);
   checkNumber(high, 'high', low, !integer);
   if (!Number.isFinite(high - low)) throw new RangeError('high - low must be finite');
-  return { kind: 'numeric', low, high, log, integer };
+  const dim = { kind: /** @type {'numeric'} */ ('numeric'), low, high, log, integer };
+  // Values are searched as positions between the ends, in logarithms on a
+  // log scale, where ends close together can coincide.
+  const [lo, hi] = bounds(dim);
+  if (!(lo < hi)) throw new RangeError(`[${low}, ${high}] is too narrow to search on a log scale`);
+  return Object.freeze(dim);
+}
+
+/**
+ * A checked copy of a dimension of a space, as its factory makes it, so that
+ * a dimension written by hand or changed later cannot change a search.
+ * @param {any} dim @param {string} name @returns {NumericDim | ChoiceDim}
+ */
+function dimension(dim, name) {
+  if (dim?.kind === 'choice' && Array.isArray(dim.options)) return choice(...dim.options);
+  if (dim?.kind === 'numeric') {
+    return dim.integer ? integer(dim.low, dim.high, { log: Boolean(dim.log) }) : numeric(dim.low, dim.high, Boolean(dim.log), false);
+  }
+  throw new RangeError(`space.${name} must come from uniform/loguniform/integer/choice`);
 }
 
 function bounds(dim) {
@@ -76,11 +94,8 @@ export class TPE {
   constructor(space, { seed, nStartup = 10, nCandidates = 24, gamma = 0.15, ...unknown } = {}) {
     rejectUnknown(unknown);
     if (!space || typeof space !== 'object' || !Object.keys(space).length) throw new RangeError('space must be a non-empty object');
-    for (const [name, dim] of Object.entries(space)) {
-      if (dim?.kind !== 'numeric' && dim?.kind !== 'choice') throw new RangeError(`space.${name} must come from uniform/loguniform/integer/choice`);
-    }
-    this.#space = { ...space };
-    this.#dims = Object.values(space);
+    this.#space = Object.fromEntries(Object.entries(space).map(([name, dim]) => [name, dimension(dim, name)]));
+    this.#dims = Object.values(this.#space);
     this.#rand = random(seed);
     this.nStartup = checkInt(nStartup, 'nStartup', 2);
     this.nCandidates = checkInt(nCandidates, 'nCandidates', 1);
