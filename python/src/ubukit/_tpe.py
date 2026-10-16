@@ -18,7 +18,7 @@ from typing import Any, TypedDict, Unpack
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
 
-from ._core import MAX_INT, check_float, check_int, check_seed
+from ._core import MAX_INT, check_float, check_int, check_seed, is_boolean
 
 
 class _Dimension:
@@ -65,9 +65,14 @@ class _Choice(_Dimension):
     options: tuple
 
     def encode(self, x) -> float:
-        # A boolean matches only a boolean, as in JavaScript: True is not the option 1.
+        # The option itself first, as ask gives it: options such as arrays have
+        # no truth value of ==. Then one equal to x, a boolean matching only a
+        # boolean, as in JavaScript: True is not the option 1.
         for i, option in enumerate(self.options):
-            if option == x and isinstance(option, bool) == isinstance(x, bool):
+            if option is x:
+                return float(i)
+        for i, option in enumerate(self.options):
+            if is_boolean(option) == is_boolean(x) and option == x:
                 return float(i)
         raise ValueError(f"{x!r} is not an option")
 
