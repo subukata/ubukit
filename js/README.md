@@ -7,6 +7,8 @@ and TPE search for browsers and Node.js. No dependencies; types included.
 npm install ubukit
 ```
 
+It needs Node.js 22 or newer, or a current browser.
+
 ```js
 import * as ub from 'ubukit';
 
@@ -128,4 +130,5 @@ const result = await ub.runAsync(ub.steps.fcm(X, 2), { signal, onProgress: p => 
 For heavy work in a browser, import `ubukit` inside your own Web Worker.
 
 Equations and references: <https://github.com/subukata/ubukit/blob/main/docs/algorithms.md>.
+Worked uses, in Python with the same names (camelCase here): <https://github.com/subukata/ubukit/blob/main/docs/recipes.md>.
 The Python package `ubukit` on PyPI has the same API in snake_case.

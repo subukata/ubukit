@@ -81,8 +81,9 @@ test('somOlp applied iterates the memberships with the prototypes fixed', () => 
 });
 
 test('somOlp applied places each point on its own, and takes the same points moved', () => {
-  // Each point's memberships depend on it alone, so applying to part of the
-  // points gives their rows of applying to all (to the tolerance).
+  // Each point's update depends on it alone; with points away from the midpoints
+  // between units and a tight tolerance, applying to part of the points gives
+  // their rows of applying to all.
   const m = ub.somOlp(X, [3, 4], { lam: 0.5, gamma: 1 }), options = { lam: 0.5, gamma: 1, tol: 1e-12 };
   const whole = ub.apply.somOlp(X, m.centers, m.unitCoordinates, options);
   const part = ub.apply.somOlp(X.slice(0, 40), m.centers, m.unitCoordinates, options);

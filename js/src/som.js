@@ -153,7 +153,8 @@ export const applyBatchSom = applySom;
  * memberships start from the distances alone, as a training run's first iteration does, and are
  * iterated with the prototypes fixed until no membership changes by more than tol, or maxIter
  * iterations (more than training's default: they settle slowly for some settings). Each point's
- * memberships depend on it alone. The latent positions of earlier memberships pull later ones, so
+ * update depends on it alone, but the rule stops all points together, so a point's result can
+ * depend on the points applied with it, mostly for one midway between two units. The latent positions of earlier memberships pull later ones, so
  * the iteration can settle elsewhere than training left the same points.
  * @param {MatrixLike} X @param {MatrixLike} centers @param {Grid} grid
  * @param {{ lam: number, gamma: number, maxIter?: number, tol?: number }} options
