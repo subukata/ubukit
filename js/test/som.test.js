@@ -132,6 +132,19 @@ test('gamma keeps the latent costs finite', () => {
   // Up to the bound (extent 16 here) the costs stay finite.
   const r = ub.somOlp(P, R, { init: [[0], [0]], lam: 1, gamma: 6e298, maxIter: 3 });
   assert.ok(r.membership.data.every(Number.isFinite) && r.history.every(Number.isFinite));
+  // Units far from the origin: the latent costs come from centered
+  // coordinates, so rounding follows the extent (0 here), not the offset.
+  const far = ub.somOlp([[0], [0.7], [2]], [[1e20], [1e20]], { init: [[0], [2]], lam: 0.7, gamma: 1e308 });
+  assert.ok(far.membership.data.every(Number.isFinite) && far.history.every(Number.isFinite));
+});
+
+test('the start and the objective stay in float64', () => {
+  // A PCA start spread beyond the scale contract, and a temperature whose
+  // objective (about -N T log K) overflows, gave NaN or -Infinity and 'tol'.
+  assert.throws(() => ub.somOlp([[-1], [1]], [2, 1], { lam: 1, gamma: 0, pcaScale: 1e200 }), /pcaScale is too large/);
+  const points = [[0], [1], [2]];
+  assert.throws(() => ub.somOlp(points, points, { lam: 1e308, gamma: 1, init: points }), /lam = 1e\+308 is too large/);
+  assert.throws(() => ub.efcm(points, 3, { tau: 1e308, init: points }), /tau = 1e\+308 is too large/);
 });
 
 test('far-apart schedule ends stay finite', () => {

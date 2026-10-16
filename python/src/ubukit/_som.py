@@ -252,23 +252,27 @@ def _olp(R: np.ndarray, lam: float, gamma: float) -> Callable[..., tuple[np.ndar
     first), with the objective at them."""
     lam = check_float(lam, "lam", 0.0, strict=True)
     gamma = check_float(gamma, "gamma", 0.0)
-    # The latent costs gamma ||v - r_j||^2 must stay finite beside the data's,
-    # which the scale contract keeps below about 4e300. A latent position v
-    # lies among the units, so ||v - r_j||^2 is at most their squared extent,
-    # bounded by four times their largest squared distance from their mean.
-    extent = 4.0 * float(sq_norms(R - R.mean(axis=0)).max())
+    # The latent costs gamma ||v - r_j||^2 come from centered unit coordinates,
+    # as distances come from centered data: rounding then follows the extent
+    # of the units, not their distance from the origin. They must stay finite
+    # beside the data's costs, which the scale contract keeps below about
+    # 4e300. A latent position v lies among the units, so ||v - r_j||^2 is at
+    # most their squared extent, bounded by four times their largest squared
+    # norm once centered.
+    Rc = R - R.mean(axis=0)
+    rr = sq_norms(Rc)
+    extent = 4.0 * float(rr.max())
     if gamma * extent > MAX_SQ_NORM:
         raise ValueError(
             "gamma is too large for the unit coordinates: gamma times their squared extent "
             f"({extent:g}) must be at most {MAX_SQ_NORM:g}"
         )
-    rr = sq_norms(R)
 
     def assign(data, W, P):
         cost = sqdist(data.X, W, data.xx)
         if P is not None:
-            cost += gamma * sqdist(P @ R, R, cc=rr)
-        return softmin(cost, lam)  # the objective: the sum of the soft minima
+            cost += gamma * sqdist(P @ Rc, Rc, cc=rr)
+        return softmin(cost, lam, "lam")  # the objective: the sum of the soft minima
 
     return assign
 
@@ -317,7 +321,11 @@ def _setup(
         raise ValueError("init must be 'pca' or a (n_units, n_features) array")
     data = as_data(X)
     if isinstance(init, str):
-        return data, _pca_init(data.X, R, pca_scale)
+        W = _pca_init(data.X, R, pca_scale)
+        # A start made here keeps the scale contract that a given one must.
+        if not sq_norms(W).max() < MAX_SQ_NORM:
+            raise ValueError("pca_scale is too large for X: the start is beyond float64 distances")
+        return data, W
     W = as_matrix(init, "init")
     if W.shape != (len(R), data.X.shape[1]):
         raise ValueError(f"init must have shape ({len(R)}, {data.X.shape[1]})")

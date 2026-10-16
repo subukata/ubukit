@@ -4,6 +4,24 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-17 Values made inside keep the numerical contract (#116)
+
+What the library makes from valid arguments must keep the contract that
+given values keep: SOM-OLP's latent costs come from centered unit
+coordinates (as distances come from centered data), a PCA start must pass
+the scale check that a given start passes, and `softmin` raises an error
+naming the temperature when the objective it returns is not a float64.
+*Why:* Codex's review found three valid-looking inputs giving NaN or `-inf`
+with "tol": units at 1e20 slipped past #115's bound, which assumed exact
+arithmetic, through the rounding of their offset; a `pca_scale` of 1e200;
+and a `tau` or `lam` of 1e308, whose objective, about -N T log K,
+overflows. Centering moves SOM-OLP's results in their last digits only
+(fixtures: at most 1.2e-14 after 100 iterations). *Rejected:* a bound on
+`gamma` that also covers the rounding of the offset (a second term to
+explain, while centering removes the cause), bounds on `pca_scale`, `tau`
+and `lam` before the data (they depend on the data's spread and size),
+and a check for non-finite values in the loop (#77).
+
 ## 2026-10-17 SOM-OLP's gamma bounded; rcm's radius as Python has it (#115)
 
 `som_olp` and `apply.som_olp` require `gamma` times the squared extent of

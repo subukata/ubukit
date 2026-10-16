@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
+  argmaxRows, asData, center, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
   matrix, MAX_SQ_NORM, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
@@ -182,16 +182,17 @@ export function* applySomOlp(X, centers, grid, options) {
 function olp(R, lam, gamma) {
   checkNumber(lam, 'lam', 0, true);
   checkNumber(gamma, 'gamma', 0);
-  // The latent costs gamma ||v - r_j||^2 must stay finite beside the data's,
-  // which the scale contract keeps below about 4e300. A latent position v lies
-  // among the units, so ||v - r_j||^2 is at most their squared extent, bounded
-  // by four times their largest squared distance from their mean.
-  const { rows: k, cols: q, data: r } = R, mean = new Float64Array(q);
-  for (let j = 0; j < k; j++) for (let c = 0; c < q; c++) mean[c] += r[j * q + c] / k;
+  // The latent costs gamma ||v - r_j||^2 come from centered unit coordinates,
+  // as distances come from centered data: rounding then follows the extent of
+  // the units, not their distance from the origin. They must stay finite
+  // beside the data's costs, which the scale contract keeps below about 4e300.
+  // A latent position v lies among the units, so ||v - r_j||^2 is at most their
+  // squared extent, bounded by four times their largest squared norm once centered.
+  const Rc = center(R).X, { rows: k, cols: q, data: r } = Rc;
   let largest = 0;
   for (let j = 0; j < k; j++) {
     let s = 0;
-    for (let c = 0; c < q; c++) s += (r[j * q + c] - mean[c]) ** 2;
+    for (let c = 0; c < q; c++) s += r[j * q + c] ** 2;
     largest = Math.max(largest, s);
   }
   const extent = 4 * largest;
@@ -201,10 +202,10 @@ function olp(R, lam, gamma) {
   return (data, W, P) => {
     let cost = sqdist(data.X, W);
     if (P) {
-      const extra = sqdist(multiply(P, R), R).data;
+      const extra = sqdist(multiply(P, Rc), Rc).data;
       cost = mapMatrix(cost, (v, i) => v + gamma * extra[i]);
     }
-    return softmin(cost, lam); // value: the objective at these memberships
+    return softmin(cost, lam, 'lam'); // value: the objective at these memberships
   };
 }
 
@@ -245,7 +246,16 @@ function gridCoordinates(grid) {
 function setup(X, R, init, pcaScale = 2) {
   if (typeof init === 'string' && init !== 'pca') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
   const data = asData(X), Xc = data.X;
-  if (init === 'pca') return { data, W: pcaInit(Xc, R, pcaScale) };
+  if (init === 'pca') {
+    // A start made here keeps the scale contract that a given one must.
+    const W = pcaInit(Xc, R, pcaScale), d = Xc.cols;
+    for (let j = 0; j < W.rows; j++) {
+      let s = 0;
+      for (let f = 0; f < d; f++) s += W.data[j * d + f] ** 2;
+      if (!(s < MAX_SQ_NORM)) throw new RangeError('pcaScale is too large for X: the start is beyond float64 distances');
+    }
+    return { data, W };
+  }
   const W = matrix(init, 'init');
   if (W.rows !== R.rows || W.cols !== Xc.cols) throw new RangeError(`init must have shape (${R.rows}, ${Xc.cols})`);
   return { data, W: shift(W, data.mean.map(v => -v)) };
