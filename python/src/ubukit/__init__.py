@@ -7,9 +7,12 @@ whose ``result()`` is the Result as if the run had stopped there:
 
     for p in ub.steps.som_olp(X, (10, 10), lam=0.5, gamma=1.0):
         draw(p.result())
+
+``apply`` holds the functions that apply trained prototypes to new data,
+the prototypes fixed.
 """
 
-from . import steps
+from . import apply, steps
 from ._core import Progress, Result
 from ._core import stepwise as _stepwise
 from .metrics import Neighborhood, ami, ari, continuity, trustworthiness
@@ -34,6 +37,7 @@ __all__ = [
     "Result",
     "TPEResult",
     "ami",
+    "apply",
     "ari",
     "batch_som",
     "choice",

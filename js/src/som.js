@@ -5,7 +5,7 @@
  */
 import {
   argmaxRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelSums, mapMatrix,
-  matrix, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, tolerance, weightedMean,
+  matrix, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -119,30 +119,86 @@ export function* batchSom(X, grid = [10, 10], { epochs = 50, sigma, sigmaEnd = 0
 export function* somOlp(X, grid = [10, 10], options) {
   const { lam, gamma, init = 'pca', pcaScale = 2, maxIter = 100, tol = 1e-6, ...unknown } = options ?? /** @type {any} */ ({});
   rejectUnknown(unknown);
-  checkNumber(lam, 'lam', 0, true);
-  checkNumber(gamma, 'gamma', 0);
+  const R = gridCoordinates(grid), assign = olp(R, lam, gamma);
   checkNumber(pcaScale, 'pcaScale', 0, true);
   checkMaxIter(maxIter);
   checkNumber(tol, 'tol', 0);
-  const R = gridCoordinates(grid), { data, W } = setup(X, R, init, pcaScale);
+  const { data, W } = setup(X, R, init, pcaScale);
   const step = (data, W, P) => {
-    // The previous memberships P give the latent positions P R; the first iteration has none.
+    const { U, value } = assign(data, W, P);
+    return { V: weightedMean(data.X, U, W), state: U, value };
+  };
+  return yield* iterate(data, W, step, { stopping: tolerance(tol, maxIter), view: olpView(R), keep: samePoints });
+}
+
+/**
+ * The best-matching units of X among the fixed prototypes (centers) of the units at grid (apply.som
+ * and apply.batchSom). grid is [rows, cols] or a (K, Q) matrix, as the map's unitCoordinates;
+ * embedding holds the coordinates of each point's unit.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {Grid} grid @param {Record<string, never>} [options] none
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applySom(X, centers, grid, { ...unknown } = {}) {
+  rejectUnknown(unknown);
+  const R = gridCoordinates(grid), { data, V, fixed } = startFixed(X, centers, R.rows);
+  const step = (data, W) => ({ V: W, state: null, value: null }); // the view finds the best-matching units
+  return yield* iterate(data, V, step, { stopping: schedule(1), view: mapView(R), fixed });
+}
+
+export const applyBatchSom = applySom;
+
+/**
+ * The memberships and latent positions of X on a fixed SOM-OLP map (apply.somOlp). centers are
+ * the prototypes of the units at grid; give the lam and gamma they were trained with. The
+ * memberships start from the distances alone, as a training run's first iteration does, and are
+ * iterated with the prototypes fixed until no membership changes by more than tol, or maxIter
+ * iterations (more than training's default: they settle slowly for some settings). Each point's
+ * memberships depend on it alone. The latent positions of earlier memberships pull later ones, so
+ * the iteration can settle elsewhere than training left the same points.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {Grid} grid
+ * @param {{ lam: number, gamma: number, maxIter?: number, tol?: number }} options
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applySomOlp(X, centers, grid, options) {
+  const { lam, gamma, maxIter = 1000, tol = 1e-6, ...unknown } = options ?? /** @type {any} */ ({});
+  rejectUnknown(unknown);
+  const R = gridCoordinates(grid), assign = olp(R, lam, gamma);
+  checkMaxIter(maxIter);
+  checkNumber(tol, 'tol', 0);
+  const { data, V, fixed } = startFixed(X, centers, R.rows);
+  const step = (data, W, P) => {
+    const { U, value } = assign(data, W, P);
+    return { V: W, state: U, value };
+  };
+  return yield* iterate(data, V, step, { stopping: steady(tol, maxIter), view: olpView(R), keep: samePoints, fixed });
+}
+
+/**
+ * SOM-OLP's assignment for the units at R: assign(data, W, P) gives the memberships, from the
+ * latent positions P R of the previous ones (none at first), with the objective at them.
+ */
+function olp(R, lam, gamma) {
+  checkNumber(lam, 'lam', 0, true);
+  checkNumber(gamma, 'gamma', 0);
+  return (data, W, P) => {
     let cost = sqdist(data.X, W);
     if (P) {
       const extra = sqdist(multiply(P, R), R).data;
       cost = mapMatrix(cost, (v, i) => v + gamma * extra[i]);
     }
-    const { U, value } = softmin(cost, lam); // value: the objective at these memberships
-    return { V: weightedMean(data.X, U, W), state: U, value };
+    return softmin(cost, lam); // value: the objective at these memberships
   };
-  // The memberships give each point's latent position for the next iteration.
-  // Points are known only by their rows, so they carry over while the number
-  // of rows stays the same, row i being the same point.
-  const keep = (P, data) => (P.rows === data.X.rows ? P : null);
-  // A copy of the memberships: the next step reads them.
-  const view = loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, R), copyMatrix(R));
-  return yield* iterate(data, W, step, { stopping: tolerance(tol, maxIter), view, keep });
 }
+
+/**
+ * SOM-OLP's memberships give each point's latent position for the next
+ * iteration. Points are known only by their rows, so they carry over while the
+ * number of rows stays the same, row i being the same point.
+ */
+const samePoints = (P, data) => (P.rows === data.X.rows ? P : null);
+
+/** The view of SOM-OLP: a copy of the memberships (the next step reads them), and the latent positions. */
+const olpView = R => loop => fitted(loop, argmaxRows(loop.state), copyMatrix(loop.state), multiply(loop.state, R), copyMatrix(R));
 
 function multiply(A, B) {
   const out = new Float64Array(A.rows * B.cols);

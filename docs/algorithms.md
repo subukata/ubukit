@@ -188,6 +188,35 @@ underflows when the ends are far apart.
   with latent positions $v_i = \sum_j p_{ij} r_j$ taken from the previous
   memberships. `embedding` is $V$, `history` the objective.
 
+## Applying trained prototypes
+
+`apply` runs a method's assignment on new data with the prototypes fixed,
+kept exactly as given (they are never shifted to the data's centering and
+back). k-means takes the nearest prototype, `fcm`, `efcm` and `rcm` their
+memberships of the distances, `som` and `batch_som` the best-matching unit;
+one assignment ends the run (`stop_reason` `"schedule"`), and `history`
+holds its objective (empty for `rcm`, `rmcm`, `som` and `batch_som`, which
+have none). `rmcm` builds the neighborhood graph of the data
+given, so a point's memberships depend on the points given with it.
+`som_olp` iterates its memberships with $W$ fixed, from the distances alone,
+as training's first iteration does:
+
+$$
+P_1 = \operatorname{softmin}(D/\lambda), \qquad
+P_{t+1} = \operatorname{softmin}\big((D + \gamma\, \mathrm{dist}^2(P_t R, R))/\lambda\big),
+$$
+
+until no membership changes by more than `tol` (`"tol"`; never at the
+first iteration) or after `max_iter` iterations (1000 by default, as the
+memberships can settle slowly). Each point's memberships depend on it
+alone. Every update minimizes the objective over $P$ for the latent
+positions of the previous memberships, and those positions minimize it for
+them, so `history` does not increase from the second iteration on (the
+first lacks the latent term). The iteration can have several fixed points
+and ends at the one its start leads to: for the points a map was trained
+on, that need not be where training left them, whose memberships moved
+together with $W$.
+
 ## Metrics
 
 - `ari`: adjusted Rand index (Hubert & Arabie, 1985), from exact integer pair counts.

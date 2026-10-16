@@ -22,6 +22,7 @@ from ._core import (
     MapInit,
     Result,
     Schedule,
+    Steady,
     Steps,
     Tolerance,
     as_data,
@@ -37,6 +38,7 @@ from ._core import (
     softmin,
     sq_norms,
     sqdist,
+    start_fixed,
     weighted_mean,
 )
 
@@ -160,36 +162,118 @@ def som_olp(
         gamma: weight of the latent-position term (>= 0).
         pca_scale: spread of the PCA initialization in standard deviations.
     """
-    lam = check_float(lam, "lam", 0.0, strict=True)
-    gamma = check_float(gamma, "gamma", 0.0)
+    R = _grid(grid)
+    assign = _olp(R, lam, gamma)
     pca_scale = check_float(pca_scale, "pca_scale", 0.0, strict=True)
     max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
-    R = _grid(grid)
     data, W = _setup(X, R, init, pca_scale)
-    rr = sq_norms(R)
 
     def step(data, W, P, t):
-        # The previous memberships P give the latent positions P R; the first
-        # iteration has none.
+        P, value = assign(data, W, P)
+        return weighted_mean(data.X, P, W), P, value
+
+    stopping = Tolerance(tol, max_iter)
+    return (
+        yield from iterate(data, W, step, stopping=stopping, view=_olp_view(R), keep=_same_points)
+    )
+
+
+def apply_som(X: ArrayLike, centers: ArrayLike, grid: Grid) -> Steps:
+    """The best-matching units of X among the fixed prototypes ``centers`` of the
+    units at ``grid`` (``ubukit.apply.som`` and ``ubukit.apply.batch_som``).
+
+    ``grid`` is (rows, cols) or a (K, Q) array, as the map's
+    ``unit_coordinates``; ``embedding`` holds the coordinates of each
+    point's unit.
+    """
+    R = _grid(grid)
+    data, W, C = start_fixed(X, centers, len(R))
+
+    def step(data, W, state, t):
+        return W, None, None  # the view finds the best-matching units
+
+    return (yield from iterate(data, W, step, stopping=Schedule(1), view=_map(R), fixed=C))
+
+
+apply_batch_som = apply_som
+
+
+def apply_som_olp(
+    X: ArrayLike,
+    centers: ArrayLike,
+    grid: Grid,
+    *,
+    lam: float,
+    gamma: float,
+    max_iter: int | None = 1000,
+    tol: float = 1e-6,
+) -> Steps:
+    """The memberships and latent positions of X on a fixed SOM-OLP map
+    (``ubukit.apply.som_olp``).
+
+    ``centers`` are the prototypes of the units at ``grid``; give the lam and
+    gamma they were trained with. The memberships start from the distances
+    alone, as a training run's first iteration does, and are iterated with
+    the prototypes fixed until no membership changes by more than ``tol``,
+    or ``max_iter`` iterations (more than training's default: they settle
+    slowly for some settings). Each point's memberships depend on it alone.
+    The latent positions of earlier memberships pull later ones, so the
+    iteration can settle elsewhere than training left the same points.
+    """
+    R = _grid(grid)
+    assign = _olp(R, lam, gamma)
+    max_iter, tol = check_max_iter(max_iter), check_float(tol, "tol", 0.0)
+    data, W, C = start_fixed(X, centers, len(R))
+
+    def step(data, W, P, t):
+        P, value = assign(data, W, P)
+        return W, P, value
+
+    return (
+        yield from iterate(
+            data,
+            W,
+            step,
+            stopping=Steady(tol, max_iter),
+            view=_olp_view(R),
+            keep=_same_points,
+            fixed=C,
+        )
+    )
+
+
+def _olp(R: np.ndarray, lam: float, gamma: float) -> Callable[..., tuple[np.ndarray, float]]:
+    """SOM-OLP's assignment for the units at R: ``assign(data, W, P)`` gives the
+    memberships, from the latent positions P R of the previous ones (none at
+    first), with the objective at them."""
+    lam = check_float(lam, "lam", 0.0, strict=True)
+    gamma = check_float(gamma, "gamma", 0.0)
+    rr = sq_norms(R)
+
+    def assign(data, W, P):
         cost = sqdist(data.X, W, data.xx)
         if P is not None:
             cost += gamma * sqdist(P @ R, R, cc=rr)
-        P, value = softmin(cost, lam)  # value: the objective at these memberships
-        return weighted_mean(data.X, P, W), P, value
+        return softmin(cost, lam)  # the objective: the sum of the soft minima
 
-    def keep(P, data):
-        # The memberships give each point's latent position for the next
-        # iteration. Points are known only by their rows, so they carry over
-        # while the number of rows stays the same, row i being the same point.
-        return P if len(P) == len(data.X) else None
+    return assign
 
-    def view(loop):
+
+def _same_points(P: np.ndarray, data: Data) -> np.ndarray | None:
+    """SOM-OLP's memberships give each point's latent position for the next
+    iteration. Points are known only by their rows, so they carry over while
+    the number of rows stays the same, row i being the same point."""
+    return P if len(P) == len(data.X) else None
+
+
+def _olp_view(R: np.ndarray) -> Callable[[Loop], Result]:
+    """The view of SOM-OLP: the memberships, and the latent positions they give."""
+
+    def view(loop: Loop) -> Result:
         P = loop.state.copy()  # the next step reads it
         return fitted(loop, P.argmax(axis=1), P, P @ R, R.copy())
 
-    return (
-        yield from iterate(data, W, step, stopping=Tolerance(tol, max_iter), view=view, keep=keep)
-    )
+    return view
 
 
 def _shape(grid: Any) -> tuple[int, int]:

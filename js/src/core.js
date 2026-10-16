@@ -22,9 +22,10 @@
  * @property {number} nIter iterations performed (epochs for SOMs).
  * @property {StopReason | null} stopReason the stopping rule that holds at this iteration, under the
  *   run's own settings: 'tol' (no prototype coordinate moved more than tol times the RMS radius of the
- *   data; with tol 0, none moved at all), 'schedule' (som and batchSom: every epoch has run) or 'limit'
- *   (maxIter reached without 'tol'); null in a Progress result where none holds. It says nothing about
- *   the quality of the result.
+ *   data; with tol 0, none moved at all; for apply.somOlp, no membership changed by more than tol),
+ *   'schedule' (som and batchSom: every epoch has run; the other apply functions: their one assignment
+ *   has run) or 'limit' (maxIter reached without 'tol'); null in a Progress result where none holds.
+ *   It says nothing about the quality of the result.
  * @property {Float64Array} history objective per iteration; empty for rcm, rmcm, som and batchSom, which have none.
  * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs: the unit coordinates of the
  *   labels for som and batchSom, membership times unit coordinates for somOlp.
@@ -405,6 +406,23 @@ export function start(X, k, init = 'k-means++', seed, prepare = asData) {
   return { data, V: shift(V, data.mean.map(v => -v)) };
 }
 
+/**
+ * The data, centered prototypes and fixed prototypes of an application. The
+ * prototypes are copied, so the run owns them, and kept as given: the loop
+ * centers them afresh for new data and puts a copy in every Result, so they
+ * never drift. units, for a map, is the number of its units.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {number | null} [units]
+ * @param {(X: MatrixLike, nFeatures?: number) => Data} [prepare]
+ * @returns {{ data: Data, V: Matrix, fixed: Matrix }}
+ */
+export function startFixed(X, centers, units = null, prepare = asData) {
+  const fixed = matrix(centers, 'centers');
+  if (units !== null && fixed.rows !== units) throw new RangeError(`centers must have ${units} rows, one per unit`);
+  const data = prepare(X);
+  if (fixed.cols !== data.X.cols) throw new RangeError(`centers must have ${data.X.cols} columns, like X`);
+  return { data, V: shift(fixed, data.mean.map(v => -v)), fixed };
+}
+
 /** An iteration limit >= 1, or Infinity for none (a run fed new data until it converges). */
 export function checkMaxIter(value) {
   return value === Infinity ? value : checkInt(value, 'maxIter', 1);
@@ -419,35 +437,48 @@ export function checkMaxIter(value) {
 
 /**
  * What the loop has reached: the data, prototypes, the step's state,
- * iterations, the stopping rule that holds at the last one, and the
- * objective history.
- * @typedef {{ data: Data, V: Matrix, state: any, nIter: number, stopReason: StopReason | null, history: Float64Array }} Loop
+ * iterations, the stopping rule that holds at the last one, the objective
+ * history, and the prototypes of an application as given (fixed, else null).
+ * @typedef {{ data: Data, V: Matrix, state: any, nIter: number, stopReason: StopReason | null, history: Float64Array,
+ *   fixed: Matrix | null }} Loop
  */
 
 /**
  * How a method's runs end; the loop applies it. A tolerance run ends when no
  * prototype coordinate moves more than tol times the RMS radius of the data,
- * or after maxIter iterations (Infinity: no limit); a schedule runs a fixed
- * number of iterations (the maps' epochs).
- * @typedef {{ kind: 'tolerance', tol: number, maxIter: number } | { kind: 'schedule', length: number }} Stopping
+ * or after maxIter iterations (Infinity: no limit); a steady run measures the
+ * change of the memberships instead (never at the first iteration, which has
+ * nothing to compare), for prototypes held fixed while memberships still move
+ * (somOlp applied); a schedule runs a fixed number of iterations (the maps'
+ * epochs, or the one assignment of an application).
+ * @typedef {{ kind: 'tolerance' | 'steady', tol: number, maxIter: number } | { kind: 'schedule', length: number }} Stopping
  */
 
 /** @param {number} tol @param {number} maxIter @returns {Stopping} */
 export const tolerance = (tol, maxIter) => ({ kind: 'tolerance', tol, maxIter });
+
+/** @param {number} tol @param {number} maxIter @returns {Stopping} */
+export const steady = (tol, maxIter) => ({ kind: 'steady', tol, maxIter });
 
 /** @param {number} length @returns {Stopping} */
 export const schedule = length => ({ kind: 'schedule', length });
 
 /**
  * The stopping rule that holds after iteration t ('tol' before 'limit').
- * @param {Stopping} stopping @param {number} t @param {Matrix} V @param {Matrix} previous @param {number} radius
+ * @param {Stopping} stopping @param {number} t @param {Matrix} V @param {Matrix} previous
+ * @param {any} state @param {any} statePrevious @param {number} radius
  * @returns {StopReason | null}
  */
-function reasonAt(stopping, t, V, previous, radius) {
+function reasonAt(stopping, t, V, previous, state, statePrevious, radius) {
   if (stopping.kind === 'schedule') return t === stopping.length ? 'schedule' : null;
-  let move = 0;
-  for (let i = 0; i < V.data.length; i++) move = Math.max(move, Math.abs(V.data[i] - previous.data[i]));
-  if (move <= stopping.tol * radius) return 'tol';
+  const [now, before, bound] = stopping.kind === 'steady'
+    ? [state?.data, statePrevious?.data, stopping.tol]
+    : [V.data, previous.data, stopping.tol * radius];
+  if (before) {
+    let move = 0;
+    for (let i = 0; i < now.length; i++) move = Math.max(move, Math.abs(now[i] - before[i]));
+    if (move <= bound) return 'tol';
+  }
   return t === stopping.maxIter ? 'limit' : null;
 }
 
@@ -463,13 +494,17 @@ function isLast(stopping, t) {
  * next(X) are prepared by prepare and used from the next iteration on. The
  * prototypes carry over (shifted to the new data's centering), and so does
  * the state that keep(state, data) returns; without keep the state starts
- * again, as caches of the old data must. The schedule (t) goes on.
+ * again, as caches of the old data must. The schedule (t) goes on. An
+ * application passes its prototypes as given (fixed), which its steps never
+ * move: they are centered afresh for new data and copied into every Result,
+ * so they never drift.
  *
  * A tolerance run ends when no prototype coordinate moves more than tol times
  * the RMS radius of the data and no new data arrive (tol = 0: the prototypes
- * did not move at all), or after maxIter iterations; a schedule ends when its
- * iterations are complete. Each loop records the rule that holds at its
- * iteration (stopReason). It returns view(loop), the method's Result. After
+ * did not move at all), or after maxIter iterations; a steady run measures the
+ * change of the memberships instead; a schedule ends when its iterations are
+ * complete. Each loop records the rule that holds at its iteration
+ * (stopReason). It returns view(loop), the method's Result. After
  * every step it yields { iteration, result }, where result() builds the
  * Result of the run at that iteration; it costs nothing unless called and
  * stays valid as the loop goes on, because steps never modify a state they
@@ -477,24 +512,25 @@ function isLast(stopping, t) {
  * state they put in a Result.
  * @param {Data} data @param {Matrix} V @param {Step} step
  * @param {{ stopping: Stopping, view: (loop: Loop) => Result,
- *   prepare?: (X: MatrixLike, nFeatures?: number) => Data, keep?: ((state: any, data: Data) => any) | null }} options
+ *   prepare?: (X: MatrixLike, nFeatures?: number) => Data, keep?: ((state: any, data: Data) => any) | null,
+ *   fixed?: Matrix | null }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
-export function* iterate(data, V, step, { stopping, view, prepare = asData, keep = null }) {
+export function* iterate(data, V, step, { stopping, view, prepare = asData, keep = null, fixed = null }) {
   const history = [];
   let state = null;
   for (let t = 1; ; t++) {
-    const previous = V, next = step(data, V, state, t - 1);
+    const previous = V, statePrevious = state, next = step(data, V, state, t - 1);
     ({ V, state } = next);
     if (next.value !== null) history.push(next.value);
-    const reason = reasonAt(stopping, t, V, previous, data.radius);
-    const loop = { data, V, state, nIter: t, stopReason: reason }, length = history.length;
+    const reason = reasonAt(stopping, t, V, previous, state, statePrevious, data.radius);
+    const loop = { data, V, state, nIter: t, stopReason: reason, fixed }, length = history.length;
     const result = () => view({ ...loop, history: Float64Array.from(history.slice(0, length)) });
     const rows = yield { iteration: t, result };
     if (isLast(stopping, t)) return result();
     if (rows !== undefined && rows !== null) {
       const fresh = prepare(rows, V.cols);
-      V = shift(V, data.mean.map((m, f) => m - fresh.mean[f]));
+      V = fixed ? shift(fixed, fresh.mean.map(v => -v)) : shift(V, data.mean.map((m, f) => m - fresh.mean[f]));
       state = keep ? keep(state, fresh) : null;
       data = fresh;
     } else if (reason === 'tol') return result();
@@ -508,13 +544,19 @@ export function* iterate(data, V, step, { stopping, view, prepare = asData, keep
  * @param {Matrix | null} [unitCoordinates]
  * @returns {Result}
  */
-export function fitted({ data, V, nIter, stopReason, history }, labels, membership = null, embedding = null, unitCoordinates = null) {
-  return { centers: shift(V, data.mean), labels, membership, nIter, stopReason, history, embedding, unitCoordinates };
+export function fitted({ data, V, nIter, stopReason, history, fixed }, labels, membership = null, embedding = null, unitCoordinates = null) {
+  const centers = fixed ? copyMatrix(fixed) : shift(V, data.mean);
+  return { centers, labels, membership, nIter, stopReason, history, embedding, unitCoordinates };
 }
 
 /** The standard update: the means of the data weighted by the memberships. */
 export function means(data, U, V) {
   return weightedMean(data.X, U, V);
+}
+
+/** The update of an application: the prototypes stay where they are. */
+export function unchanged(data, U, V) {
+  return V;
 }
 
 /**

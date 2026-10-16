@@ -6,7 +6,7 @@
  */
 import {
   argmaxRows, argminRows, asData, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, iterate, labelMean,
-  lloyd, rejectUnknown, softmin, start, TINY, tolerance, weightedMean,
+  lloyd, nearest, rejectUnknown, schedule, softmin, start, startFixed, TINY, tolerance, unchanged, weightedMean,
 } from './core.js';
 
 /** @typedef {import('./core.js').MatrixLike} MatrixLike */
@@ -30,6 +30,25 @@ export function* kmeans(X, k, { init = 'k-means++', maxIter = 300, seed, ...unkn
   const { data, V } = start(X, k, init, seed);
   const view = loop => fitted(loop, loop.state.labels.slice());
   return yield* iterate(data, V, hamerly, { stopping: tolerance(0, maxIter), view });
+}
+
+/**
+ * The labels of X by the nearest of the fixed centers (apply.kmeans); ties go
+ * to the lowest index, as in kmeans, and history holds the sum of squared
+ * distances to the nearest centers.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {Record<string, never>} [options] none
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applyKmeans(X, centers, { ...unknown } = {}) {
+  rejectUnknown(unknown);
+  const { data, V, fixed } = startFixed(X, centers);
+  const step = (data, V) => {
+    const { rows: n, cols: d, data: x } = data.X, labels = nearest(data.X, V);
+    let value = 0;
+    for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) value += (x[i * d + f] - V.data[labels[i] * d + f]) ** 2;
+    return { V, state: labels, value };
+  };
+  return yield* iterate(data, V, step, { stopping: schedule(1), view: loop => fitted(loop, loop.state.slice()), fixed });
 }
 
 /**
@@ -104,15 +123,30 @@ function hamerly(data, V, state) {
  */
 export function* fcm(X, k, { m = 2, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = {}) {
   rejectUnknown(unknown);
-  checkNumber(m, 'm', 1, true);
+  const rule = fuzzy(m);
   checkMaxIter(maxIter);
   checkNumber(tol, 'tol', 0);
   const { data, V } = start(X, k, init, seed);
-  const step = lloyd({
+  return yield* iterate(data, V, lloyd(rule), { stopping: tolerance(tol, maxIter), view: soft });
+}
+
+/**
+ * The FCM memberships of X for the fixed centers (apply.fcm); give the m they were trained with.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ m?: number }} [options]
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applyFcm(X, centers, { m = 2, ...unknown } = {}) {
+  rejectUnknown(unknown);
+  return yield* applied(X, centers, fuzzy(m).assign);
+}
+
+/** FCM's assignment and update for the fuzzifier m. */
+function fuzzy(m) {
+  checkNumber(m, 'm', 1, true);
+  return {
     assign: (_, D) => fuzzyMemberships(D, m),
     update: (data, U, V) => weightedMean(data.X, fuzzyWeights(U, m), V),
-  });
-  return yield* iterate(data, V, step, { stopping: tolerance(tol, maxIter), view: soft });
+  };
 }
 
 /**
@@ -153,12 +187,27 @@ function fuzzyWeights(U, m) {
  */
 export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 1e-6, seed, ...unknown } = {}) {
   rejectUnknown(unknown);
-  checkNumber(tau, 'tau', 0, true);
+  const assign = entropic(tau);
   checkMaxIter(maxIter);
   checkNumber(tol, 'tol', 0);
   const { data, V } = start(X, k, init, seed);
-  const step = lloyd({ assign: (_, D) => softmin(D, tau) });
-  return yield* iterate(data, V, step, { stopping: tolerance(tol, maxIter), view: soft });
+  return yield* iterate(data, V, lloyd({ assign }), { stopping: tolerance(tol, maxIter), view: soft });
+}
+
+/**
+ * The EFCM memberships of X for the fixed centers (apply.efcm); give the tau they were trained with.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ tau?: number }} [options]
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applyEfcm(X, centers, { tau = 1, ...unknown } = {}) {
+  rejectUnknown(unknown);
+  return yield* applied(X, centers, entropic(tau));
+}
+
+/** EFCM's assignment for the temperature tau. */
+function entropic(tau) {
+  checkNumber(tau, 'tau', 0, true);
+  return (_, D) => softmin(D, tau);
 }
 
 /**
@@ -169,26 +218,41 @@ export function* efcm(X, k, { tau = 1, init = 'k-means++', maxIter = 300, tol = 
  */
 export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', maxIter = 300, seed, ...unknown } = {}) {
   rejectUnknown(unknown);
+  const assign = rough(alpha, beta, p);
+  checkMaxIter(maxIter);
+  const { data, V } = start(X, k, init, seed);
+  return yield* iterate(data, V, lloyd({ assign }), { stopping: tolerance(0, maxIter), view: soft });
+}
+
+/**
+ * The rough memberships of X for the fixed centers (apply.rcm); give the alpha, beta and p they
+ * were trained with.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ alpha?: number, beta?: number, p?: number }} [options]
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applyRcm(X, centers, { alpha = 1.1, beta = 0, p = 1, ...unknown } = {}) {
+  rejectUnknown(unknown);
+  return yield* applied(X, centers, rough(alpha, beta, p));
+}
+
+/** RCM's assignment: an equal share of each admissible cluster. */
+function rough(alpha, beta, p) {
   checkNumber(alpha, 'alpha', 1);
   checkNumber(beta, 'beta', 0);
   checkNumber(p, 'p', 0, true);
-  checkMaxIter(maxIter);
-  const { data, V } = start(X, k, init, seed);
-  const assign = (_, D) => {
-    const { rows: n, cols: kk } = D, U = { data: new Float64Array(n * kk), rows: n, cols: kk };
+  return (_, D) => {
+    const { rows: n, cols: k } = D, U = { data: new Float64Array(n * k), rows: n, cols: k };
     for (let i = 0; i < n; i++) {
       let dmin = Infinity;
-      for (let j = 0; j < kk; j++) dmin = Math.min(dmin, Math.sqrt(D.data[i * kk + j]));
+      for (let j = 0; j < k; j++) dmin = Math.min(dmin, Math.sqrt(D.data[i * k + j]));
       const a = alpha * dmin, large = Math.max(a, beta), ratio = large > 0 ? Math.min(a, beta) / large : 0;
       const radius = large * (1 + ratio ** p) ** (1 / p);
       let count = 0;
-      for (let j = 0; j < kk; j++) if (Math.sqrt(D.data[i * kk + j]) <= radius) U.data[i * kk + j] = 1, count++;
-      for (let j = 0; j < kk; j++) U.data[i * kk + j] /= count;
+      for (let j = 0; j < k; j++) if (Math.sqrt(D.data[i * k + j]) <= radius) U.data[i * k + j] = 1, count++;
+      for (let j = 0; j < k; j++) U.data[i * k + j] /= count;
     }
     return { U, value: null };
   };
-  const step = lloyd({ assign });
-  return yield* iterate(data, V, step, { stopping: tolerance(0, maxIter), view: soft });
 }
 
 /**
@@ -199,25 +263,51 @@ export function* rcm(X, k, { alpha = 1.1, beta = 0, p = 1, init = 'k-means++', m
  */
 export function* rmcm(X, k, delta, { init = 'k-means++', maxIter = 300, maxEdges = 10_000_000, seed, ...unknown } = {}) {
   rejectUnknown(unknown);
+  const { assign, prepare } = roughMembership(delta, maxEdges);
+  checkMaxIter(maxIter);
+  const { data, V } = start(X, k, init, seed, prepare);
+  return yield* iterate(data, V, lloyd({ assign }), { stopping: tolerance(0, maxIter), view: soft, prepare });
+}
+
+/**
+ * The rough memberships of X for the fixed centers (apply.rmcm). The neighborhoods are those
+ * within X, so the memberships of a point depend on the points given with it: X given whole and
+ * X given in parts differ, and a point given alone gets the hard assignment of k-means.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {number} delta @param {{ maxEdges?: number }} [options]
+ * @returns {Generator<Progress, Result, MatrixLike | undefined>}
+ */
+export function* applyRmcm(X, centers, delta, { maxEdges = 10_000_000, ...unknown } = {}) {
+  rejectUnknown(unknown);
+  const { assign, prepare } = roughMembership(delta, maxEdges);
+  return yield* applied(X, centers, assign, prepare);
+}
+
+/** RMCM's assignment, and the preparation that builds each data set's graph. */
+function roughMembership(delta, maxEdges) {
   checkNumber(delta, 'delta', 0);
   checkInt(maxEdges, 'maxEdges', 1);
-  checkMaxIter(maxIter);
-  // The data with their neighborhood graph, built again for new data.
-  const prepare = (rows, nFeatures) => {
-    const d = asData(rows, nFeatures);
-    return { ...d, graph: neighborhood(d.X, delta, maxEdges) };
+  return {
+    // The data with their neighborhood graph, built again for new data.
+    prepare: (rows, nFeatures) => {
+      const d = asData(rows, nFeatures);
+      return { ...d, graph: neighborhood(d.X, delta, maxEdges) };
+    },
+    assign: ({ graph }, D) => {
+      const labels = argminRows(D), n = labels.length, k = D.cols, R = { data: new Float64Array(n * k), rows: n, cols: k };
+      for (let i = 0; i < n; i++) {
+        const first = graph.offsets[i], end = graph.offsets[i + 1];
+        for (let e = first; e < end; e++) R.data[i * k + labels[graph.neighbors[e]]] += 1 / (end - first);
+      }
+      return { U: R, value: null };
+    },
   };
-  const { data, V } = start(X, k, init, seed, prepare);
-  const assign = ({ graph }, D) => {
-    const labels = argminRows(D), n = labels.length, R = { data: new Float64Array(n * k), rows: n, cols: k };
-    for (let i = 0; i < n; i++) {
-      const first = graph.offsets[i], end = graph.offsets[i + 1];
-      for (let e = first; e < end; e++) R.data[i * k + labels[graph.neighbors[e]]] += 1 / (end - first);
-    }
-    return { U: R, value: null };
-  };
-  const step = lloyd({ assign });
-  return yield* iterate(data, V, step, { stopping: tolerance(0, maxIter), view: soft, prepare });
+}
+
+/** A soft or rough clustering applied: one assignment, the centers fixed. */
+function* applied(X, centers, assign, prepare = asData) {
+  const { data, V, fixed } = startFixed(X, centers, null, prepare);
+  const step = lloyd({ assign, update: unchanged });
+  return yield* iterate(data, V, step, { stopping: schedule(1), view: soft, prepare, fixed });
 }
 
 /** Adjacency lists of ||x_i - x_j|| <= delta (self included), O(N^2 D). */

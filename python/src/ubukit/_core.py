@@ -61,8 +61,10 @@ class Result:
         n_iter: iterations performed (epochs for SOMs).
         stop_reason: the stopping rule that holds at this iteration, under the run's
             own settings: ``"tol"`` (no prototype coordinate moved more than ``tol``
-            times the RMS radius of the data; with ``tol=0``, none moved at all),
-            ``"schedule"`` (``som`` and ``batch_som``: every epoch has run) or
+            times the RMS radius of the data; with ``tol=0``, none moved at all; for
+            ``apply.som_olp``, no membership changed by more than ``tol``),
+            ``"schedule"`` (``som`` and ``batch_som``: every epoch has run; the
+            other ``apply`` functions: their one assignment has run) or
             ``"limit"`` (``max_iter`` reached without ``"tol"``); ``None`` in a
             Progress result where none holds. It says nothing about the quality of
             the result.
@@ -286,6 +288,27 @@ def start(
     return data, V - data.mean
 
 
+def start_fixed(
+    X: ArrayLike,
+    centers: ArrayLike,
+    units: int | None = None,
+    prepare: Callable[..., Data] = as_data,
+) -> tuple[Data, np.ndarray, np.ndarray]:
+    """The data, centered prototypes and fixed prototypes of an application.
+
+    The prototypes are copied, so the run owns them, and kept as given: the
+    loop centers them afresh for new data and puts a copy in every Result,
+    so they never drift. ``units``, for a map, is the number of its units.
+    """
+    C = as_matrix(centers, "centers").copy()
+    if units is not None and len(C) != units:
+        raise ValueError(f"centers must have {units} rows, one per unit")
+    data = prepare(X)
+    if C.shape[1] != data.X.shape[1]:
+        raise ValueError(f"centers must have {data.X.shape[1]} columns, like X")
+    return data, C - data.mean, C
+
+
 def check_max_iter(value: Any) -> int | None:
     """An iteration limit >= 1, or None for none (a run fed new data until it converges)."""
     return None if value is None else check_int(value, "max_iter", 1)
@@ -325,6 +348,7 @@ class Loop(NamedTuple):
     n_iter: int
     stop_reason: StopReason | None
     history: np.ndarray
+    fixed: np.ndarray | None = None  # the prototypes of an application, as given
 
 
 def fitted(
@@ -336,7 +360,7 @@ def fitted(
 ) -> Result:
     """The Result of ``loop`` with the labels, memberships, embedding and unit
     coordinates of its method (arrays the view has made or copied for it)."""
-    centers = loop.V + loop.data.mean
+    centers = loop.V + loop.data.mean if loop.fixed is None else loop.fixed.copy()
     return Result(
         centers,
         labels,
@@ -360,23 +384,45 @@ class Tolerance:
 
 
 @dataclass(frozen=True, slots=True)
+class Steady:
+    """A run that ends when no membership changes by more than ``tol`` from one
+    iteration to the next (never at the first, which has nothing to compare),
+    or after ``max_iter`` iterations: prototypes held fixed while memberships
+    still move (SOM-OLP applied)."""
+
+    tol: float
+    max_iter: int | None
+
+
+@dataclass(frozen=True, slots=True)
 class Schedule:
-    """A run of a fixed schedule of ``length`` iterations (the maps' epochs)."""
+    """A run of a fixed schedule of ``length`` iterations (the maps' epochs,
+    or the one assignment of an application)."""
 
     length: int
 
 
 # How a method's runs end; the loop applies it.
-type Stopping = Tolerance | Schedule
+type Stopping = Tolerance | Steady | Schedule
 
 
 def reason_at(
-    stopping: Stopping, t: int, V: np.ndarray, V_prev: np.ndarray, radius: float
+    stopping: Stopping,
+    t: int,
+    V: np.ndarray,
+    V_prev: np.ndarray,
+    state: Any,
+    state_prev: Any,
+    radius: float,
 ) -> StopReason | None:
     """The stopping rule that holds after iteration t ("tol" before "limit")."""
     if isinstance(stopping, Schedule):
         return "schedule" if t == stopping.length else None
-    if float(np.max(np.abs(V - V_prev))) <= stopping.tol * radius:
+    if isinstance(stopping, Steady):
+        held = state_prev is not None and np.max(np.abs(state - state_prev)) <= stopping.tol
+    else:
+        held = np.max(np.abs(V - V_prev)) <= stopping.tol * radius
+    if held:
         return "tol"
     return "limit" if t == stopping.max_iter else None
 
@@ -391,8 +437,10 @@ def is_last(stopping: Stopping, t: int) -> bool:
 Steps = Generator[Progress, ArrayLike | None, Result]
 
 
-def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
-    """The public fitting function of a generator: it runs the generator to the end."""
+def stepwise[**P](
+    generator: Callable[P, Steps], name: str | None = None, module: str = "ubukit"
+) -> Callable[P, Result]:
+    """The public function of a generator, ``module.name``: it runs the generator to the end."""
 
     @wraps(generator)
     def run(*args: P.args, **kwargs: P.kwargs) -> Result:
@@ -404,11 +452,12 @@ def stepwise[**P](generator: Callable[P, Steps]) -> Callable[P, Result]:
                 return end.value
 
     # help() shows the generator's parameters with the Result it returns, and
-    # pickle finds the function under its public name, ubukit.<name>.
+    # pickle finds the function under its public name, module.name.
     run.__signature__ = inspect.signature(generator).replace(  # type: ignore[attr-defined]
         return_annotation=Result
     )
-    run.__module__ = "ubukit"
+    run.__module__ = module
+    run.__name__ = run.__qualname__ = name or generator.__name__
     return run
 
 
@@ -421,6 +470,7 @@ def iterate(
     view: Callable[[Loop], Result],
     prepare: Callable[..., Data] = as_data,
     keep: Callable[[Any, Data], Any] | None = None,
+    fixed: np.ndarray | None = None,
 ) -> Steps:
     """The one loop: repeat ``step`` until the method's stopping rule ends the run.
 
@@ -429,11 +479,15 @@ def iterate(
     prototypes carry over (shifted to the new data's centering), and so does
     the state that ``keep(state, data)`` returns; without ``keep`` the state
     starts again, as caches of the old data must. The schedule (``t``) goes on.
+    An application passes its prototypes as given (``fixed``), which its steps
+    never move: they are centered afresh for new data and copied into every
+    Result, so they never drift.
 
     ``stopping`` is a ``Tolerance``, whose run ends when no prototype
     coordinate moves more than ``tol`` times the RMS radius of the data and
     no new data arrive (``tol=0``: the prototypes did not move at all), or
-    after ``max_iter`` iterations; or a ``Schedule``, whose run ends when its
+    after ``max_iter`` iterations; a ``Steady``, which measures the change of
+    the memberships instead; or a ``Schedule``, whose run ends when its
     iterations are complete. Each Loop records the rule that holds at its
     iteration (``stop_reason``). The loop yields a Progress after every step
     and returns ``view`` of the final Loop, the method's Result; a Progress
@@ -444,19 +498,20 @@ def iterate(
     history: list[float] = []
     t = 0
     while True:
-        V_prev = V
+        V_prev, state_prev = V, state
         V, state, value = step(data, V, state, t)
         t += 1
         if value is not None:
             history.append(value)
-        reason = reason_at(stopping, t, V, V_prev, data.radius)
-        result = _result(view, Loop(data, V, state, t, reason, np.empty(0)), history)
+        reason = reason_at(stopping, t, V, V_prev, state, state_prev, data.radius)
+        loop = Loop(data, V, state, t, reason, np.empty(0), fixed)
+        result = _result(view, loop, history)
         rows = yield Progress(t, result)
         if is_last(stopping, t):
             return result()
         if rows is not None:
             new = prepare(rows, V.shape[1])
-            V = V + (data.mean - new.mean)
+            V = V + (data.mean - new.mean) if fixed is None else fixed - new.mean
             state = keep(state, new) if keep else None
             data = new
         elif reason == "tol":
@@ -474,6 +529,11 @@ def _result(
 def means(data: Data, U: np.ndarray, V: np.ndarray) -> np.ndarray:
     """The standard update: the means of the data weighted by the memberships."""
     return weighted_mean(data.X, U, V)
+
+
+def unchanged(data: Data, U: np.ndarray, V: np.ndarray) -> np.ndarray:
+    """The update of an application: the prototypes stay where they are."""
+    return V
 
 
 def lloyd(assign: Assign, update: Update = means) -> Step:

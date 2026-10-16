@@ -38,6 +38,9 @@ def _datasets() -> dict:
         "standard": (correlated - correlated.mean(axis=0)) / correlated.std(axis=0),
         # Unit coordinates given as an array: Q = 3 > D, negative, not normalized.
         "coordinates": np.random.default_rng(7).normal(size=(7, 3)) * 2.5 - 1.0,
+        # New points for trained prototypes, and a single point (fewer points than centers).
+        "probe": np.random.default_rng(8).normal(1.5, 2.0, (9, 2)),
+        "one": np.array([[2.0, 1.0]]),
         "labels_a": labels.integers(0, 4, 50),
         "labels_b": labels.integers(0, 3, 50),
         # Clusters large enough that the expected-MI sums are windowed.
@@ -64,6 +67,17 @@ CASES = [
     ("som_olp", "standard", [[3, 4]], {"lam": 0.5, "gamma": 1.0, "max_iter": 5}),
     ("som", "blobs", ["coordinates"], {"epochs": 2, "shuffle": False}),
     ("som_olp", "blobs", ["coordinates"], {"lam": 0.5, "gamma": 1.0, "max_iter": 5}),
+    # Prototypes applied to new data, fixed.
+    ("apply.kmeans", "probe", ["centers"], {}),
+    ("apply.fcm", "probe", ["centers"], {"m": 1.5}),
+    ("apply.fcm", "one", ["centers"], {}),
+    ("apply.efcm", "probe", ["centers"], {"tau": 2.0}),
+    ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "beta": 0.2}),
+    ("apply.rmcm", "probe", ["centers", 1.5], {}),
+    ("apply.som", "probe", ["grid_init", [3, 4]], {}),
+    ("apply.batch_som", "probe", ["grid_init", [3, 4]], {}),
+    ("apply.som_olp", "probe", ["grid_init", [3, 4]], {"lam": 0.5, "gamma": 1.0}),
+    ("apply.som_olp", "probe", ["grid_init", [3, 4]], {"lam": 2.0, "gamma": 1.0, "max_iter": 3}),
 ]
 METRICS = [
     ("ari", ["labels_a", "labels_b"], {}),
@@ -80,6 +94,14 @@ METRICS = [
 ]
 
 
+def _function(name):
+    """A public function by its dotted name under ubukit, such as "apply.fcm"."""
+    function = ub
+    for part in name.split("."):
+        function = getattr(function, part)
+    return function
+
+
 def _resolve(value, data):
     return data[value] if isinstance(value, str) and value in data else value
 
@@ -88,7 +110,7 @@ def build() -> dict:
     data = _datasets()
     cases = []
     for method, X, args, options in CASES:
-        r = getattr(ub, method)(
+        r = _function(method)(
             data[X],
             *[tuple(a) if isinstance(a, list) else _resolve(a, data) for a in args],
             **{k: _resolve(v, data) for k, v in options.items()},
@@ -100,12 +122,17 @@ def build() -> dict:
             expect["embedding"] = r.embedding
         if r.unit_coordinates is not None:
             expect["unit_coordinates"] = r.unit_coordinates
-        expect["stop_reason"] = r.stop_reason
+        expect |= {"n_iter": r.n_iter, "history": r.history, "stop_reason": r.stop_reason}
         cases.append({"method": method, "X": X, "args": args, "options": options, "expect": expect})
     for method, args, options in METRICS:
         value = getattr(ub, method)(*[_resolve(a, data) for a in args], **options)
         cases.append({"method": method, "args": args, "options": options, "expect": value})
-    api = {"ubukit": ub.__all__, "steps": ub.steps.__all__}
+    api = {
+        "ubukit": ub.__all__,
+        "steps": ub.steps.__all__,
+        "apply": ub.apply.__all__,
+        "steps.apply": ub.steps.apply.__all__,
+    }
     return json.loads(json.dumps({"api": api, "data": data, "cases": cases}, default=_jsonable))
 
 

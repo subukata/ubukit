@@ -37,6 +37,28 @@ In `rcm`, membership 1 puts a point in the lower approximation of a cluster;
 a point shared equally among clusters (1/2, 1/3, ...) is in their boundary.
 Inputs should be finite and of ordinary scale; standardize features first.
 
+Trained prototypes apply to new data, fixed: `ub.apply` has a function for
+every method, which takes the data, the prototypes (`centers`) and the
+parameters they were trained with, and returns the Result of the new data,
+`centers` unchanged. Retraining is the fitting function's job; these never
+move the prototypes.
+
+```js
+const added = [[0.5, 0.4], [3.9, 4.1]];
+const placed = ub.apply.somOlp(added, m.centers, m.unitCoordinates, { lam: 0.5, gamma: 1 });
+placed.embedding;                                      // the new points on the trained map
+ub.apply.fcm(added, r.centers, { m: 2 }).membership;
+```
+
+Each method assigns once (`stopReason === 'schedule'`), except `somOlp`,
+whose memberships are iterated with the map fixed until they settle
+(`'tol'`, or `'limit'` after `maxIter`, 1000 by default). They start from
+the distances alone, so for the points a map was trained on they need not
+end where training left them: keep the trained `embedding` for those, or
+apply to them too for positions consistent with the final map. `rmcm` builds
+its neighborhoods within the data given, so apply it to new points together.
+`ub.steps.apply` has the same functions as generators.
+
 A search that scores many embeddings of the same `X` computes the distances
 of `X` once with a `Neighborhood` (8 N^2 bytes), which both metrics take in
 place of `X` with the same values; an array of `k` gives a `Float64Array`

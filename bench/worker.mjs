@@ -45,7 +45,7 @@ function resolve(name, value) {
 
 const results = {};
 for (const c of request.cases) {
-  const fn = local[camel(c.method)] ?? ub[camel(c.method)];
+  const fn = local[camel(c.method)] ?? c.method.split('.').reduce((f, part) => f?.[camel(part)], ub); // e.g. apply.fcm
   if (!fn) continue;
   const args = c.args.map(a => resolve(c.data, a));
   const options = Object.fromEntries(Object.entries(c.options).map(([k, v]) => [camel(k), resolve(c.data, v)]));

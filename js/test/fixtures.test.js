@@ -24,17 +24,21 @@ test('the public names are those of Python, in camelCase', () => {
   const python = api.ubukit.filter(n => !types.includes(n)).map(camel);
   assert.deepEqual(Object.keys(ub).filter(n => !own.includes(n)).sort(), python.sort());
   assert.deepEqual(Object.keys(ub.steps).sort(), api.steps.map(camel).sort());
+  assert.deepEqual(Object.keys(ub.apply).sort(), api.apply.map(camel).sort());
+  assert.deepEqual(Object.keys(ub.steps.apply).sort(), api['steps.apply'].map(camel).sort());
 });
 
 for (const c of cases) {
   const options = Object.fromEntries(Object.entries(c.options).map(([k, v]) => [camel(k), resolve(v)]));
   test(`${c.method} ${JSON.stringify(c.options)}`, () => {
-    const fn = ub[camel(c.method)];
+    const fn = c.method.split('.').reduce((f, part) => f[camel(part)], ub); // e.g. apply.somOlp
     if (c.X) {
       const r = fn(data[c.X], ...c.args.map(resolve), options);
       close(r.centers, c.expect.centers, 'centers');
       assert.deepEqual(Array.from(r.labels), c.expect.labels);
       assert.equal(r.stopReason, c.expect.stop_reason);
+      assert.equal(r.nIter, c.expect.n_iter);
+      close(r.history, c.expect.history, 'history');
       if (c.expect.membership) close(r.membership, c.expect.membership, 'membership');
       if (c.expect.embedding) close(r.embedding, c.expect.embedding, 'embedding');
       if (c.expect.unit_coordinates) {
