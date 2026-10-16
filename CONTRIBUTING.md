@@ -48,6 +48,19 @@ bump them in pull requests of their own.
 - A design decision (a new principle, an exception to one, a choice between
   approaches) gets a short entry in `docs/decisions.md`.
 
+## Weight of a change
+
+The checks run for every change; beyond them, the effort follows the risk.
+
+| Weight | Changes | Beyond the checks and CI |
+|---|---|---|
+| Light | documentation, tests, renames, fixes that touch no equation, default, public name or hot loop | nothing |
+| Medium | refactors whose iterates stay the same | fixtures regenerated without a diff; `bench/run.py --compare main --only` the affected cases |
+| Heavy | a new public name, changed equations or defaults, speed work | the benchmark tables below for every affected case; the design agreed with the maintainer before it is built |
+
+A decision entry goes with a design choice at any weight, and only with one.
+A light pull request has a short description.
+
 ## Benchmark
 
 `bench/run.py` runs the cases of `bench/cases.py` in Python, JavaScript and,
@@ -86,7 +99,8 @@ up to m.
 
 ## Pull requests
 
-One change per pull request. When pull requests are stacked, retarget each
+One change per pull request; several light documentation fixes may share
+one. When pull requests are stacked, retarget each
 dependent to `main` before merging its base: deleting a merged base branch
 closes the pull requests that target it.
 

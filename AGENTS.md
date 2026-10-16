@@ -17,6 +17,10 @@ Unless the maintainer asks for it:
   which workflow, how many jobs and on which systems before asking: Actions
   minutes are the maintainer's, and paid while the repository is private.
 
+One standing exception: merge a light pull request (`CONTRIBUTING.md`,
+"Weight of a change") once CI passes, as a merge commit, and delete its
+branch.
+
 Never:
 
 - relax a test, a tolerance or the fixtures to make a change pass;
@@ -25,6 +29,9 @@ Never:
 
 ## Working
 
+- Match the effort to the weight of the change (`CONTRIBUTING.md`): a
+  light change needs the checks and CI only, without benchmarks, outside
+  reviews or long descriptions.
 - Reviews cover every file in scope, or a scope agreed first, and say what
   was read. Confirm a suspicion by running code before reporting it.
 - Choose a design by how the library should look in the long run
