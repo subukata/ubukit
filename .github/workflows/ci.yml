@@ -18,6 +18,12 @@ on:
 permissions:
   contents: read
 
+# pip installs wheels only: building a dependency from its source runs that
+# package's own code (DESIGN.md, principle 8; npm skips install scripts).
+# UbuKit itself is still built from this checkout.
+env:
+  PIP_ONLY_BINARY: ":all:"
+
 # A new push to a pull request cancels its earlier run; runs started by hand
 # never cancel each other.
 concurrency:
