@@ -213,7 +213,7 @@ export function* applyEfcm(X, centers, options) {
 /** EFCM's assignment for the temperature tau. */
 function entropic(tau) {
   checkNumber(tau, 'tau', 0, true);
-  return (_, D) => softmin(D, tau);
+  return (_, D) => softmin(D, tau, 'tau');
 }
 
 /**

@@ -190,7 +190,7 @@ def nearest(X: np.ndarray, C: np.ndarray, xx: np.ndarray | None = None) -> np.nd
     return out
 
 
-def softmin(C: np.ndarray, temperature: float) -> tuple[np.ndarray, float]:
+def softmin(C: np.ndarray, temperature: float, name: str) -> tuple[np.ndarray, float]:
     """Memberships p_ij proportional to exp(-c_ij / T), and the sum of the rows' soft minima.
 
     The soft minimum c_min - T log sum_j exp(-(c_ij - c_min) / T) equals
@@ -199,7 +199,8 @@ def softmin(C: np.ndarray, temperature: float) -> tuple[np.ndarray, float]:
     the normalization computes. Each row's minimum is subtracted before the
     division, so every exponent lies in [-inf, 0] and any T > 0, however
     small against the costs, gives finite memberships: the hard ones of its
-    limit.
+    limit. A huge T leaves the objective, about -N T log K, beyond float64,
+    which raises an error naming the temperature (``name``).
     """
     low = C.min(axis=1, keepdims=True)
     P = C - low
@@ -208,7 +209,11 @@ def softmin(C: np.ndarray, temperature: float) -> tuple[np.ndarray, float]:
     np.exp(P, out=P)
     total = P.sum(axis=1, keepdims=True)
     P /= total
-    return P, float(np.sum(low) - temperature * np.sum(np.log(total)))
+    with np.errstate(over="ignore"):
+        value = float(np.sum(low) - temperature * np.sum(np.log(total)))
+    if not math.isfinite(value):
+        raise ValueError(f"{name} = {temperature:g} is too large: the objective overflows float64")
+    return P, value
 
 
 def weighted_mean(X: np.ndarray, W: np.ndarray, V: np.ndarray) -> np.ndarray:

@@ -204,6 +204,24 @@ def test_gamma_keeps_the_latent_costs_finite():
     # Up to the bound (extent 16 here) the costs stay finite.
     r = ub.som_olp(X, R, init=[[0.0], [0.0]], lam=1.0, gamma=6e298, max_iter=3)
     assert np.isfinite(r.membership).all() and np.isfinite(r.history).all()
+    # Units far from the origin: the latent costs come from centered
+    # coordinates, so rounding follows the extent (0 here), not the offset.
+    far = ub.som_olp(
+        [[0.0], [0.7], [2.0]], [[1e20], [1e20]], init=[[0.0], [2.0]], lam=0.7, gamma=1e308
+    )
+    assert np.isfinite(far.membership).all() and np.isfinite(far.history).all()
+
+
+def test_the_start_and_the_objective_stay_in_float64():
+    # A PCA start spread beyond the scale contract, and a temperature whose
+    # objective (about -N T log K) overflows, gave NaN or -inf and "tol".
+    with pytest.raises(ValueError, match="pca_scale is too large"):
+        ub.som_olp([[-1.0], [1.0]], (2, 1), lam=1.0, gamma=0.0, pca_scale=1e200)
+    points = [[0.0], [1.0], [2.0]]
+    with pytest.raises(ValueError, match=r"lam = 1e\+308 is too large"):
+        ub.som_olp(points, points, lam=1e308, gamma=1.0, init=points)
+    with pytest.raises(ValueError, match=r"tau = 1e\+308 is too large"):
+        ub.efcm(points, 3, tau=1e308, init=points)
 
 
 def test_far_apart_schedule_ends_stay_finite(blobs):

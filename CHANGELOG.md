@@ -118,6 +118,13 @@ versions keep the API and change results only to fix bugs, listed under
   gave `NaN` memberships and reported `"tol"`, where Python gives the
   limit; it now computes what Python does (`1 ** Infinity` is `NaN` in
   JavaScript, 1 in IEEE arithmetic).
+- `som_olp` computes its latent costs from centered unit coordinates, so
+  units far from the origin no longer overflow them through rounding (equal
+  coordinates at 1e20 with a large `gamma` gave `NaN`); results move in
+  their last digits only. A `pca_scale` whose start leaves the scale
+  contract, and a `tau` or `lam` so large that the objective overflows,
+  raise an error; they gave `NaN` memberships or `-inf` history with
+  `"tol"`.
 
 ## 0.1.1 (2026-10-07)
 

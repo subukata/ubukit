@@ -197,7 +197,7 @@ export function random(seed) {
 }
 
 /** Center the columns of X; returns the centered copy and the mean. */
-function center(X) {
+export function center(X) {
   const { rows: n, cols: d, data } = X;
   const mean = new Float64Array(d);
   for (let i = 0; i < n; i++) for (let f = 0; f < d; f++) mean[f] += data[i * d + f];
@@ -285,11 +285,13 @@ export function argmaxRows(U) {
  * entropy-regularized objective; it comes from the row minima and sums that
  * the normalization computes. Each row's minimum is subtracted before the
  * division, so every exponent lies in [-inf, 0] and any T > 0, however small
- * against the costs, gives finite memberships: the hard ones of its limit.
- * @param {Matrix} C @param {number} temperature
+ * against the costs, gives finite memberships: the hard ones of its limit. A
+ * huge T leaves the objective, about -N T log K, beyond float64, which throws
+ * an error naming the temperature (name).
+ * @param {Matrix} C @param {number} temperature @param {string} name
  * @returns {{ U: Matrix, value: number }}
  */
-export function softmin(C, temperature) {
+export function softmin(C, temperature, name) {
   const { rows: n, cols: k, data: c } = C, out = new Float64Array(n * k);
   let value = 0;
   for (let i = 0; i < n; i++) {
@@ -299,6 +301,7 @@ export function softmin(C, temperature) {
     for (let j = 0; j < k; j++) out[i * k + j] /= sum;
     value += low - temperature * Math.log(sum);
   }
+  if (!Number.isFinite(value)) throw new RangeError(`${name} = ${temperature} is too large: the objective overflows float64`);
   return { U: { data: out, rows: n, cols: k }, value };
 }
 

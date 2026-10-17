@@ -225,7 +225,7 @@ def apply_efcm(X: ArrayLike, centers: ArrayLike, *, tau: float = 1.0) -> Steps:
 def _efcm(tau: float) -> Assign:
     """EFCM's assignment for the temperature tau."""
     tau = check_float(tau, "tau", 0.0, strict=True)
-    return lambda _, D: softmin(D, tau)
+    return lambda _, D: softmin(D, tau, "tau")
 
 
 def rcm(
