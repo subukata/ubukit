@@ -19,7 +19,7 @@ first adapted at version 1.8.0:
 - the AMI denominator kept at least machine epsilon away from zero, with its
   sign.
 
-They are in python/src/ubukit/metrics.py and js/src/metrics.js (ari, ami).
+They are in python/src/ubukit/_metrics.py and js/src/metrics.js (ari, ami).
 The rest of UbuKit's metrics, including the expected mutual information, was
 written for UbuKit.
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as ub from '../src/index.js';
-import { X } from './helpers.js';
+import { X, largeAllocations } from './helpers.js';
 
 test('matrix input accepts {data, rows, cols} and validates', () => {
   const m = ub.matrix(X);
@@ -36,6 +36,11 @@ test('rows are checked before the matrix is allocated', () => {
   assert.throws(() => ub.matrix([[1, 2], 'ab']), TypeError);
   assert.throws(() => ub.matrix([null]), TypeError);
   assert.deepEqual(ub.matrix([Float64Array.of(1, 2), [3, 4]]).data, Float64Array.of(1, 2, 3, 4));
+  // A sparse row has a length but no entries: every() skipped its holes, so
+  // the copy was allocated at its claimed length before the values were refused.
+  const sparse = () => ub.matrix([new Array(5e6)]);
+  assert.throws(sparse, { name: 'TypeError', message: 'X rows must be arrays of numbers' });
+  assert.deepEqual(largeAllocations(sparse), []);
 });
 
 test('an unknown option is an error, as an unknown keyword is in Python', async () => {
