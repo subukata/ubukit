@@ -4,6 +4,20 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-17 pip installs wheels only (#119)
+
+Both workflows set `PIP_ONLY_BINARY=:all:`, so pip never builds a
+dependency from source, as npm's `--ignore-scripts` keeps install scripts
+from running. *Why:* principle 8 says that dependency install scripts do
+not run, but only npm enforced it: pip builds a package that has no wheel
+for the platform, running its build backend's code, in the test jobs and
+in the isolated environment of the release build. Codex's review pointed
+it out. The latest CI built nothing from source but UbuKit itself, which
+the setting still builds, and `python -m build` with `twine check` passed
+under it. *Rejected:* narrowing principle 8 to npm (the promise is worth
+keeping, and it costs nothing today) and hash-pinned requirement files (the
+monthly maintenance #56 rejected).
+
 ## 2026-10-17 Values made inside keep the numerical contract (#116)
 
 What the library makes from valid arguments must keep the contract that

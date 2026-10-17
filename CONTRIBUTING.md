@@ -120,6 +120,12 @@ closes the pull requests that target it.
 - A new action is pinned to a full commit SHA with the version in a comment,
   gets only the permissions it needs, and checks out with
   `persist-credentials: false`.
+- No dependency's own code runs when it is installed: npm runs with
+  `--ignore-scripts`, and pip with `PIP_ONLY_BINARY=:all:` (set in both
+  workflows), so it installs wheels and never builds a dependency from
+  source. A dependency without a wheel for a Python that CI tests fails
+  that job; UbuKit itself is still built from the checkout. Set the same
+  variable when installing the development group locally.
 - Dependabot proposes the month's updates to the actions and to the npm
   development dependencies as one pull request per ecosystem, and only
   versions at least a week old. CI runs on these pull requests like any
