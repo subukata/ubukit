@@ -204,24 +204,44 @@ def test_gamma_keeps_the_latent_costs_finite():
     # Up to the bound (extent 16 here) the costs stay finite.
     r = ub.som_olp(X, R, init=[[0.0], [0.0]], lam=1.0, gamma=6e298, max_iter=3)
     assert np.isfinite(r.membership).all() and np.isfinite(r.history).all()
-    # Units far from the origin: the latent costs come from centered
-    # coordinates, so rounding follows the extent (0 here), not the offset.
-    far = ub.som_olp(
-        [[0.0], [0.7], [2.0]], [[1e20], [1e20]], init=[[0.0], [2.0]], lam=0.7, gamma=1e308
-    )
-    assert np.isfinite(far.membership).all() and np.isfinite(far.history).all()
+    # Units far from the origin: the latent costs come from coordinates
+    # centered after subtracting the first unit, so coincident units cost
+    # nothing wherever they are, and give what they give at the origin.
+    # (Centered by their mean alone, units at 1e50 left a residual of 1e34
+    # that JavaScript turned into costs of 1e37.)
+    X, start = [[0.0], [0.7], [2.0]], [[j / 3] for j in range(6)]
+    options = {"lam": 0.7, "gamma": 1.0, "init": start, "max_iter": 3, "tol": 0.0}
+    far = ub.som_olp(X, [[1e50]] * 6, **options)
+    near = ub.som_olp(X, [[0.0]] * 6, **options)
+    np.testing.assert_array_equal(far.history, near.history)
+    np.testing.assert_array_equal(far.membership, near.membership)
+    # Their extent is 0, so no gamma is too large for them.
+    assert np.isfinite(ub.som_olp(X, [[1e50]] * 6, **{**options, "gamma": 1e308}).history).all()
 
 
 def test_the_start_and_the_objective_stay_in_float64():
     # A PCA start spread beyond the scale contract, and a temperature whose
     # objective (about -N T log K) overflows, gave NaN or -inf and "tol".
-    with pytest.raises(ValueError, match="pca_scale is too large"):
-        ub.som_olp([[-1.0], [1.0]], (2, 1), lam=1.0, gamma=0.0, pca_scale=1e200)
+    # The start passes the scale check a given start passes, the lower bound
+    # included: pca_scale = 1e-160 gave memberships of 1/2 and "tol".
+    for scale, word in ((1e200, "large"), (1e-160, "small")):
+        with pytest.raises(ValueError, match=f"pca_scale gives is too {word} in scale"):
+            ub.som_olp([[-1.0], [1.0]], (2, 1), lam=1.0, gamma=0.0, pca_scale=scale)
     points = [[0.0], [1.0], [2.0]]
     with pytest.raises(ValueError, match=r"lam = 1e\+308 is too large"):
         ub.som_olp(points, points, lam=1e308, gamma=1.0, init=points)
     with pytest.raises(ValueError, match=r"tau = 1e\+308 is too large"):
         ub.efcm(points, 3, tau=1e308, init=points)
+
+
+def test_the_start_does_not_depend_on_the_scale_of_the_data():
+    # Scaled data, with the temperature scaled alike, give the same memberships:
+    # JavaScript's principal axes were lost at 1e80 and 1e-100.
+    P = np.array([[-3.0, -1.0], [-1.0, 2.0], [1.0, -2.0], [3.0, 1.0]])
+    base = ub.som_olp(P, (3, 3), lam=1.0, gamma=0.0, max_iter=1).membership
+    for scale in (1e80, 1e-100):
+        scaled = ub.som_olp(P * scale, (3, 3), lam=scale**2, gamma=0.0, max_iter=1)
+        np.testing.assert_allclose(scaled.membership, base, atol=1e-12)
 
 
 def test_far_apart_schedule_ends_stay_finite(blobs):

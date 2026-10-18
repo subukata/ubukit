@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, asData, center, checkInt, checkMaxIter, checkNumber, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
+  argmaxRows, asData, center, checkInt, checkMaxIter, checkNumber, checkScale, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
   matrix, MAX_SQ_NORM, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
@@ -184,11 +184,14 @@ function olp(R, lam, gamma) {
   checkNumber(gamma, 'gamma', 0);
   // The latent costs gamma ||v - r_j||^2 come from centered unit coordinates,
   // as distances come from centered data: rounding then follows the extent of
-  // the units, not their distance from the origin. They must stay finite
-  // beside the data's costs, which the scale contract keeps below about 4e300.
-  // A latent position v lies among the units, so ||v - r_j||^2 is at most their
-  // squared extent, bounded by four times their largest squared norm once centered.
-  const Rc = center(R).X, { rows: k, cols: q, data: r } = Rc;
+  // the units, not their distance from the origin. The first unit is
+  // subtracted before the mean, which would otherwise be computed with an
+  // error that follows the offset (coincident units then center to exactly
+  // zero). The costs must stay finite beside the data's, which the scale
+  // contract keeps below about 4e300. A latent position v lies among the units,
+  // so ||v - r_j||^2 is at most their squared extent, bounded by four times
+  // their largest squared norm once centered.
+  const Rc = center(shift(R, R.data.slice(0, R.cols).map(v => -v))).X, { rows: k, cols: q, data: r } = Rc;
   let largest = 0;
   for (let j = 0; j < k; j++) {
     let s = 0;
@@ -247,13 +250,9 @@ function setup(X, R, init, pcaScale = 2) {
   if (typeof init === 'string' && init !== 'pca') throw new RangeError("init must be 'pca' or a (nUnits, nFeatures) matrix");
   const data = asData(X), Xc = data.X;
   if (init === 'pca') {
-    // A start made here keeps the scale contract that a given one must.
-    const W = pcaInit(Xc, R, pcaScale), d = Xc.cols;
-    for (let j = 0; j < W.rows; j++) {
-      let s = 0;
-      for (let f = 0; f < d; f++) s += W.data[j * d + f] ** 2;
-      if (!(s < MAX_SQ_NORM)) throw new RangeError('pcaScale is too large for X: the start is beyond float64 distances');
-    }
+    // A start made here passes the scale check that a given one must.
+    const W = pcaInit(Xc, R, pcaScale);
+    checkScale(shift(W, data.mean), 'the start that pcaScale gives', 'change pcaScale');
     return { data, W };
   }
   const W = matrix(init, 'init');
@@ -332,8 +331,8 @@ function principalAxes(X, q) {
   // v orthogonalized against the basis (twice, for stability) and normalized; null if it vanishes.
   const unit = (v, scale) => {
     for (let pass = 0; pass < 2; pass++) for (const u of basis) { const c = dot(u, v); for (let f = 0; f < d; f++) v[f] -= c * u[f]; }
-    const norm = Math.sqrt(dot(v, v));
-    return norm > 1e-12 * scale ? v.map(x => x / norm) : null;
+    const length = norm(v);
+    return length > 1e-12 * scale ? v.map(x => x / length) : null;
   };
   const fresh = () => unit(Float64Array.from({ length: d }, () => rand() - 0.5), 0);
   for (let v = fresh(); ;) {
@@ -341,7 +340,7 @@ function principalAxes(X, q) {
     basis.push(v);
     images.push(w);
     if (basis.length === size) break;
-    v = unit(w.slice(), Math.sqrt(dot(w, w))) ?? fresh();
+    v = unit(w.slice(), norm(w)) ?? fresh();
   }
   const H = new Float64Array(size * size);
   for (let a = 0; a < size; a++) for (let b = a; b < size; b++) {
@@ -354,14 +353,29 @@ function principalAxes(X, q) {
   }));
 }
 
+/**
+ * The Euclidean norm of v, its entries scaled by the largest before squaring,
+ * so that data of any scale within the contract neither overflow nor vanish
+ * (the squares of a covariance of data at 1e80 overflow, at 1e-100 underflow).
+ */
+function norm(v) {
+  let top = 0;
+  for (const x of v) top = Math.max(top, Math.abs(x));
+  if (!(top > 0 && top < Infinity)) return top;
+  let s = 0;
+  for (const x of v) s += (x / top) ** 2;
+  return top * Math.sqrt(s);
+}
+
 /** Cyclic Jacobi eigendecomposition of a small symmetric matrix; vectors are columns. */
 function symmetricEigen(S, n) {
   const a = S.slice(), v = new Float64Array(n * n);
   for (let i = 0; i < n; i++) v[i * n + i] = 1;
+  const offDiagonal = new Float64Array(n * n - n);
   for (let sweep = 0; sweep < 100; sweep++) {
-    let off = 0, total = 0;
-    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) (i === j ? (total += a[i * n + j] ** 2) : (off += a[i * n + j] ** 2));
-    if (off <= 1e-30 * (total + off) || off === 0) break;
+    let m = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (i !== j) offDiagonal[m++] = a[i * n + j];
+    if (norm(offDiagonal) <= 1e-15 * norm(a)) break;
     for (let p = 0; p < n - 1; p++) for (let r = p + 1; r < n; r++) {
       const apr = a[p * n + r];
       if (apr === 0) continue;

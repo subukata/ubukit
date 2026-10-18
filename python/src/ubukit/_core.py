@@ -115,12 +115,18 @@ def as_matrix(X: ArrayLike, name: str = "X") -> np.ndarray:
         raise ValueError(f"{name} must be a non-empty 2-D array")
     if not np.isfinite(A).all():
         raise ValueError(f"{name} must contain only finite values")
+    check_scale(A, name)
+    return A
+
+
+def check_scale(A: np.ndarray, name: str, advice: str = "standardize it") -> None:
+    """Refuse finite rows A outside the ordinary scale: some row norm at 1e150 or
+    more, or a spread that is not 0 but below 1e-150 in every feature."""
     if not sq_norms(A).max() < MAX_SQ_NORM:
-        raise ValueError(f"{name} is too large in scale for float64 distances; standardize it")
+        raise ValueError(f"{name} is too large in scale for float64 distances; {advice}")
     span = float((A.max(axis=0) - A.min(axis=0)).max())
     if 0 < span < MIN_SPAN:
-        raise ValueError(f"{name} is too small in scale for float64 distances; standardize it")
-    return A
+        raise ValueError(f"{name} is too small in scale for float64 distances; {advice}")
 
 
 def check_int(value: Any, name: str, low: int, high: int | None = None) -> int:

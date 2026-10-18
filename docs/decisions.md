@@ -4,6 +4,24 @@ Why UbuKit is the way it is, newest first. Each entry gives the decision, the
 reason and what was rejected, with the pull requests that carried it. Add an
 entry when a pull request makes or changes a design decision.
 
+## 2026-10-18 Unit coordinates centered from the first unit; norms scaled (#121)
+
+SOM-OLP subtracts the first unit from the unit coordinates before
+subtracting their mean; a start made with `pca_scale` passes the whole
+scale check of a given start (one shared `check_scale` / `checkScale`);
+JavaScript's principal axes take their norms with the entries scaled by the
+largest. *Why:* Codex's review of 0.2.0's candidate found that the mean of
+coincident units at 1e50 is computed with an error of 1e34, which the
+weighted latent positions turned into costs of 1e37 in JavaScript (#116's
+centering alone did not suffice); that `pca_scale = 1e-160` passed, as
+#116 checked only the upper bound; and that JavaScript lost the principal
+axes of data at 1e80 or 1e-100, whose covariance squares overflow or
+underflow. Rectangular grids, whose first unit is the origin, are
+unchanged; one fixture moves by 2.8e-14. *Rejected:* refusing coincident
+or far units (they are valid), scaling the data before the PCA (a second
+copy of X, where only the norms needed care), and `Math.hypot` over
+spread arrays (the stack limit that #109 met).
+
 ## 2026-10-17 pip installs wheels only (#119)
 
 Both workflows set `PIP_ONLY_BINARY=:all:`, so pip never builds a

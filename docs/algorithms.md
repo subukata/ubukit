@@ -172,8 +172,8 @@ Units $j$ sit at grid coordinates $r_j$ (unit $j$ = `row * cols + col` at
 each column of the coordinates up to $D$: on a rectangular grid the plane of
 the two leading axes, grid rows along the first. Each column is centered and
 spread over $\pm$`pca_scale` standard deviations of its axis (2 for `som`
-and `batch_som`); a start beyond the scale contract that given prototypes
-must keep raises an error. Each axis
+and `batch_som`); a start too large or too small for the scale contract
+that given prototypes must keep raises an error. Each axis
 is oriented so that its first clearly nonzero component is positive, which
 stays well defined when components tie in magnitude, as for standardized
 2-D data. Python takes the axes from the smaller of $X^\top X$ and $X X^\top$;
@@ -200,9 +200,10 @@ underflows when the ends are far apart.
   their squared extent, bounded by $4 \max_j \lVert r_j - \bar r \rVert^2$;
   $\gamma$ times that bound must be at most $10^{300}$, as the squared norms
   of the data must be, so that the costs stay finite. A larger $\gamma$
-  raises an error. The latent costs are computed from the centered unit
-  coordinates, as distances are from centered data, so their rounding
-  follows that extent, not the units' distance from the origin.
+  raises an error. The latent costs are computed from the unit coordinates
+  centered after subtracting the first unit, as distances are from centered
+  data, so their rounding follows that extent, not the units' distance from
+  the origin: coincident units cost nothing wherever they are.
 
 ## Applying trained prototypes
 

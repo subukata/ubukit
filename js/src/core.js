@@ -84,7 +84,17 @@ export function matrix(values, name = 'X') {
     throw new TypeError(`${name} must be an array of rows or {data, rows, cols}`);
   }
   if (!isMatrix(out)) throw new RangeError(`${name} must be a non-empty rows x cols matrix`);
-  const { rows, cols, data } = out;
+  checkScale(out, name);
+  return out;
+}
+
+/**
+ * Refuse a matrix that is not finite or not of ordinary scale: some row norm
+ * at 1e150 or more, or a spread that is not 0 but below 1e-150 in every feature.
+ * @param {Matrix} M @param {string} name @param {string} [advice]
+ */
+export function checkScale(M, name, advice = 'standardize it') {
+  const { rows, cols, data } = M;
   const lo = new Float64Array(cols).fill(Infinity), hi = new Float64Array(cols).fill(-Infinity);
   for (let i = 0; i < rows; i++) {
     let norm = 0;
@@ -95,12 +105,11 @@ export function matrix(values, name = 'X') {
       lo[c] = Math.min(lo[c], v);
       hi[c] = Math.max(hi[c], v);
     }
-    if (!(norm < MAX_SQ_NORM)) throw new RangeError(`${name} is too large in scale for float64 distances; standardize it`);
+    if (!(norm < MAX_SQ_NORM)) throw new RangeError(`${name} is too large in scale for float64 distances; ${advice}`);
   }
   let span = 0;
   for (let c = 0; c < cols; c++) span = Math.max(span, hi[c] - lo[c]);
-  if (span > 0 && span < MIN_SPAN) throw new RangeError(`${name} is too small in scale for float64 distances; standardize it`);
-  return out;
+  if (span > 0 && span < MIN_SPAN) throw new RangeError(`${name} is too small in scale for float64 distances; ${advice}`);
 }
 
 /**
