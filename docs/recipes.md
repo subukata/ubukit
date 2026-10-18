@@ -137,3 +137,29 @@ for display only, and compute metrics on the embedding itself.
 shown = m.embedding + rng.normal(0.0, 0.15, m.embedding.shape)  # drawing only
 score = ub.trustworthiness(X, m.embedding, k=10)  # not on `shown`
 ```
+
+## Resuming a search
+
+A TPE's proposals follow from its seed and the trials told, so a search
+resumes from its result, in another process too: a new `TPE` with the same
+space, settings and seed, told the trials in order, goes on as the search
+would have.
+
+```python
+space = {"x": ub.uniform(-5, 5), "y": ub.uniform(-5, 5)}
+
+
+def loss(p):
+    return (p["x"] - 1) ** 2 + p["y"] ** 2
+
+
+first = ub.minimize(loss, space, 20)  # first.seed is the seed drawn
+
+search = ub.TPE(space, seed=first.seed)
+for params, value in zip(first.params, first.values):
+    search.tell(params, value)
+for _ in range(20):
+    params = search.ask()
+    search.tell(params, loss(params))
+assert search.result().params == ub.minimize(loss, space, 40, seed=first.seed).params
+```

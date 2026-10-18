@@ -5,6 +5,23 @@ every such change is listed under "Changed results" or "Changed API". Patch
 versions keep the API and change results only to fix bugs, listed under
 "Fixed".
 
+## (unreleased)
+
+### Changed results
+
+- TPE draws its proposals from a random stream of the seed and the number of
+  trials told, so a seeded search proposes other parameters than in 0.2.0.
+  It searches as well: over 100 seeds, the median best values on the
+  test's and the benchmark's objectives stay within the spread of 0.2.0's.
+
+### Added
+
+- A TPE search resumes from its result: `TPE.seed` and `TPEResult.seed` hold
+  the seed, drawn at construction when none is given, and a new `TPE` with
+  the same space, settings and seed, told the same trials in the same order,
+  asks what the search asked first after its last tell
+  ([recipe](docs/recipes.md#resuming-a-search)).
+
 ## 0.2.0 (2026-10-18)
 
 ### Changed API

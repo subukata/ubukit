@@ -5,6 +5,20 @@ reason and what was rejected; the pull requests it names hold the
 measurements and the review history. Add an entry when a pull request makes
 or changes a design decision.
 
+## 2026-10-18 A TPE search resumes from its seed and its trials (#126)
+
+Each ask draws from a random stream of the seed and the number of trials
+told (Python: `SeedSequence(seed, spawn_key=(n,))`; JavaScript: Mulberry32
+seeded with the two mixed by MurmurHash3's finalizer), and the seed, drawn
+when none is given, is read-only in `TPE` and `TPEResult`: a TPE told the
+same trials in order asks what the search asked first after its last tell.
+*Why:* a search could not go on in another process: the generator's
+position was hidden, and telling the trials again did not restore it.
+*Rejected:* exporting and restoring the generator's state (internal state as
+API, in two formats), counting the asks into the stream (an untold ask would
+become part of the history), hashing the parameter values (options may be
+any object), and a promise across languages, versions or platforms.
+
 ## 2026-10-18 Unit coordinates centered from the first unit; norms scaled (#121)
 
 SOM-OLP subtracts the first unit before the mean of the unit coordinates, a

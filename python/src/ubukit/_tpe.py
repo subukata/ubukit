@@ -133,20 +133,26 @@ class _Options(TypedDict, total=False):
 
 @dataclass(frozen=True, slots=True, eq=False)
 class TPEResult:
-    """Best trial and the full history, in evaluation order."""
+    """Best trial, the full history in evaluation order, and the seed of the search."""
 
     best_params: dict[str, Any]
     best_value: float
     params: list[dict[str, Any]]
     values: np.ndarray
+    seed: int
 
 
 class TPE:
     """Ask/tell TPE minimizer.
 
+    The proposals after each tell come from a random stream of the seed and
+    the number of trials told, so a TPE with the same space, settings and
+    seed, told the same trials in the same order, asks next what this one
+    asked first after its last tell: a search resumes from ``result()``.
+
     Args:
         space: mapping of names to ``uniform``, ``loguniform``, ``integer`` or ``choice``.
-        seed: random seed.
+        seed: random seed; ``None`` draws one, kept in ``seed``.
         n_startup: random trials before the model is used.
         n_candidates: candidates drawn from l(x) per proposal.
         gamma: fraction of trials treated as good.
@@ -170,7 +176,11 @@ class TPE:
                     f"space[{name!r}] must come from uniform/loguniform/integer/choice"
                 )
             self._space[name] = dim
-        self._rng = np.random.default_rng(check_seed(seed))
+        seed = check_seed(seed)
+        self._seed = (
+            int(np.random.default_rng().integers(MAX_INT, endpoint=True)) if seed is None else seed
+        )
+        self._rng: np.random.Generator | None = None  # the trials' stream, made by ask
         self._n_startup = check_int(n_startup, "n_startup", 2)
         self._n_candidates = check_int(n_candidates, "n_candidates", 1)
         self._gamma = check_float(gamma, "gamma", 0.0, strict=True)
@@ -181,6 +191,11 @@ class TPE:
         self._values: list[float] = []
 
     # The settings are read-only: a value set later would skip the checks above.
+    @property
+    def seed(self) -> int:
+        """The random seed, given or drawn."""
+        return self._seed
+
     @property
     def n_startup(self) -> int:
         """Random trials before the model is used."""
@@ -198,15 +213,17 @@ class TPE:
 
     def ask(self) -> dict[str, Any]:
         """Propose parameters to evaluate next."""
+        if self._rng is None:
+            spawn = np.random.SeedSequence(self._seed, spawn_key=(len(self._values),))
+            self._rng = np.random.default_rng(spawn)
+        rng = self._rng
         if len(self._values) < self.n_startup:
             u = [
-                float(self._rng.integers(len(d.options)))
-                if isinstance(d, _Choice)
-                else self._rng.random()
+                float(rng.integers(len(d.options))) if isinstance(d, _Choice) else rng.random()
                 for d in self._dims
             ]
         else:
-            u = self._propose().tolist()
+            u = self._propose(rng).tolist()
         return {name: dim.decode(x) for (name, dim), x in zip(self._space.items(), u, strict=True)}
 
     def tell(self, params: Mapping[str, Any], value: float) -> None:
@@ -217,6 +234,7 @@ class TPE:
         self._encoded.append(np.array([dim.encode(params[k]) for k, dim in self._space.items()]))
         self._params.append(dict(params))
         self._values.append(value)
+        self._rng = None
 
     def result(self) -> TPEResult:
         if not self._values:
@@ -227,19 +245,20 @@ class TPE:
             self._values[best],
             [dict(p) for p in self._params],
             np.array(self._values),
+            self._seed,
         )
 
     @property
     def _dims(self):
         return list(self._space.values())
 
-    def _propose(self) -> np.ndarray:
+    def _propose(self, rng: np.random.Generator) -> np.ndarray:
         X, y = np.array(self._encoded), np.array(self._values)
         n_good = min(len(y) - 1, max(1, math.ceil(self.gamma * len(y))))
         order = np.argsort(y, kind="stable")
         good = _Parzen(X[order[:n_good]], self._dims)
         bad = _Parzen(X[order[n_good:]], self._dims)
-        candidates = good.sample(self._rng, self.n_candidates)
+        candidates = good.sample(rng, self.n_candidates)
         return candidates[np.argmax(good.logpdf(candidates) - bad.logpdf(candidates))]
 
 

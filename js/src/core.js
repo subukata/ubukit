@@ -196,9 +196,14 @@ export function named(options) {
   return options;
 }
 
+/** The seed given, checked to be an integer in [0, 2^32), or a fresh one when omitted. */
+export function resolveSeed(seed) {
+  return seed === undefined ? (Math.random() * 2 ** 32) >>> 0 : checkInt(seed, 'seed', 0, 2 ** 32 - 1);
+}
+
 /** Seeded uniform [0, 1) generator (Mulberry32); random seed when omitted. */
 export function random(seed) {
-  let s = seed === undefined ? (Math.random() * 2 ** 32) >>> 0 : checkInt(seed, 'seed', 0, 2 ** 32 - 1);
+  let s = resolveSeed(seed);
   return () => {
     s = (s + 0x6d2b79f5) >>> 0;
     let t = Math.imul(s ^ (s >>> 15), s | 1);
