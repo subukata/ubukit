@@ -1,8 +1,11 @@
 # Recipes
 
 Worked uses of UbuKit, in Python; JavaScript has the same functions in its
-own spelling (`ub.apply.somOlp`, `unitCoordinates`). The blocks run as
-written, in order, after this one:
+own spelling (`ub.apply.somOlp`, `unitCoordinates`). This file follows the
+main branch: a recipe marked *Unreleased* needs the development version,
+and the recipes of a release are at its tag
+(`https://github.com/subukata/ubukit/tree/v<version>/docs`). The blocks run
+as written, in order, after this one:
 
 ```python
 import numpy as np
@@ -140,10 +143,10 @@ score = ub.trustworthiness(X, m.embedding, k=10)  # not on `shown`
 
 ## Resuming a search
 
-A TPE's proposals follow from its seed and the trials told, so a search
-resumes from its result, in another process too: a new `TPE` with the same
-space, settings and seed, told the trials in order, goes on as the search
-would have.
+*Unreleased; planned for 0.3.0.* A TPE's proposals follow from its seed and
+the trials told, so a search resumes from its result, in another process
+too: a new `TPE` with the same space, settings and seed, told the trials in
+order, goes on as the search would have.
 
 ```python
 space = {"x": ub.uniform(-5, 5), "y": ub.uniform(-5, 5)}

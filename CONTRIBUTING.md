@@ -49,6 +49,10 @@ bump them in pull requests of their own.
   approaches) gets an entry in `docs/decisions.md`: the decision, why, and
   what was rejected, in a few lines, the measurements left in the pull
   request. An entry that a later decision replaces stays and names it.
+- `docs/` follows `main`: the description of a change not yet released
+  begins with "*Unreleased; planned for 0.3.0.*" (the coming version), and
+  documents link each other relatively. The package READMEs, which the
+  registries show with a release, link the documents at their version's tag.
 
 ## Weight of a change
 
@@ -184,7 +188,10 @@ Every release:
    `js/package.json` and the two version fields of `js/package-lock.json`
    (by hand: `npm version` rewrites the formatting of `package.json`), and
    replace "(unreleased)" in `CHANGELOG.md` with the date;
-   `tests/test_packaging.py` fails until all five agree.
+   `tests/test_packaging.py` fails until all five agree. In the same pull
+   request, set the version in the documentation links of `python/README.md`
+   and `js/README.md` (`blob/v0.1.0/docs/...`, the tag to come) and remove the
+   "*Unreleased; planned for ...*" marks in `docs/`; the same test checks both.
 3. After merging it, tag the merge and push the tag
    (`git tag v0.1.0 && git push origin v0.1.0`). `release.yml` tests both
    packages, builds them in a separate job with only the build tools after

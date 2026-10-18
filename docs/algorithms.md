@@ -1,5 +1,9 @@
 # Algorithms
 
+This file follows the main branch: what is marked *Unreleased* is not in the
+released packages yet, and the equations of a release are at its tag
+(`https://github.com/subukata/ubukit/tree/v<version>/docs`).
+
 Every method repeats one step on data $X = \{x_i\}_{i=1}^N \subset \mathbb{R}^D$
 and prototypes $V = \{v_c\}_{c=1}^K$ under the same stopping rule. All
 clustering methods and two of the maps use the standard alternating step
@@ -28,6 +32,19 @@ iteration, `"tol"`, `"limit"` (the iteration limit, without the tolerance)
 or `"schedule"`, and `None` in a per-iteration result where none holds yet.
 Stopping says nothing about the quality of the partition (see "Degenerate
 solutions").
+
+A Result is the state of its last iteration. For the clustering methods and
+`som_olp`, `labels` and `membership` (and `som_olp`'s `embedding`) come from
+the assignment with the previous prototypes, and `centers` from the update
+that follows: they are the weighted means of the returned memberships,
+except for a prototype without mass. `history` holds the objective at each
+assignment. Outside a fixed point, assigning the data to the returned
+centers, as `apply` does, can therefore change the memberships, most after
+an early stop; for `som_olp`, whose assignment also depends on the previous
+memberships, even at the end of a run (see "Applying trained prototypes").
+`som` and `batch_som` return the best-matching units of their final
+prototypes, which are weighted by the neighborhood and so in general not the
+means of their units' points.
 
 The data are an input of every iteration, so a run can go on with new data,
 for example points that move. The prototypes keep their positions, and the
@@ -271,12 +288,12 @@ on $[0, 1]$ whose width is the larger gap to the neighboring centers;
 categorical kernels put $1 - \varepsilon$ on the observed option. The best of
 `n_candidates` samples from $l(x)$ by $l(x)/g(x)$ is proposed.
 
-Every ask draws from a random stream fixed by the seed and the number of
-trials told: the first ask after a tell starts the stream of the new count,
-and further asks continue it. A search therefore resumes from its trials: a
-`TPE` with the same space (its dimensions in the same order), settings and
-seed (the one given, or the one drawn when none is, kept in `seed` and in
-the result), told the same trials in the same order, asks what the search
-asked first after its last tell. An ask that is not told leaves no trace
-once the next trial is told. Nothing is promised across languages, versions
-or platforms.
+*Unreleased; planned for 0.3.0.* Every ask draws from a random stream fixed
+by the seed and the number of trials told: the first ask after a tell starts
+the stream of the new count, and further asks continue it. A search
+therefore resumes from its trials: a `TPE` with the same space (its
+dimensions in the same order), settings and seed (the one given, or the one
+drawn when none is, kept in `seed` and in the result), told the same trials
+in the same order, asks what the search asked first after its last tell. An
+ask that is not told leaves no trace once the next trial is told. Nothing is
+promised across languages, versions or platforms.
