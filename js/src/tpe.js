@@ -204,7 +204,11 @@ function streamSeed(seed, n) {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
-/** Equal-weight mixture: one component per observation plus a wide prior. */
+/**
+ * Equal-weight mixture: one component per observation plus a wide prior, a
+ * truncated normal of width 1 at 0.5 on a numeric dimension and uniform over
+ * the options of a categorical one.
+ */
 function parzen(obs, dims) {
   const m = obs.length, comps = m + 1, logWeight = -Math.log(comps);
   const columns = dims.map((dim, j) => {

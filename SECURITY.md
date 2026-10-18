@@ -27,3 +27,8 @@ the number of clusters, the iteration counts and, for TPE, the trials,
 candidates and space before passing untrusted data.
 With `engine="numba"`, `trustworthiness`, `continuity` and `ami` use every
 core unless `NUMBA_NUM_THREADS` limits them.
+
+These limits hold for data in ordinary containers. Getters, proxies, NumPy's
+array hooks such as `__array__`, and the objective given to `minimize` are
+the caller's own code and run as such; and a pickled `Result` or `TPE`, like
+any pickle, runs code when loaded, so load only one from a trusted source.

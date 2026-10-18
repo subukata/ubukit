@@ -80,9 +80,9 @@ def _hamerly(
     """Lloyd's step with Hamerly's bounds; the state is (labels, lower bounds).
 
     A point keeps its label without computing its other distances when its
-    exact distance to its center is below both half the distance from that
+    exact distance to its center is below either half the distance from that
     center to the nearest other one (which proves the center nearest, for any
-    labeling) and a lower bound on its distance to every other center: the
+    labeling) or a lower bound on its distance to every other center: the
     second-nearest distance when last computed, minus how far the other
     centers have moved since. Points within 1e-9 of a bound are recomputed,
     so rounding never decides a label. The bounds hold for one data set, so
