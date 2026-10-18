@@ -26,7 +26,8 @@
  *   'schedule' (som and batchSom: every epoch has run; the other apply functions: their one assignment
  *   has run) or 'limit' (maxIter reached without 'tol'); null in a Progress result where none holds.
  *   It says nothing about the quality of the result.
- * @property {Float64Array} history objective per iteration; empty for rcm, rmcm, som and batchSom, which have none.
+ * @property {Float64Array} history the objective at each assignment, one per iteration; empty for rcm, rmcm,
+ *   som and batchSom, which have none.
  * @property {Matrix | null} embedding (N, Q) map coordinates for SOMs: the unit coordinates of the
  *   labels for som and batchSom, membership times unit coordinates for somOlp.
  * @property {Matrix | null} unitCoordinates (K, Q) coordinates of a map's units as the run used them,

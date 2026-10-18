@@ -282,7 +282,9 @@ def minimize(
 
 
 class _Parzen:
-    """Equal-weight mixture of one component per observation plus a uniform prior."""
+    """Equal-weight mixture of one component per observation plus a wide prior:
+    a truncated normal of width 1 at 0.5 on a numeric dimension, and uniform
+    over the options of a categorical one."""
 
     def __init__(self, obs: np.ndarray, dims: list):
         m = len(obs)

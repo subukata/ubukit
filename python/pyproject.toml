@@ -29,7 +29,7 @@ numba = ["numba>=0.61.2"]
 
 [project.urls]
 Homepage = "https://github.com/subukata/ubukit"
-Documentation = "https://github.com/subukata/ubukit/blob/main/docs/algorithms.md"
+Documentation = "https://github.com/subukata/ubukit/blob/v0.2.0/docs/algorithms.md"
 Issues = "https://github.com/subukata/ubukit/issues"
 
 [dependency-groups]

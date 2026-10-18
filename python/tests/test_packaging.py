@@ -40,14 +40,14 @@ def test_one_version_everywhere():
     assert len(set(versions.values())) == 1, versions
 
 
-def test_package_readmes_link_the_docs_of_their_version():
-    # The registries show these READMEs with a release, and the documents on
-    # main describe what is not released yet; a release sets these links
-    # with its version.
-    for readme in ("python/README.md", "js/README.md"):
-        text = (ROOT / readme).read_text(encoding="utf-8")
+def test_package_pages_link_the_docs_of_their_version():
+    # The registries show these READMEs, and PyPI the Documentation URL, with
+    # a release, and the documents on main describe what is not released yet;
+    # a release sets these links with its version.
+    for page in ("python/README.md", "js/README.md", "python/pyproject.toml"):
+        text = (ROOT / page).read_text(encoding="utf-8")
         refs = re.findall(r"https://github\.com/subukata/ubukit/(?:blob|tree)/([^/]+)/", text)
-        assert refs and set(refs) == {f"v{ub.__version__}"}, (readme, refs)
+        assert refs and set(refs) == {f"v{ub.__version__}"}, (page, refs)
 
 
 def test_unreleased_marks_go_with_the_release():

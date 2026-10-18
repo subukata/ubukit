@@ -68,8 +68,8 @@ class Result:
             ``"limit"`` (``max_iter`` reached without ``"tol"``); ``None`` in a
             Progress result where none holds. It says nothing about the quality of
             the result.
-        history: objective value per iteration; empty for ``rcm``, ``rmcm``, ``som``
-            and ``batch_som``, which have none.
+        history: the objective at each assignment, one per iteration; empty for
+            ``rcm``, ``rmcm``, ``som`` and ``batch_som``, which have none.
         embedding: (N, Q) map coordinates for SOMs, otherwise ``None``:
             ``unit_coordinates[labels]`` for ``som`` and ``batch_som``,
             ``membership @ unit_coordinates`` for ``som_olp``.
