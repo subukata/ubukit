@@ -31,6 +31,7 @@ from ._core import (
     check_float,
     check_int,
     check_max_iter,
+    check_scale,
     check_seed,
     fitted,
     iterate,
@@ -254,12 +255,15 @@ def _olp(R: np.ndarray, lam: float, gamma: float) -> Callable[..., tuple[np.ndar
     gamma = check_float(gamma, "gamma", 0.0)
     # The latent costs gamma ||v - r_j||^2 come from centered unit coordinates,
     # as distances come from centered data: rounding then follows the extent
-    # of the units, not their distance from the origin. They must stay finite
-    # beside the data's costs, which the scale contract keeps below about
-    # 4e300. A latent position v lies among the units, so ||v - r_j||^2 is at
-    # most their squared extent, bounded by four times their largest squared
-    # norm once centered.
-    Rc = R - R.mean(axis=0)
+    # of the units, not their distance from the origin. The first unit is
+    # subtracted before the mean, which would otherwise be computed with an
+    # error that follows the offset (coincident units then center to exactly
+    # zero). The costs must stay finite beside the data's, which the scale
+    # contract keeps below about 4e300. A latent position v lies among the
+    # units, so ||v - r_j||^2 is at most their squared extent, bounded by four
+    # times their largest squared norm once centered.
+    offsets = R - R[0]
+    Rc = offsets - offsets.mean(axis=0)
     rr = sq_norms(Rc)
     extent = 4.0 * float(rr.max())
     if gamma * extent > MAX_SQ_NORM:
@@ -322,9 +326,8 @@ def _setup(
     data = as_data(X)
     if isinstance(init, str):
         W = _pca_init(data.X, R, pca_scale)
-        # A start made here keeps the scale contract that a given one must.
-        if not sq_norms(W).max() < MAX_SQ_NORM:
-            raise ValueError("pca_scale is too large for X: the start is beyond float64 distances")
+        # A start made here passes the scale check that a given one must.
+        check_scale(W + data.mean, "the start that pca_scale gives", "change pca_scale")
         return data, W
     W = as_matrix(init, "init")
     if W.shape != (len(R), data.X.shape[1]):

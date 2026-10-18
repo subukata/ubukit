@@ -53,12 +53,14 @@ versions keep the API and change results only to fix bugs, listed under
 
 - Results that held `NaN` or `-inf` yet reported `"tol"` are correct or
   raise an error. `som_olp` computes its latent costs from centered unit
-  coordinates, so units far from the origin no longer overflow them through
-  rounding (results move in their last digits), and refuses a `gamma` whose
-  costs overflow (`gamma` times the squared extent of the units above
-  1e300). A `pca_scale` whose start leaves the scale contract, and a `tau`
-  or `lam` whose objective overflows, raise an error. JavaScript's `rcm`
-  with a `p` near 1e-320 gives Python's limit.
+  coordinates, so units far from the origin, coincident ones included, no
+  longer turn rounding into costs (results move in their last digits), and
+  refuses a `gamma` whose costs overflow (`gamma` times the squared extent
+  of the units above 1e300). A `pca_scale` whose start is too large or too
+  small for the scale contract, and a `tau` or `lam` whose objective
+  overflows, raise an error. JavaScript's `rcm` with a `p` near 1e-320 gives
+  Python's limit, and its PCA start keeps its axes for data at any scale
+  of the contract (at 1e80 or 1e-100 they were lost).
 - JavaScript: options that are not an object raise `TypeError`; a number
   read as no options, so `minimize(f, space, 20)`, Python's positional
   `n_trials`, ran 100 trials.

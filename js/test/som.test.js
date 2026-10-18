@@ -132,19 +132,40 @@ test('gamma keeps the latent costs finite', () => {
   // Up to the bound (extent 16 here) the costs stay finite.
   const r = ub.somOlp(P, R, { init: [[0], [0]], lam: 1, gamma: 6e298, maxIter: 3 });
   assert.ok(r.membership.data.every(Number.isFinite) && r.history.every(Number.isFinite));
-  // Units far from the origin: the latent costs come from centered
-  // coordinates, so rounding follows the extent (0 here), not the offset.
-  const far = ub.somOlp([[0], [0.7], [2]], [[1e20], [1e20]], { init: [[0], [2]], lam: 0.7, gamma: 1e308 });
-  assert.ok(far.membership.data.every(Number.isFinite) && far.history.every(Number.isFinite));
+  // Units far from the origin: the latent costs come from coordinates
+  // centered after subtracting the first unit, so coincident units cost
+  // nothing wherever they are, and give what they give at the origin.
+  // (Centered by their mean alone, units at 1e50 left a residual of 1e34
+  // that became costs of 1e37.)
+  const X = [[0], [0.7], [2]], options = { lam: 0.7, gamma: 1, init: Array.from({ length: 6 }, (_, j) => [j / 3]), maxIter: 3, tol: 0 };
+  const far = ub.somOlp(X, Array(6).fill([1e50]), options), near = ub.somOlp(X, Array(6).fill([0]), options);
+  assert.deepEqual([far.history, far.membership], [near.history, near.membership]);
+  // Their extent is 0, so no gamma is too large for them.
+  assert.ok(ub.somOlp(X, Array(6).fill([1e50]), { ...options, gamma: 1e308 }).history.every(Number.isFinite));
 });
 
 test('the start and the objective stay in float64', () => {
   // A PCA start spread beyond the scale contract, and a temperature whose
   // objective (about -N T log K) overflows, gave NaN or -Infinity and 'tol'.
-  assert.throws(() => ub.somOlp([[-1], [1]], [2, 1], { lam: 1, gamma: 0, pcaScale: 1e200 }), /pcaScale is too large/);
+  // The start passes the scale check a given start passes, the lower bound
+  // included: pcaScale = 1e-160 gave memberships of 1/2 and 'tol'.
+  for (const [pcaScale, word] of [[1e200, 'large'], [1e-160, 'small']]) {
+    assert.throws(() => ub.somOlp([[-1], [1]], [2, 1], { lam: 1, gamma: 0, pcaScale }), new RegExp(`pcaScale gives is too ${word} in scale`));
+  }
   const points = [[0], [1], [2]];
   assert.throws(() => ub.somOlp(points, points, { lam: 1e308, gamma: 1, init: points }), /lam = 1e\+308 is too large/);
   assert.throws(() => ub.efcm(points, 3, { tau: 1e308, init: points }), /tau = 1e\+308 is too large/);
+});
+
+test('the start does not depend on the scale of the data', () => {
+  // Scaled data, with the temperature scaled alike, give the same memberships:
+  // the squares in the norms of the principal axes overflowed at 1e80 and
+  // underflowed at 1e-100, and the axes were lost.
+  const P = [[-3, -1], [-1, 2], [1, -2], [3, 1]], base = ub.somOlp(P, [3, 3], { lam: 1, gamma: 0, maxIter: 1 }).membership.data;
+  for (const scale of [1e80, 1e-100]) {
+    const scaled = ub.somOlp(P.map(r => r.map(v => v * scale)), [3, 3], { lam: scale ** 2, gamma: 0, maxIter: 1 }).membership.data;
+    scaled.forEach((u, i) => assert.ok(Math.abs(u - base[i]) <= 1e-12, `scale ${scale}: ${u} vs ${base[i]}`));
+  }
 });
 
 test('far-apart schedule ends stay finite', () => {
