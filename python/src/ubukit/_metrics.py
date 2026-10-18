@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
+from numbers import Real
 from types import ModuleType
 from typing import Any, Literal, overload
 
@@ -11,7 +12,7 @@ from numpy.typing import ArrayLike
 from scipy.spatial.distance import cdist
 from scipy.special import gammaln
 
-from ._core import Engine, as_matrix, check_int, numba_kernels
+from ._core import Engine, as_matrix, check_int, is_boolean, numba_kernels
 
 type Average = Literal["arithmetic", "geometric", "min", "max"]
 
@@ -232,7 +233,7 @@ def _nearest(d: np.ndarray, k: int) -> np.ndarray:
 
 def _contingency(labels_true, labels_pred):
     """Return n, row sums, column sums and the nonzero cells (row, col, count)."""
-    t, p = np.asarray(labels_true), np.asarray(labels_pred)
+    t, p = _labels(labels_true), _labels(labels_pred)
     if t.ndim != 1 or p.ndim != 1 or len(t) != len(p):
         raise ValueError("labels must be 1-D arrays of equal length")
     try:
@@ -244,6 +245,25 @@ def _contingency(labels_true, labels_pred):
     kb = max(len(b), 1)
     cells, nij = np.unique(u * kb + v, return_counts=True)
     return len(t), a, b, cells // kb, cells % kb, nij
+
+
+def _labels(labels: ArrayLike) -> np.ndarray:
+    """The labels as an array, refusing values of mixed kinds, which NumPy would
+    make one kind: [0, "0"] two equal strings and [True, 1] two equal integers,
+    which JavaScript keeps apart."""
+    if not isinstance(labels, np.ndarray) or labels.dtype == object:
+        kinds = {_kind(v) for v in np.asarray(labels, dtype=object).ravel()}
+        if len(kinds) > 1:
+            raise TypeError("labels must be values of one kind: numbers, strings or booleans")
+    return np.asarray(labels)
+
+
+def _kind(value: Any) -> object:
+    if is_boolean(value):
+        return bool
+    if isinstance(value, Real):
+        return Real
+    return str if isinstance(value, str) else type(value)
 
 
 def _entropy(counts: np.ndarray, n: int) -> float:

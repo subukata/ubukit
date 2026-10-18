@@ -136,5 +136,25 @@ test('a TPE keeps checked copies of its dimensions', () => {
     tpe.tell(p, Number(p.x));
   }
   assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ ...hand, low: 30 }) }), /high/);
-  assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ kind: 'numeric', low: 1000, high: 1000.0000000000001, log: true }) }), /too narrow/);
+  assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ kind: 'numeric', low: 1000, high: 1000.0000000000001, log: true, integer: false }) }), /too narrow/);
+  // Its flags must be booleans, as the factories' are: a string 'false' is truthy.
+  assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ ...hand, log: 'false' }) }), /space.x.log must be a boolean/);
+  assert.throws(() => new ub.TPE({ x: /** @type {any} */ ({ kind: 'numeric', low: 0, high: 1, log: false }) }), /space.x.integer must be a boolean/);
+});
+
+test('flags must be booleans', () => {
+  // integer(1, 8, { log: 'false' }) searched on a log scale, and shuffle: 'false' shuffled.
+  assert.throws(() => ub.integer(1, 8, { log: /** @type {any} */ ('false') }), { name: 'RangeError', message: 'log must be a boolean' });
+  assert.throws(() => ub.som([[0, 0], [1, 1], [2, 0]], [1, 2], { shuffle: /** @type {any} */ ('false') }), /shuffle must be a boolean/);
+  assert.equal(ub.integer(1, 8, { log: true }).log, true);
+});
+
+test('a categorical dimension may have any number of options', () => {
+  // Copying a dimension spread its options into arguments, which overflowed the stack at 200,000.
+  const tpe = new ub.TPE({ k: /** @type {any} */ ({ kind: 'choice', options: Array.from({ length: 200_000 }, (_, i) => i) }) }, { seed: 0 });
+  const p = tpe.ask();
+  assert.ok(Number.isInteger(p.k) && p.k >= 0 && p.k < 200_000);
+  tpe.tell(p, 1);
+  // A value that is not an option is named in the error, a symbol too.
+  assert.throws(() => new ub.TPE({ x: ub.choice(1, 2) }).tell({ x: Symbol('s') }, 1), { name: 'RangeError', message: 'Symbol(s) is not an option' });
 });

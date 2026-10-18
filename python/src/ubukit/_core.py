@@ -148,6 +148,13 @@ def check_float(value: Any, name: str, low: float = -np.inf, *, strict: bool = F
     return v
 
 
+def check_bool(value: Any, name: str) -> bool:
+    """Validate a boolean, Python's or NumPy's: a string such as "false" is truthy."""
+    if not is_boolean(value):
+        raise ValueError(f"{name} must be a boolean")
+    return bool(value)
+
+
 def check_seed(value: Any) -> int | None:
     """A random seed: None for a fresh one, or an integer >= 0 (not a boolean, as in JavaScript)."""
     return None if value is None else check_int(value, "seed", 0)

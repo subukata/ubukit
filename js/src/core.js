@@ -167,6 +167,16 @@ export function checkNumber(value, name, low = -Infinity, strict = false) {
 }
 
 /**
+ * Validate a boolean: a string such as 'false' is truthy.
+ * @param {boolean} value @param {string} name
+ * @returns {boolean}
+ */
+export function checkBoolean(value, name) {
+  if (typeof value !== 'boolean') throw new RangeError(`${name} must be a boolean`);
+  return value;
+}
+
+/**
  * Reject the options a function does not take, as Python rejects an unknown
  * keyword: an ignored option (max_iter, the Python name of maxIter) would
  * leave its default in force without a word.
@@ -175,7 +185,8 @@ export function checkNumber(value, name, low = -Infinity, strict = false) {
 export function rejectUnknown(unknown) {
   const [name] = Object.keys(unknown);
   if (name === undefined) return;
-  const camel = name.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  // max_iter -> maxIter; a name such as __proto__ has no camelCase spelling.
+  const camel = name.replace(/(?<=[a-z0-9])_([a-z])/g, (_, c) => c.toUpperCase());
   throw new TypeError(`unknown option ${name}${camel === name ? '' : ` (options are camelCase: ${camel})`}`);
 }
 
@@ -183,7 +194,9 @@ export function rejectUnknown(unknown) {
  * The named options of a call: an object, or none. A number or boolean where
  * the options go, such as Python's positional n_trials in
  * minimize(f, space, 20), has no keys of its own, so destructuring it would
- * run the call with every default.
+ * run the call with every default. Only the object's own options count, as
+ * rejectUnknown sees them: destructuring would also read inherited ones, so
+ * an option set on Object.prototype, by any code, changed every call.
  * @template T
  * @param {T} options
  * @returns {T}
@@ -193,7 +206,7 @@ export function named(options) {
   if (typeof options !== 'object' || options === null || Array.isArray(options)) {
     throw new TypeError(`options must be an object of named options, not ${typeof options === 'string' ? JSON.stringify(options) : String(options)}`);
   }
-  return options;
+  return /** @type {T} */ ({ __proto__: null, ...options });
 }
 
 /** The seed given, checked to be an integer in [0, 2^32), or a fresh one when omitted. */

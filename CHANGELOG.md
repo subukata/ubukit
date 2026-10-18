@@ -31,6 +31,23 @@ versions keep the API and change results only to fix bugs, listed under
   asks what the search asked first after its last tell
   ([recipe](docs/recipes.md#resuming-a-search)).
 
+### Fixed
+
+- `ari` and `ami` refuse a labeling of mixed kinds (`[0, "0"]`, `[True, 1]`,
+  and in JavaScript `[1, 1n]`): Python made such labels one kind and
+  JavaScript kept them apart, so the languages scored them differently (ARI
+  0 and 1 for `[0, "0"]` against `[0, 1]`).
+- Flags must be booleans: `integer`'s `log` and `som`'s `shuffle`, and in
+  JavaScript the `log` and `integer` of a dimension written by hand. A string
+  such as `"false"` was truthy.
+- JavaScript reads only the own properties of an options object: an
+  inherited option, or one that any code set on `Object.prototype`, changed
+  the call without an error.
+- JavaScript takes a dimension written by hand with any number of options
+  (200,000 overflowed the stack), and names a symbol that is not an option
+  in its error. Python's `TPE.tell` reports an array equal to an option but
+  not that option as no option, instead of NumPy's error.
+
 ## 0.2.0 (2026-10-18)
 
 ### Changed API

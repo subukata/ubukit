@@ -183,8 +183,13 @@ function contingency(labelsTrue, labelsPred) {
   // Every label, holes of a sparse array too, is checked before anything is
   // allocated for n of them. A label is a value, as in Python's 1-D labels:
   // an array or object would be compared by identity, each a cluster of its own.
+  // One kind per labeling, as Python's arrays hold: Python would read [0, '0']
+  // as two equal strings and [true, 1] as two equal integers.
   for (const labels of [labelsTrue, labelsPred]) {
-    for (let i = 0; i < n; i++) if (!LABEL_TYPES.has(typeof labels[i])) throw new TypeError('labels must hold numbers, strings or booleans');
+    for (let i = 0; i < n; i++) {
+      if (!LABEL_TYPES.has(typeof labels[i])) throw new TypeError('labels must hold numbers, strings or booleans');
+      if (typeof labels[i] !== typeof labels[0]) throw new TypeError('labels must be values of one kind: numbers, strings or booleans');
+    }
   }
   const encode = labels => {
     const ids = new Map(), codes = new Int32Array(n), counts = [];
