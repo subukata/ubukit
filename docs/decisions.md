@@ -5,6 +5,18 @@ reason and what was rejected; the pull requests it names hold the
 measurements and the review history. Add an entry when a pull request makes
 or changes a design decision.
 
+## 2026-10-19 apply takes the model's parameters without defaults (#128)
+
+The parameters that define a method's assignment have no default in
+`apply` (`fcm`'s `m`, `efcm`'s `tau`, `rcm`'s `alpha`, `beta` and `p`, as
+`rmcm`'s `delta` and `som_olp`'s `lam` and `gamma` already); those that
+control its computation (`max_iter`, `tol`, `max_edges`) keep theirs.
+*Why:* only the trained values are right, and a default applied others
+without an error. *Rejected:* keeping the defaults with an example (the
+mistake stays silent), a model object or a Result holding its parameters (a
+lifecycle and a serialization contract the use does not need), and waiving
+`p` when `beta` is 0 (a rule to explain for one keystroke).
+
 ## 2026-10-19 Package READMEs link the documents of their version (#127)
 
 The package READMEs link `docs/` at their version's tag, set by the release

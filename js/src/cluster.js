@@ -134,12 +134,12 @@ export function* fcm(X, k, options) {
 }
 
 /**
- * The FCM memberships of X for the fixed centers (apply.fcm); give the m they were trained with.
- * @param {MatrixLike} X @param {MatrixLike} centers @param {{ m?: number }} [options]
+ * The FCM memberships of X for the fixed centers (apply.fcm), under the m they were trained with.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ m: number }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* applyFcm(X, centers, options) {
-  const { m = 2, ...unknown } = named(options);
+  const { m, ...unknown } = named(options);
   rejectUnknown(unknown);
   return yield* applied(X, centers, fuzzy(m).assign);
 }
@@ -200,12 +200,12 @@ export function* efcm(X, k, options) {
 }
 
 /**
- * The EFCM memberships of X for the fixed centers (apply.efcm); give the tau they were trained with.
- * @param {MatrixLike} X @param {MatrixLike} centers @param {{ tau?: number }} [options]
+ * The EFCM memberships of X for the fixed centers (apply.efcm), under the tau they were trained with.
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ tau: number }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* applyEfcm(X, centers, options) {
-  const { tau = 1, ...unknown } = named(options);
+  const { tau, ...unknown } = named(options);
   rejectUnknown(unknown);
   return yield* applied(X, centers, entropic(tau));
 }
@@ -232,13 +232,13 @@ export function* rcm(X, k, options) {
 }
 
 /**
- * The rough memberships of X for the fixed centers (apply.rcm); give the alpha, beta and p they
+ * The rough memberships of X for the fixed centers (apply.rcm), under the alpha, beta and p they
  * were trained with.
- * @param {MatrixLike} X @param {MatrixLike} centers @param {{ alpha?: number, beta?: number, p?: number }} [options]
+ * @param {MatrixLike} X @param {MatrixLike} centers @param {{ alpha: number, beta: number, p: number }} options
  * @returns {Generator<Progress, Result, MatrixLike | undefined>}
  */
 export function* applyRcm(X, centers, options) {
-  const { alpha = 1.1, beta = 0, p = 1, ...unknown } = named(options);
+  const { alpha, beta, p, ...unknown } = named(options);
   rejectUnknown(unknown);
   return yield* applied(X, centers, rough(alpha, beta, p));
 }

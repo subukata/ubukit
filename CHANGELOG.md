@@ -7,6 +7,15 @@ versions keep the API and change results only to fix bugs, listed under
 
 ## (unreleased)
 
+### Changed API
+
+- `apply.fcm`, `apply.efcm` and `apply.rcm` require the parameters the
+  prototypes were trained with (`m`; `tau`; `alpha`, `beta` and `p`), as
+  `apply.rmcm` and `apply.som_olp` already did: their defaults applied other
+  parameters than the training's without an error (memberships 0.35 apart
+  for FCM trained with `m=1.3`). Keep the parameters in one dictionary for
+  the training and the application.
+
 ### Changed results
 
 - TPE draws its proposals from a random stream of the seed and the number of

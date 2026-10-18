@@ -58,13 +58,15 @@ wrote it. The equations, the stopping rules and when FCM and EFCM collapse are i
 Trained prototypes apply to new data, fixed: `ub.apply` has a function for
 every method, which takes the data, the prototypes and the parameters they
 were trained with, and returns the `Result` of the new data (`ub.steps.apply`
-has the same functions as generators).
+has the same functions as generators). The parameters have no defaults,
+since only the trained ones are right: keep them in one dictionary for
+both calls.
 
 ```python
 X_new = np.random.default_rng(1).normal(size=(20, 2))
 new = ub.apply.som_olp(X_new, m.centers, m.unit_coordinates, lam=0.5, gamma=1.0)
 new.embedding  # the new points on the trained map
-ub.apply.fcm(X_new, r.centers, m=2.0).membership
+ub.apply.fcm(X_new, r.centers, m=2.0).membership  # the m that r was trained with
 ```
 
 Each method assigns once, except `som_olp`, whose memberships iterate with

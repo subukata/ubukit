@@ -93,6 +93,8 @@ def wrong_arguments() -> None:
     _ = ub.fcm(X, 3).converged  # type: ignore[attr-defined]  # replaced by stop_reason
     _ = ub.batch_som(X, (2, 3)).unit_coordinates[0]  # type: ignore[index]  # may be None
     ub.apply.fcm(X, X, k=3)  # type: ignore[call-arg]  # the centers give k
+    ub.apply.fcm(X, X)  # type: ignore[call-arg]  # m is required, as trained
+    ub.apply.rcm(X, X, alpha=1.2, beta=0.0)  # type: ignore[call-arg]  # and p
     ub.apply.som_olp(X, X, (3, 3), lam=0.5)  # type: ignore[call-arg]
     ub.trustworthiness(X, X, "3")  # type: ignore[arg-type]
     ub.fcm(ub.Neighborhood(X), 3)  # type: ignore[arg-type]

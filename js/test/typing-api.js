@@ -133,6 +133,10 @@ export function wrongArguments() {
   ub.rmcm(X, 2, 1);
   // @ts-expect-error delta is required
   ub.apply.rmcm(X, X, {});
+  // @ts-expect-error m is required, as trained
+  ub.apply.fcm(X, X);
+  // @ts-expect-error and p
+  ub.apply.rcm(X, X, { alpha: 1.2, beta: 0 });
   // @ts-expect-error the settings of a TPE are read-only
   new ub.TPE({ x: ub.uniform(0, 1) }).gamma = 0.5;
   // @ts-expect-error and so is its seed

@@ -70,11 +70,11 @@ CASES = [
     # Prototypes applied to new data, fixed.
     ("apply.kmeans", "probe", ["centers"], {}),
     ("apply.fcm", "probe", ["centers"], {"m": 1.5}),
-    ("apply.fcm", "one", ["centers"], {}),
+    ("apply.fcm", "one", ["centers"], {"m": 2.0}),
     ("apply.efcm", "probe", ["centers"], {"tau": 2.0}),
-    ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "beta": 0.2}),
+    ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "beta": 0.2, "p": 1.0}),
     # A p whose reciprocal overflows: (1 + 0)^(1/p) is 1, which JavaScript's ** is not.
-    ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "p": 1e-320}),
+    ("apply.rcm", "probe", ["centers"], {"alpha": 1.3, "beta": 0.0, "p": 1e-320}),
     ("apply.rmcm", "probe", ["centers"], {"delta": 1.5}),
     ("apply.som", "probe", ["grid_init", [3, 4]], {}),
     ("apply.batch_som", "probe", ["grid_init", [3, 4]], {}),

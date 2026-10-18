@@ -229,7 +229,11 @@ underflows when the ends are far apart.
 
 `apply` runs a method's assignment on new data with the prototypes fixed,
 kept exactly as given (they are never shifted to the data's centering and
-back). k-means takes the nearest prototype, `fcm`, `efcm` and `rcm` their
+back). *Unreleased; planned for 0.3.0.* The parameters that define the
+assignment (`m`, `tau`, `alpha`, `beta`, `p`, `delta`, `lam`, `gamma`) have
+no defaults, since only the trained ones are right; those that control its
+computation (`som_olp`'s `max_iter` and `tol`, `rmcm`'s `max_edges`) keep
+theirs. k-means takes the nearest prototype, `fcm`, `efcm` and `rcm` their
 memberships of the distances, `som` and `batch_som` the best-matching unit;
 one assignment ends the run (`stop_reason` `"schedule"`), and `history`
 holds its objective (empty for `rcm`, `rmcm`, `som` and `batch_som`, which

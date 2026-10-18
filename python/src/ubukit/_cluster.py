@@ -161,9 +161,9 @@ def fcm(
     return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
 
 
-def apply_fcm(X: ArrayLike, centers: ArrayLike, *, m: float = 2.0) -> Steps:
-    """The FCM memberships of X for the fixed ``centers`` (``ubukit.apply.fcm``);
-    give the m they were trained with."""
+def apply_fcm(X: ArrayLike, centers: ArrayLike, *, m: float) -> Steps:
+    """The FCM memberships of X for the fixed ``centers`` (``ubukit.apply.fcm``),
+    under the m they were trained with."""
     assign, _ = _fcm(m)
     return (yield from _applied(X, centers, assign))
 
@@ -216,9 +216,9 @@ def efcm(
     return (yield from iterate(data, V, step, stopping=Tolerance(tol, max_iter), view=_soft))
 
 
-def apply_efcm(X: ArrayLike, centers: ArrayLike, *, tau: float = 1.0) -> Steps:
-    """The EFCM memberships of X for the fixed ``centers`` (``ubukit.apply.efcm``);
-    give the tau they were trained with."""
+def apply_efcm(X: ArrayLike, centers: ArrayLike, *, tau: float) -> Steps:
+    """The EFCM memberships of X for the fixed ``centers`` (``ubukit.apply.efcm``),
+    under the tau they were trained with."""
     return (yield from _applied(X, centers, _efcm(tau)))
 
 
@@ -252,11 +252,9 @@ def rcm(
     return (yield from iterate(data, V, step, stopping=Tolerance(0.0, max_iter), view=_soft))
 
 
-def apply_rcm(
-    X: ArrayLike, centers: ArrayLike, *, alpha: float = 1.1, beta: float = 0.0, p: float = 1.0
-) -> Steps:
-    """The rough memberships of X for the fixed ``centers`` (``ubukit.apply.rcm``);
-    give the alpha, beta and p they were trained with."""
+def apply_rcm(X: ArrayLike, centers: ArrayLike, *, alpha: float, beta: float, p: float) -> Steps:
+    """The rough memberships of X for the fixed ``centers`` (``ubukit.apply.rcm``),
+    under the alpha, beta and p they were trained with."""
     return (yield from _applied(X, centers, _rcm(alpha, beta, p)))
 
 

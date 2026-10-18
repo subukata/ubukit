@@ -61,7 +61,7 @@ CASES = [
     # A search's pattern: one Neighborhood of X scores 5 embeddings, both metrics at 3 k.
     Case("neighborhood reuse", "neighborhood_reuse", "embed", ("X", "Y", 5), quality=("value",)),
     # Trained prototypes applied to new data: the dataset's centers, fixed.
-    Case("fcm apply", "apply.fcm", "blobs", ("X", "init"), quality=("ari",)),
+    Case("fcm apply", "apply.fcm", "blobs", ("X", "init"), {"m": 2.0}, ("ari",)),
     Case(
         "som_olp apply",
         "apply.som_olp",
