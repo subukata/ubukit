@@ -147,7 +147,9 @@ $$
 d_{ic}^{\,p} \le (\alpha\, d_{i,\min})^p + \beta^p ,
 $$
 
-and $x_i$ shares unit membership equally among its admissible set $A_i$.
+and $x_i$ shares unit membership equally among its admissible set $A_i$:
+membership 1 puts it in the lower approximation of its cluster, and a share
+of $1/\lvert A_i \rvert < 1$ in the boundary of those clusters.
 $p = 1$ is RCM; other $p$ give ExRCM. $\alpha \ge 1$ and $\beta \ge 0$ widen the
 upper approximation; $\alpha = 1, \beta = 0$ is k-means. The radius is computed
 in scaled form to avoid overflow and underflow of the powers.
@@ -167,7 +169,8 @@ bound.
 Units $j$ sit at grid coordinates $r_j$ (unit $j$ = `row * cols + col` at
 `(row, col)`), or at the coordinates given as a (K, Q) array (`som`,
 `som_olp`); a map's Result holds them, as used and not normalized, in
-`unit_coordinates`, and `centers[j]` is the prototype of unit $j$. Unless
+`unit_coordinates`, and `centers[j]` is the prototype of unit $j$. `som` and
+`batch_som` embed each point at its best-matching unit's coordinates. Unless
 `init` is given, prototypes start along the leading principal axes, one for
 each column of the coordinates up to $D$: on a rectangular grid the plane of
 the two leading axes, grid rows along the first. Each column is centered and

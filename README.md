@@ -26,7 +26,7 @@ kernels); JavaScript has no dependencies.
 pip install ubukit
 ```
 
-It needs Python 3.12 or newer.
+It needs Python 3.12 or newer. Usage: [python/README.md](python/README.md).
 
 ```python
 import numpy as np
@@ -35,24 +35,7 @@ import ubukit as ub
 X = np.random.default_rng(0).normal(size=(500, 2))
 r = ub.fcm(X, 3, m=2.0, seed=0)
 r.centers, r.membership, r.labels, r.stop_reason
-
-m = ub.batch_som(X, (8, 8), epochs=30)
-ub.trustworthiness(X, m.embedding, k=5)
-
-y = ub.kmeans(X, 3, seed=1).labels
-best = ub.minimize(  # pick the fuzzifier whose FCM labels agree best with y
-    lambda p: -ub.ari(y, ub.fcm(X, 3, m=p["m"], seed=0).labels),
-    {"m": ub.uniform(1.1, 3.0)},
-    n_trials=20,
-)
-best.best_params, best.best_value
 ```
-
-From about five dimensions on, FCM with the default `m = 2` can send every
-prototype to the mean of the data and still stop with `stop_reason == "tol"`,
-which says only that the prototypes stopped moving. Use `m` closer to 1 there (1.2, for
-example) and check that the centers are apart
-([degenerate solutions](docs/algorithms.md#degenerate-solutions-fcm-efcm)).
 
 ## JavaScript
 
@@ -60,26 +43,26 @@ example) and check that the centers are apart
 npm install ubukit
 ```
 
-It needs Node.js 22 or newer, or a current browser.
+It needs Node.js 22 or newer, or a current browser. Usage:
+[js/README.md](js/README.md).
 
 ```js
-import { fcm, batchSom, trustworthiness, steps, runAsync } from 'ubukit';
+import { fcm } from 'ubukit';
 
-const X = [[0, 0], [0.1, 0.2], [4, 4], [4.2, 3.9]];   // rows, or { data, rows, cols }
-const r = fcm(X, 2, { m: 2, seed: 0 });                // r.centers is { data: Float64Array, rows, cols }
-
-// Every iteration's actual state, with cancellation, without blocking the page:
-const result = await runAsync(steps.batchSom(X, [4, 4], { epochs: 30 }), {
-  signal: AbortSignal.timeout(5000),
-  onProgress: p => console.log(p.iteration, p.result().centers),
-});
+const X = [[0, 0], [0.1, 0.2], [4, 4], [4.2, 3.9]];  // rows, or { data, rows, cols }
+const r = fcm(X, 2, { m: 2, seed: 0 });               // r.centers is { data: Float64Array, rows, cols }
 ```
+
+A stop reason says how a run stopped, not that its result is good: from
+about five dimensions on, FCM with `m = 2` can put every prototype at the
+mean of the data and still stop with `"tol"`
+([degenerate solutions](docs/algorithms.md#degenerate-solutions-fcm-efcm)).
 
 ## More
 
-[docs/recipes.md](docs/recipes.md) has worked uses: SOM-OLP's scales and
-diagnostics, watching rough c-means converge, held-out data, adding points
-to a trained map, and federated rough c-means.
+[docs/recipes.md](docs/recipes.md) has worked uses, such as SOM-OLP's
+scales, held-out data, points added to a trained map and federated rough
+c-means.
 
 ## Development
 
