@@ -5,12 +5,12 @@
  * mixture whose components keep one trial's dimensions together, and the
  * candidate maximizing l(x) / g(x) is proposed. Numeric dimensions live on [0, 1].
  */
-import { checkInt, checkNumber, named, random, rejectUnknown } from './core.js';
+import { checkInt, checkNumber, named, random, rejectUnknown, resolveSeed } from './core.js';
 
 /** @typedef {{ readonly kind: 'numeric', readonly low: number, readonly high: number, readonly log: boolean, readonly integer: boolean }} NumericDim */
 /** @typedef {{ readonly kind: 'choice', readonly options: readonly unknown[] }} ChoiceDim */
 /** @typedef {Record<string, NumericDim | ChoiceDim>} Space */
-/** @typedef {{ bestParams: Record<string, unknown>, bestValue: number, params: Record<string, unknown>[], values: Float64Array }} TPEResult */
+/** @typedef {{ bestParams: Record<string, unknown>, bestValue: number, params: Record<string, unknown>[], values: Float64Array, seed: number }} TPEResult */
 /** @typedef {{ seed?: number, nStartup?: number, nCandidates?: number, gamma?: number }} TPEOptions */
 
 /** Real values in [low, high]. @param {number} low @param {number} high @returns {NumericDim} */
@@ -86,9 +86,14 @@ function decode(dim, u) {
   return Math.min(Math.max(x, dim.low), dim.high);
 }
 
-/** Ask/tell TPE minimizer. */
+/**
+ * Ask/tell TPE minimizer. The proposals after each tell come from a random
+ * stream of the seed and the number of trials told, so a TPE with the same
+ * space, settings and seed, told the same trials in the same order, asks next
+ * what this one asked first after its last tell: a search resumes from result().
+ */
 export class TPE {
-  #space; #dims; #rand; #encoded = []; #params = []; #values = []; #nStartup; #nCandidates; #gamma;
+  #space; #dims; #seed; #rand = null; #encoded = []; #params = []; #values = []; #nStartup; #nCandidates; #gamma;
 
   /**
    * @param {Space} space
@@ -100,7 +105,7 @@ export class TPE {
     if (!space || typeof space !== 'object' || !Object.keys(space).length) throw new RangeError('space must be a non-empty object');
     this.#space = Object.fromEntries(Object.entries(space).map(([name, dim]) => [name, dimension(dim, name)]));
     this.#dims = Object.values(this.#space);
-    this.#rand = random(seed);
+    this.#seed = resolveSeed(seed);
     this.#nStartup = checkInt(nStartup, 'nStartup', 2);
     this.#nCandidates = checkInt(nCandidates, 'nCandidates', 1);
     this.#gamma = checkNumber(gamma, 'gamma', 0, true);
@@ -108,6 +113,8 @@ export class TPE {
   }
 
   // The settings are read-only: a value set later would skip the checks above.
+  /** The random seed, given or drawn. @returns {number} */
+  get seed() { return this.#seed; }
   /** Random trials before the model is used. @returns {number} */
   get nStartup() { return this.#nStartup; }
   /** Candidates drawn from l(x) per proposal. @returns {number} */
@@ -117,9 +124,10 @@ export class TPE {
 
   /** Propose parameters to evaluate next. @returns {Record<string, unknown>} */
   ask() {
+    const rand = this.#rand ??= random(streamSeed(this.#seed, this.#values.length));
     const u = this.#values.length < this.nStartup
-      ? this.#dims.map(d => (d.kind === 'choice' ? Math.floor(this.#rand() * d.options.length) : this.#rand()))
-      : this.#propose();
+      ? this.#dims.map(d => (d.kind === 'choice' ? Math.floor(rand() * d.options.length) : rand()))
+      : this.#propose(rand);
     return Object.fromEntries(Object.entries(this.#space).map(([name, dim], j) => [name, decode(dim, u[j])]));
   }
 
@@ -134,23 +142,24 @@ export class TPE {
     this.#encoded.push(names.map(k => encode(this.#space[k], params[k])));
     this.#params.push({ ...params });
     this.#values.push(value);
+    this.#rand = null;
   }
 
   /** @returns {TPEResult} */
   result() {
     if (!this.#values.length) throw new RangeError('no trials have been told');
     const best = this.#values.reduce((b, v, i, all) => (v < all[b] ? i : b), 0);
-    return { bestParams: { ...this.#params[best] }, bestValue: this.#values[best], params: this.#params.map(p => ({ ...p })), values: Float64Array.from(this.#values) };
+    return { bestParams: { ...this.#params[best] }, bestValue: this.#values[best], params: this.#params.map(p => ({ ...p })), values: Float64Array.from(this.#values), seed: this.#seed };
   }
 
-  #propose() {
+  #propose(rand) {
     const n = this.#values.length, order = Array.from(this.#values.keys()).sort((a, b) => this.#values[a] - this.#values[b] || a - b);
     const nGood = Math.min(n - 1, Math.max(1, Math.ceil(this.gamma * n)));
     const good = parzen(order.slice(0, nGood).map(i => this.#encoded[i]), this.#dims);
     const bad = parzen(order.slice(nGood).map(i => this.#encoded[i]), this.#dims);
     let best = null, bestScore = -Infinity;
     for (let c = 0; c < this.nCandidates; c++) {
-      const z = good.sample(this.#rand), score = good.logpdf(z) - bad.logpdf(z);
+      const z = good.sample(rand), score = good.logpdf(z) - bad.logpdf(z);
       if (best === null || score > bestScore) best = z, bestScore = score;
     }
     return best;
@@ -173,6 +182,18 @@ export async function minimize(f, space, options) {
     tpe.tell(params, await f(params));
   }
   return tpe.result();
+}
+
+/**
+ * The seed of the stream after n tells: seed and n mixed by MurmurHash3's
+ * finalizer. Mulberry32's state only adds a constant per draw, so seeds a
+ * multiple of it apart would give one stream, shifted.
+ */
+function streamSeed(seed, n) {
+  let h = (seed ^ Math.imul(n, 0x9e3779b9)) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  return (h ^ (h >>> 16)) >>> 0;
 }
 
 /** Equal-weight mixture: one component per observation plus a wide prior. */

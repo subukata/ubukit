@@ -52,6 +52,13 @@ export function search() {
   return ub.minimize(p => Number(p.x), { x: ub.uniform(0, 1) });
 }
 
+/** A search resumes from its seed and its trials. @param {ub.TPEResult} done @returns {ub.TPE} */
+export function resume(done) {
+  const tpe = new ub.TPE({ x: ub.uniform(0, 1) }, { seed: done.seed });
+  done.params.forEach((params, i) => tpe.tell(params, done.values[i]));
+  return tpe;
+}
+
 /** One Neighborhood of X scores many embeddings, at one k or several. @returns {number} */
 export function scoreManyLayouts() {
   const reference = new ub.Neighborhood(X);
@@ -128,6 +135,8 @@ export function wrongArguments() {
   ub.apply.rmcm(X, X, {});
   // @ts-expect-error the settings of a TPE are read-only
   new ub.TPE({ x: ub.uniform(0, 1) }).gamma = 0.5;
+  // @ts-expect-error and so is its seed
+  new ub.TPE({ x: ub.uniform(0, 1) }).seed = 1;
   // @ts-expect-error dimensions are frozen
   ub.uniform(0, 1).low = 5;
   // @ts-expect-error and so are their options

@@ -45,6 +45,73 @@ def test_seed_reproducibility():
     assert a.params == b.params
 
 
+def ask_and_tell(tpe, f, n):
+    """n trials of a search; the parameters asked."""
+    asked = []
+    for _ in range(n):
+        params = tpe.ask()
+        tpe.tell(params, f(params))
+        asked.append(params)
+    return asked
+
+
+def tied(p):
+    return float(round(objective(p)))  # many trials share a value
+
+
+def test_a_search_resumes_from_its_trials():
+    # A new TPE with the seed, told the trials of a search, an external one and
+    # tied values included, asks what the search asked next, whether it stops
+    # before, at or after n_startup.
+    tpe = ub.TPE(SPACE, seed=11, n_startup=6)
+    tpe.tell({"x": 0.0, "lr": 1e-3, "n": 7, "kind": "a"}, 2.0)
+    ask_and_tell(tpe, tied, 29)
+    done = tpe.result()
+    assert len({p["x"] for p in done.params}) == 30  # each history has its own stream
+    for k in (3, 6, 7, 18):
+        resumed = ub.TPE(SPACE, seed=done.seed, n_startup=6)
+        for params, value in zip(done.params[:k], done.values[:k], strict=True):
+            resumed.tell(params, value)
+        assert ask_and_tell(resumed, tied, 30 - k) == done.params[k:]
+
+
+def test_asks_not_told_leave_the_next_tell_alone():
+    # Asks after a tell continue one stream; the next tell starts the stream of
+    # the new history, however many asks were left untold.
+    a, b = ub.TPE(SPACE, seed=4, n_startup=3), ub.TPE(SPACE, seed=4, n_startup=3)
+    for tpe in (a, b):
+        ask_and_tell(tpe, objective, 5)
+    pending = [a.ask() for _ in range(3)]
+    assert pending[1] != pending[0]
+    assert b.ask() == pending[0]
+    for tpe in (a, b):
+        tpe.tell({"x": 1.0, "lr": 1e-3, "n": 7, "kind": "b"}, 0.5)
+    assert ask_and_tell(a, objective, 5) == ask_and_tell(b, objective, 5)
+
+
+def test_a_failed_tell_and_result_leave_the_stream_alone():
+    a, b = ub.TPE(SPACE, seed=2, n_startup=3), ub.TPE(SPACE, seed=2, n_startup=3)
+    for tpe in (a, b):
+        ask_and_tell(tpe, objective, 4)
+    params = a.ask()
+    assert b.ask() == params
+    b.result()
+    with pytest.raises(ValueError):
+        b.tell({**params, "x": 99.0}, 1.0)
+    assert b.ask() == a.ask() != params
+    assert ask_and_tell(a, objective, 4) == ask_and_tell(b, objective, 4)
+
+
+def test_a_drawn_seed_is_kept():
+    tpe = ub.TPE(SPACE, n_startup=4)
+    assert isinstance(tpe.seed, int) and 0 <= tpe.seed <= 2**53 - 1
+    asked = ask_and_tell(tpe, objective, 8)
+    assert tpe.result().seed == tpe.seed
+    assert ask_and_tell(ub.TPE(SPACE, seed=tpe.seed, n_startup=4), objective, 8) == asked
+    best = ub.minimize(objective, SPACE, 8)
+    assert ub.minimize(objective, SPACE, 8, seed=best.seed).params == best.params
+
+
 def test_tell_accepts_external_trials():
     tpe = ub.TPE({"x": ub.uniform(0, 1)}, seed=0)
     tpe.tell({"x": 0.25}, 3.0)
@@ -67,7 +134,7 @@ def test_the_settings_are_read_only():
     # and made the next proposal fail.
     tpe = ub.TPE(SPACE, n_startup=3, n_candidates=5, gamma=0.2)
     assert (tpe.n_startup, tpe.n_candidates, tpe.gamma) == (3, 5, 0.2)
-    for name in ("n_startup", "n_candidates", "gamma"):
+    for name in ("seed", "n_startup", "n_candidates", "gamma"):
         with pytest.raises(AttributeError):
             setattr(tpe, name, 0)
 

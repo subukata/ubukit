@@ -267,3 +267,13 @@ dimensions together) plus a wide prior. Numeric kernels are truncated normals
 on $[0, 1]$ whose width is the larger gap to the neighboring centers;
 categorical kernels put $1 - \varepsilon$ on the observed option. The best of
 `n_candidates` samples from $l(x)$ by $l(x)/g(x)$ is proposed.
+
+Every ask draws from a random stream fixed by the seed and the number of
+trials told: the first ask after a tell starts the stream of the new count,
+and further asks continue it. A search therefore resumes from its trials: a
+`TPE` with the same space (its dimensions in the same order), settings and
+seed (the one given, or the one drawn when none is, kept in `seed` and in
+the result), told the same trials in the same order, asks what the search
+asked first after its last tell. An ask that is not told leaves no trace
+once the next trial is told. Nothing is promised across languages, versions
+or platforms.

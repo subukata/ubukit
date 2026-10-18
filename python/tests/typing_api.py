@@ -81,6 +81,14 @@ def search(labels: np.ndarray) -> float:
     return best.best_value + tpe.result().best_value + ub.ami(labels, labels, average="max")
 
 
+def resume(done: ub.TPEResult) -> ub.TPE:
+    # A search resumes from its seed and its trials.
+    tpe = ub.TPE({"x": ub.uniform(0.0, 1.0)}, seed=done.seed)
+    for params, value in zip(done.params, done.values, strict=True):
+        tpe.tell(params, float(value))
+    return tpe
+
+
 def wrong_arguments() -> None:
     _ = ub.fcm(X, 3).converged  # type: ignore[attr-defined]  # replaced by stop_reason
     _ = ub.batch_som(X, (2, 3)).unit_coordinates[0]  # type: ignore[index]  # may be None
@@ -98,4 +106,5 @@ def wrong_arguments() -> None:
     ub.minimize(lambda p: 0.0, space, 5, gamma="0.2")  # type: ignore[arg-type]
     ub.TPE({"x": (0.0, 1.0)})  # type: ignore[dict-item]
     ub.TPE(space).gamma = 0.5  # type: ignore[misc]  # the settings are read-only
+    ub.TPE(space).seed = 1  # type: ignore[misc]  # and so is the seed
     ub.ami([0, 1], [0, 1], average="median")  # type: ignore[arg-type]
