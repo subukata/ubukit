@@ -5,6 +5,16 @@ reason and what was rejected; the pull requests it names hold the
 measurements and the review history. Add an entry when a pull request makes
 or changes a design decision.
 
+## 2026-10-19 Package READMEs link the documents of their version (#127)
+
+The package READMEs link `docs/` at their version's tag, set by the release
+pull request; the documents follow `main` and mark what is not released
+("*Unreleased; planned for 0.3.0.*"), and `test_packaging.py` checks both.
+*Why:* 0.2.0's registry pages linked `main`, whose resume recipe failed on
+the released package. *Rejected:* version marks alone (they warn about
+additions but not about changed defaults or examples), and documentation
+built per version (machinery for one small library).
+
 ## 2026-10-18 A TPE search resumes from its seed and its trials (#126)
 
 Each ask draws from a random stream of the seed and the number of trials

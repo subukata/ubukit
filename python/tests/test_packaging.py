@@ -1,4 +1,4 @@
-"""The packages carry the repository's license files unchanged, and one version."""
+"""The packages carry the repository's license files unchanged, one version, and its documents."""
 
 import json
 import re
@@ -38,3 +38,22 @@ def test_one_version_everywhere():
         "CHANGELOG.md, newest dated heading": heading and heading.group(1),
     }
     assert len(set(versions.values())) == 1, versions
+
+
+def test_package_readmes_link_the_docs_of_their_version():
+    # The registries show these READMEs with a release, and the documents on
+    # main describe what is not released yet; a release sets these links
+    # with its version.
+    for readme in ("python/README.md", "js/README.md"):
+        text = (ROOT / readme).read_text(encoding="utf-8")
+        refs = re.findall(r"https://github\.com/subukata/ubukit/(?:blob|tree)/([^/]+)/", text)
+        assert refs and set(refs) == {f"v{ub.__version__}"}, (readme, refs)
+
+
+def test_unreleased_marks_go_with_the_release():
+    # Documents on main mark what is not released yet; a release removes the
+    # marks with the CHANGELOG's "(unreleased)".
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    docs = (ROOT / "docs").glob("*.md")
+    marked = [d.name for d in docs if "*Unreleased; planned for" in d.read_text(encoding="utf-8")]
+    assert "## (unreleased)" in changelog or not marked, marked
