@@ -5,6 +5,20 @@ reason and what was rejected; the pull requests it names hold the
 measurements and the review history. Add an entry when a pull request makes
 or changes a design decision.
 
+## 2026-10-19 pip takes only files a week old (#132)
+
+Both workflows set `PIP_UPLOADED_PRIOR_TO=P7D`, which also holds in the
+isolated environments of builds, and give the first pip command of each job
+the option too, so a pip before 26.0, which ignores the variable, stops the
+job. DESIGN.md's principle 8 now says that new releases of the actions and
+dependencies are taken only after a week. *Why:* the release's build tools
+(pip, build, hatchling) were the latest at the moment of the tag, while
+Dependabot waits a week for npm and the actions; most compromised releases
+are withdrawn within days. *Rejected:* hash-pinned build requirements with
+Dependabot (pins and a file to maintain, and only for the build job; beyond
+the week they would also catch a file added to an old release and left
+unnoticed, which this accepts).
+
 ## 2026-10-19 Inputs taken as given, in both languages (#130)
 
 A labeling holds values of one kind, flags are booleans, and JavaScript
