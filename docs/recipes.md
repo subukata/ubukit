@@ -16,6 +16,55 @@ rng = np.random.default_rng(0)
 X = np.vstack([rng.normal(c, 0.6, (200, 2)) for c in ([0, 0], [4, 0], [1, 4])])
 ```
 
+## A first experiment, end to end
+
+Split the data first and compute every statistic on the training part
+only; fit and apply with one dictionary of settings; and save what applying
+needs (the centers, the settings, the preprocessing, the order of the
+features and the version that made them) as arrays and JSON, which
+`np.load` reads without pickles. A map also needs its `unit_coordinates`.
+
+```python
+import io
+import json
+
+y = np.repeat([0, 1, 2], 200)  # X's groups, to score against
+features = ["length", "width"]  # the columns, in their order
+order = np.random.default_rng(1).permutation(len(X))
+train, new = order[:450], order[450:]
+
+mean = X[train].mean(axis=0)
+scale = X[train].std(axis=0)
+scale[scale == 0] = 1.0  # a constant feature is only centered
+settings = {"m": 1.5}
+fit = ub.fcm((X[train] - mean) / scale, 3, **settings, seed=0)
+print(fit.stop_reason, ub.ari(y[train], fit.labels))
+
+saved = io.BytesIO()  # or a file: np.savez("model.npz", ...)
+np.savez(
+    saved,
+    centers=fit.centers,
+    mean=mean,
+    scale=scale,
+    features=features,
+    settings=json.dumps(settings),
+    version=ub.__version__,
+)
+
+model = np.load(io.BytesIO(saved.getvalue()))  # or np.load("model.npz")
+assert list(model["features"]) == features
+standardized = (X[new] - model["mean"]) / model["scale"]
+applied = ub.apply.fcm(standardized, model["centers"], **json.loads(str(model["settings"])))
+print(ub.ari(y[new], applied.labels))
+before = ub.apply.fcm((X[new] - mean) / scale, fit.centers, **settings)
+assert np.array_equal(applied.membership, before.membership)  # saved exactly
+
+# Drawn with matplotlib, which UbuKit does not depend on:
+# import matplotlib.pyplot as plt
+# plt.scatter(*X[new].T, c=applied.labels, s=8)
+# plt.scatter(*(model["centers"] * model["scale"] + model["mean"]).T, c="k", marker="x")
+```
+
 ## SOM-OLP's scales and diagnostics
 
 SOM-OLP adds a squared distance in the data and one on the grid,

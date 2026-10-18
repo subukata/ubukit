@@ -60,9 +60,10 @@ mean of the data and still stop with `"tol"`
 
 ## More
 
-[docs/recipes.md](docs/recipes.md) has worked uses, such as SOM-OLP's
-scales, held-out data, points added to a trained map and federated rough
-c-means.
+[docs/recipes.md](docs/recipes.md) has worked uses: a first experiment from
+preprocessing to saving and applying the model, then SOM-OLP's scales,
+held-out data, points added to a trained map, federated rough c-means and
+more.
 
 ## Development
 
