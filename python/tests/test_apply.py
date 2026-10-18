@@ -11,11 +11,11 @@ import ubukit as ub
 
 CENTERS = np.array([[1.0, 1.0], [4.0, 1.0], [1.0, 4.0]])
 CLUSTERINGS = {
-    "kmeans": ((), {}),
-    "fcm": ((), {"m": 1.5}),
-    "efcm": ((), {"tau": 0.7}),
-    "rcm": ((), {"alpha": 1.3, "beta": 0.2}),
-    "rmcm": ((), {"delta": 0.8}),
+    "kmeans": {},
+    "fcm": {"m": 1.5},
+    "efcm": {"tau": 0.7},
+    "rcm": {"alpha": 1.3, "beta": 0.2, "p": 1.0},
+    "rmcm": {"delta": 0.8},
 }
 
 
@@ -25,9 +25,9 @@ def test_a_clustering_applied_assigns_as_its_training_does(blobs, name):
     # memberships and labels with the same objective; applying never moves
     # the centers.
     X, _ = blobs
-    args, options = CLUSTERINGS[name]
-    applied = getattr(ub.apply, name)(X, CENTERS, *args, **options)
-    first = getattr(ub, name)(X, 3, *args, init=CENTERS, max_iter=1, **options)
+    options = CLUSTERINGS[name]
+    applied = getattr(ub.apply, name)(X, CENTERS, **options)
+    first = getattr(ub, name)(X, 3, init=CENTERS, max_iter=1, **options)
     np.testing.assert_array_equal(applied.labels, first.labels)
     if first.membership is None:
         assert applied.membership is None
@@ -39,11 +39,33 @@ def test_a_clustering_applied_assigns_as_its_training_does(blobs, name):
     assert applied.embedding is None and applied.unit_coordinates is None
 
 
+@pytest.mark.parametrize(
+    ("name", "missing"),
+    [
+        ("fcm", "m"),
+        ("efcm", "tau"),
+        ("rcm", "alpha"),
+        ("rcm", "beta"),
+        ("rcm", "p"),
+        ("rmcm", "delta"),
+    ],
+)
+def test_the_parameters_of_the_model_are_required(blobs, name, missing):
+    # They had defaults, which assigned silently under other parameters than
+    # the training's: FCM prototypes trained with m=1.3 and applied with the
+    # default m=2.0 gave memberships 0.35 apart.
+    X, _ = blobs
+    options = {k: v for k, v in CLUSTERINGS[name].items() if k != missing}
+    for function in (getattr(ub.apply, name), getattr(ub.steps.apply, name)):
+        with pytest.raises(TypeError, match=f"'{missing}'"):
+            function(X, CENTERS, **options)
+
+
 def test_the_centers_stay_exactly_as_given():
     # Centered on data at 1e10 and restored, the center 0.1 would come back as
     # 0.10000038146972656, and new data sent to the run would add up such changes.
     C = np.array([[0.1], [5.0]])
-    np.testing.assert_array_equal(ub.apply.fcm([[1e10]], C).centers, C)
+    np.testing.assert_array_equal(ub.apply.fcm([[1e10]], C, m=2.0).centers, C)
     run = ub.steps.apply.som_olp([[1e10]], C, [[0.0], [1.0]], lam=1.0, gamma=1.0, max_iter=None)
     results = [next(run).result()]
     for t in range(2, 5):
@@ -123,13 +145,13 @@ def test_rmcm_applied_depends_on_the_points_given_with_it():
 
 
 def test_fewer_points_than_centers(blobs):
-    r = ub.apply.fcm([[2.0, 1.0]], CENTERS)
+    r = ub.apply.fcm([[2.0, 1.0]], CENTERS, m=2.0)
     assert r.membership.shape == (1, 3) and r.labels.tolist() == [0]
 
 
 def test_one_assignment_ends_the_run_and_som_olp_takes_new_rows(blobs):
     X, _ = blobs
-    run = ub.steps.apply.fcm(X, CENTERS)
+    run = ub.steps.apply.fcm(X, CENTERS, m=2.0)
     next(run)
     with pytest.raises(StopIteration) as end:
         run.send(X + 1.0)  # one assignment: new rows need a new application
@@ -146,9 +168,9 @@ def test_one_assignment_ends_the_run_and_som_olp_takes_new_rows(blobs):
 @pytest.mark.parametrize(
     ("call", "error", "match"),
     [
-        (lambda X: ub.apply.fcm(X, np.ones((3, 3))), ValueError, "columns"),
+        (lambda X: ub.apply.fcm(X, np.ones((3, 3)), m=2.0), ValueError, "columns"),
         (lambda X: ub.apply.som(X, np.ones((5, 2)), (2, 2)), ValueError, "4 rows"),
-        (lambda X: ub.apply.fcm(X, "k-means++"), TypeError, "numbers"),
+        (lambda X: ub.apply.fcm(X, "k-means++", m=2.0), TypeError, "numbers"),
         (lambda X: ub.apply.fcm(X, CENTERS, m=1.0), ValueError, "^m must"),
         # Arguments are checked before the data, which are invalid too.
         (lambda X: ub.apply.fcm(X * np.nan, CENTERS * np.nan, m=1.0), ValueError, "^m must"),
@@ -162,7 +184,7 @@ def test_one_assignment_ends_the_run_and_som_olp_takes_new_rows(blobs):
             ValueError,
             "lam",
         ),
-        (lambda X: ub.apply.fcm(X, CENTERS, max_iter=3), TypeError, "max_iter"),
+        (lambda X: ub.apply.fcm(X, CENTERS, m=2.0, max_iter=3), TypeError, "max_iter"),
         (lambda X: ub.apply.som(X, np.ones((4, 2)), (2, 2), epochs=3), TypeError, "epochs"),
     ],
 )

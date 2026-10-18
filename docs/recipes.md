@@ -65,13 +65,15 @@ for p in ub.steps.rcm(X, 5, alpha=1.3, seed=0):  # five clusters for three blobs
 ## Memberships of held-out data
 
 Train on one part and apply to another: the centers stay as trained, and
-the memberships follow the trained model's own rule, with its parameters.
+the memberships follow the trained model's own rule, with its parameters;
+one dictionary keeps them the same in both calls.
 
 ```python
 order = rng.permutation(len(X))
 calibration, test = X[order[:400]], X[order[400:]]
-trained = ub.rcm(calibration, 3, alpha=1.2, seed=0)
-held_out = ub.apply.rcm(test, trained.centers, alpha=1.2)
+settings = {"alpha": 1.2, "beta": 0.0, "p": 1.0}
+trained = ub.rcm(calibration, 3, **settings, seed=0)
+held_out = ub.apply.rcm(test, trained.centers, **settings)
 print(held_out.membership[:5])  # a boundary point shares 1/2 or 1/3
 ```
 
@@ -111,7 +113,7 @@ centers = start
 for _ in range(300):
     sums, masses = np.zeros_like(centers), np.zeros(len(centers))
     for part in clients:  # on each client
-        U = ub.apply.rcm(part, centers, alpha=1.2).membership
+        U = ub.apply.rcm(part, centers, alpha=1.2, beta=0.0, p=1.0).membership
         sums += U.T @ part  # sends sum_i u_ic x_i
         masses += U.sum(axis=0)  # and sum_i u_ic
     new = centers.copy()  # on the server; a center without mass stays

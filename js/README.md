@@ -50,13 +50,15 @@ The equations, the stopping rules and when FCM and EFCM collapse are in
 Trained prototypes apply to new data, fixed: `ub.apply` has a function for
 every method, which takes the data, the prototypes and the parameters they
 were trained with, and returns the Result of the new data (`ub.steps.apply`
-has the same functions as generators).
+has the same functions as generators). The parameters have no defaults,
+since only the trained ones are right: keep them in one object for both
+calls.
 
 ```js
 const added = [[0.5, 0.4], [3.9, 4.1]];
 const placed = ub.apply.somOlp(added, m.centers, m.unitCoordinates, { lam: 0.5, gamma: 1 });
 placed.embedding;                                      // the new points on the trained map
-ub.apply.fcm(added, r.centers, { m: 2 }).membership;
+ub.apply.fcm(added, r.centers, { m: 2 }).membership;   // the m that r was trained with
 ```
 
 Each method assigns once, except `somOlp`, whose memberships iterate with

@@ -5,15 +5,13 @@ import { X } from './helpers.js';
 
 const C = [[1, 1], [4, 1], [1, 4]];
 const sq = (a, b) => a.reduce((s, v, f) => s + (v - b[f]) ** 2, 0);
+const CLUSTERINGS = { kmeans: {}, fcm: { m: 1.5 }, efcm: { tau: 0.7 }, rcm: { alpha: 1.3, beta: 0.2, p: 1 }, rmcm: { delta: 0.8 } };
 
 test('a clustering applied assigns as its training does', () => {
   // The first iteration of training from the same centers assigns the same
   // memberships and labels with the same objective; applying never moves the centers.
-  for (const [name, args, options] of [
-    ['kmeans', [], {}], ['fcm', [], { m: 1.5 }], ['efcm', [], { tau: 0.7 }],
-    ['rcm', [], { alpha: 1.3, beta: 0.2 }], ['rmcm', [], { delta: 0.8 }],
-  ]) {
-    const applied = ub.apply[name](X, C, ...args, options), first = ub[name](X, 3, ...args, { init: C, maxIter: 1, ...options });
+  for (const [name, options] of Object.entries(CLUSTERINGS)) {
+    const applied = ub.apply[name](X, C, options), first = ub[name](X, 3, { init: C, maxIter: 1, ...options });
     assert.deepEqual(applied.labels, first.labels, name);
     assert.deepEqual(applied.membership, first.membership, name);
     applied.history.forEach((h, t) => assert.ok(Math.abs(h - first.history[t]) <= 1e-12 * Math.abs(h), name));
@@ -22,11 +20,23 @@ test('a clustering applied assigns as its training does', () => {
   }
 });
 
+test('the parameters of the model are required', () => {
+  // They had defaults, which assigned silently under other parameters than the
+  // training's: FCM prototypes trained with m = 1.3 and applied with the
+  // default m = 2 gave memberships 0.35 apart.
+  for (const [name, missing] of [['fcm', 'm'], ['efcm', 'tau'], ['rcm', 'alpha'], ['rcm', 'beta'], ['rcm', 'p'], ['rmcm', 'delta']]) {
+    const { [missing]: _, ...options } = CLUSTERINGS[name];
+    assert.throws(() => ub.apply[name](X, C, options), new RegExp(`${missing} must be`), name);
+    assert.throws(() => ub.steps.apply[name](X, C, options).next(), new RegExp(`${missing} must be`), name);
+  }
+  assert.throws(() => ub.apply.fcm(X, C), /m must be/);
+});
+
 test('the centers stay exactly as given', () => {
   // Centered on data at 1e10 and restored, the center 0.1 would come back as
   // 0.10000038146972656, and new data passed to the run would add up such changes.
   const C2 = [[0.1], [5]];
-  assert.deepEqual(ub.toRows(ub.apply.fcm([[1e10]], C2).centers), C2);
+  assert.deepEqual(ub.toRows(ub.apply.fcm([[1e10]], C2, { m: 2 }).centers), C2);
   const run = ub.steps.apply.somOlp([[1e10]], C2, [[0], [1]], { lam: 1, gamma: 1, maxIter: Infinity });
   const results = [run.next().value.result()];
   for (let t = 2; t < 5; t++) results.push(run.next([[t * 1e10]]).value.result());
@@ -106,20 +116,20 @@ test('rmcm applied depends on the points given with it', () => {
 });
 
 test('fewer points than centers, and one assignment ends the run', () => {
-  const r = ub.apply.fcm([[2, 1]], C);
+  const r = ub.apply.fcm([[2, 1]], C, { m: 2 });
   assert.deepEqual([r.membership.rows, r.membership.cols, r.labels[0]], [1, 3, 0]);
-  const run = ub.steps.apply.fcm(X, C);
+  const run = ub.steps.apply.fcm(X, C, { m: 2 });
   run.next();
   const end = run.next(X); // one assignment: new rows need a new application
   assert.ok(end.done && end.value.stopReason === 'schedule');
 });
 
 test('apply checks its arguments', () => {
-  assert.throws(() => ub.apply.fcm(X, [[1, 1, 1], [2, 2, 2]]), /columns/);
+  assert.throws(() => ub.apply.fcm(X, [[1, 1, 1], [2, 2, 2]], { m: 2 }), /columns/);
   assert.throws(() => ub.apply.som(X, Array(5).fill([0, 0]), [2, 2]), /4 rows/);
   assert.throws(() => ub.apply.fcm(X, C, { m: 1 }), RangeError);
   assert.throws(() => ub.apply.somOlp(X, Array(4).fill([0, 0]), [2, 2], { lam: 0, gamma: 1 }), /lam/);
-  assert.throws(() => ub.apply.fcm(X, C, { maxIter: 3 }), { name: 'TypeError', message: 'unknown option maxIter' });
+  assert.throws(() => ub.apply.fcm(X, C, { m: 2, maxIter: 3 }), { name: 'TypeError', message: 'unknown option maxIter' });
   assert.throws(() => ub.apply.kmeans(X, C, { maxIter: 3 }), { name: 'TypeError', message: 'unknown option maxIter' });
   assert.throws(() => ub.apply.batchSom(X, Array(4).fill([0, 0]), [2, 2], { epochs: 3 }), TypeError);
   assert.throws(() => ub.steps.apply.som(X, Array(4).fill([0, 0]), [2, 2], { epochs: 3 }).next(), TypeError);
