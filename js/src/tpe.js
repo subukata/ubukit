@@ -65,7 +65,9 @@ function bounds(dim) {
 }
 function encode(dim, x) {
   if (dim.kind === 'choice') {
-    const i = dim.options.indexOf(x);
+    // SameValueZero, as includes compares: indexOf never finds NaN, so a NaN
+    // option could not be told back as ask gave it (Python finds it by identity).
+    const i = dim.options.findIndex(o => o === x || (o !== o && x !== x));
     if (i < 0) throw new RangeError(`${x} is not an option`);
     return i;
   }

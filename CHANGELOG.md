@@ -79,7 +79,7 @@ versions keep the API and change results only to fix bugs, listed under
   `NaN` or `ZeroDivisionError`). JavaScript keeps checked copies of the
   dimensions, which are now frozen, as Python's are. Python's `choice` does
   not take `True` for `1`, and finds options such as arrays as `ask` gave
-  them.
+  them; JavaScript finds a `NaN` option, which `indexOf` never did.
 - Python: `som` and `som_olp` copy the unit coordinates passed as `grid`;
   changing that array during a run changed the run.
 - JavaScript: rows of unit coordinates may be typed arrays, as `matrix`
