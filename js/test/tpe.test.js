@@ -37,6 +37,17 @@ test('a space too narrow to search is refused', () => {
   assert.throws(() => new ub.TPE({ x: ub.uniform(0, 1) }).tell({ x: 0.5 }, Infinity), { message: 'value must be a finite number' });
 });
 
+test('a NaN option is told back as ask gave it', () => {
+  // indexOf never finds NaN, so the TPE refused its own proposal; Python finds
+  // the option by identity.
+  const tpe = new ub.TPE({ x: ub.choice(NaN, 1) }, { seed: 0, nStartup: 2 });
+  for (let t = 0; t < 6; t++) {
+    const p = tpe.ask();
+    tpe.tell(p, Number.isNaN(p.x) ? 0 : 1);
+  }
+  assert.ok(Number.isNaN(tpe.result().bestParams.x));
+});
+
 test('the settings of a TPE are read-only', () => {
   // They were plain properties: nCandidates = 0 set later skipped the check and
   // made the next proposal fail.
