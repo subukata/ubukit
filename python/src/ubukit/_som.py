@@ -28,6 +28,7 @@ from ._core import (
     Tolerance,
     as_data,
     as_matrix,
+    check_bool,
     check_float,
     check_int,
     check_max_iter,
@@ -77,6 +78,7 @@ def som(
     lr_end = check_float(lr_end, "lr_end", 0.0, strict=True)
     if max(lr, lr_end) > 1:
         raise ValueError("lr and lr_end must be at most 1")
+    shuffle = check_bool(shuffle, "shuffle")
     rng = np.random.default_rng(check_seed(seed))
     data, W = _setup(X, R, init)
 

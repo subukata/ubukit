@@ -137,3 +137,22 @@ def test_invalid_arguments():
     # NumPy's own error named neither the labels nor the cause.
     with pytest.raises(TypeError, match=r"^labels must be values of one kind"):
         ub.ari([0, None], [0, 1])
+
+
+@pytest.mark.parametrize(
+    "mixed", [[0, "0"], [True, 1], [np.True_, 1], np.array([0, "0"], dtype=object)]
+)
+@pytest.mark.parametrize("metric", [ub.ari, ub.ami])
+def test_a_labeling_holds_values_of_one_kind(metric, mixed):
+    # NumPy made [0, "0"] two equal strings and [True, 1] two equal integers,
+    # which JavaScript keeps apart: ARI 0 here and 1 there.
+    message = r"^labels must be values of one kind: numbers, strings or booleans$"
+    with pytest.raises(TypeError, match=message):
+        metric(mixed, [0, 1])
+    with pytest.raises(TypeError, match=message):
+        metric([0, 1], mixed)
+
+
+def test_labels_of_one_kind_are_taken_as_before():
+    assert ub.ari([1, 1.0, 2], ["a", "a", "b"]) == 1.0
+    assert ub.ari(np.array([True, True, False]), [np.int64(3), 3, 4]) == 1.0

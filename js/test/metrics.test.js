@@ -75,6 +75,19 @@ test('labels are values, as in Python', () => {
   assert.equal(ub.ari([true, true, false], ['a', 'a', 'b']), 1);
 });
 
+test('a labeling holds values of one kind, as in Python', () => {
+  // Python's arrays make [0, '0'] two equal strings and [true, 1] two equal
+  // integers, where this kept them apart: ARI 0 there and 1 here.
+  const message = 'labels must be values of one kind: numbers, strings or booleans';
+  for (const mixed of [[0, '0'], [true, 1], [1, 1n]]) {
+    for (const metric of [ub.ari, ub.ami]) {
+      assert.throws(() => metric(mixed, [0, 1]), { name: 'TypeError', message });
+      assert.throws(() => metric([0, 1], mixed), { name: 'TypeError', message });
+    }
+  }
+  assert.equal(ub.ari([1, 1.0, 2], ['a', 'a', 'b']), 1);
+});
+
 test('sparse labels and lists of k are refused before anything is allocated for them', () => {
   // Their holes were skipped or checked late, so the encoding of the labels
   // and the copy of k were sized by the claimed length.

@@ -5,7 +5,7 @@
  * mixture whose components keep one trial's dimensions together, and the
  * candidate maximizing l(x) / g(x) is proposed. Numeric dimensions live on [0, 1].
  */
-import { checkInt, checkNumber, named, random, rejectUnknown, resolveSeed } from './core.js';
+import { checkBoolean, checkInt, checkNumber, named, random, rejectUnknown, resolveSeed } from './core.js';
 
 /** @typedef {{ readonly kind: 'numeric', readonly low: number, readonly high: number, readonly log: boolean, readonly integer: boolean }} NumericDim */
 /** @typedef {{ readonly kind: 'choice', readonly options: readonly unknown[] }} ChoiceDim */
@@ -25,12 +25,19 @@ export const integer = (low, high, options) => {
   const { log = false, ...unknown } = named(options);
   rejectUnknown(unknown);
   checkInt(low, 'low', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
-  return numeric(low, checkInt(high, 'high', low, Number.MAX_SAFE_INTEGER), log, true);
+  return numeric(low, checkInt(high, 'high', low, Number.MAX_SAFE_INTEGER), checkBoolean(log, 'log'), true);
 };
 /** One of the given options (compared with ===). @param {...unknown} options @returns {ChoiceDim} */
-export function choice(...options) {
+export const choice = (...options) => choices(options);
+
+/**
+ * A frozen categorical dimension of a copy of the options: from an array, not
+ * spread into arguments, whose number the engine limits.
+ * @param {ArrayLike<unknown>} options @returns {ChoiceDim}
+ */
+function choices(options) {
   if (!options.length) throw new RangeError('choice needs at least one option');
-  return Object.freeze({ kind: 'choice', options: Object.freeze(options) });
+  return Object.freeze({ kind: 'choice', options: Object.freeze(Array.from(options)) });
 }
 
 /** A frozen numeric dimension, as Python's are. @returns {NumericDim} */
@@ -52,9 +59,10 @@ function numeric(low, high, log, integer) {
  * @param {any} dim @param {string} name @returns {NumericDim | ChoiceDim}
  */
 function dimension(dim, name) {
-  if (dim?.kind === 'choice' && Array.isArray(dim.options)) return choice(...dim.options);
+  if (dim?.kind === 'choice' && Array.isArray(dim.options)) return choices(dim.options);
   if (dim?.kind === 'numeric') {
-    return dim.integer ? integer(dim.low, dim.high, { log: Boolean(dim.log) }) : numeric(dim.low, dim.high, Boolean(dim.log), false);
+    const log = checkBoolean(dim.log, `space.${name}.log`);
+    return checkBoolean(dim.integer, `space.${name}.integer`) ? integer(dim.low, dim.high, { log }) : numeric(dim.low, dim.high, log, false);
   }
   throw new RangeError(`space.${name} must come from uniform/loguniform/integer/choice`);
 }
@@ -68,11 +76,11 @@ function encode(dim, x) {
     // SameValueZero, as includes compares: indexOf never finds NaN, so a NaN
     // option could not be told back as ask gave it (Python finds it by identity).
     const i = dim.options.findIndex(o => o === x || (o !== o && x !== x));
-    if (i < 0) throw new RangeError(`${x} is not an option`);
+    if (i < 0) throw new RangeError(`${String(x)} is not an option`);
     return i;
   }
   if (typeof x !== 'number' || !(x >= dim.low && x <= dim.high) || (dim.integer && !Number.isInteger(x))) {
-    throw new RangeError(`${x} is not ${dim.integer ? 'an integer' : 'a number'} in [${dim.low}, ${dim.high}]`);
+    throw new RangeError(`${String(x)} is not ${dim.integer ? 'an integer' : 'a number'} in [${dim.low}, ${dim.high}]`);
   }
   const [lo, hi] = bounds(dim);
   return ((dim.log ? Math.log(x) : x) - lo) / (hi - lo);

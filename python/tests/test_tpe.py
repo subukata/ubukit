@@ -188,6 +188,25 @@ def test_a_boolean_is_not_a_numeric_option():
     assert tpe.result().best_params == {"k": 1, "flag": np.True_}
 
 
+def test_flags_must_be_booleans():
+    # integer(1, 8, log="false") searched on a log scale, and shuffle="false" shuffled.
+    with pytest.raises(ValueError, match=r"^log must be a boolean$"):
+        ub.integer(1, 8, log="false")
+    with pytest.raises(ValueError, match=r"^shuffle must be a boolean$"):
+        ub.som([[0.0, 0.0], [1.0, 1.0], [2.0, 0.0]], (1, 2), shuffle="false")
+    assert ub.integer(1, 8, log=np.True_).log is True
+
+
+def test_an_equal_array_is_no_option():
+    # == on arrays gives no truth value, so NumPy's error came out of tell; an
+    # equal array that is not the option is no option, as in JavaScript.
+    options = (np.array([1, 2]), np.array([3, 4]))
+    tpe = ub.TPE({"x": ub.choice(*options)}, seed=0)
+    with pytest.raises(ValueError, match="is not an option"):
+        tpe.tell({"x": np.array([1, 2])}, 1.0)
+    tpe.tell({"x": options[0]}, 1.0)
+
+
 def test_an_option_is_matched_as_ask_gave_it():
     # Comparing by == alone asked NumPy for the truth of an array, so a search
     # over arrays refused its own proposals.

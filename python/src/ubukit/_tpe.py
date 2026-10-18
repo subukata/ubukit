@@ -18,7 +18,7 @@ from typing import Any, TypedDict, Unpack
 import numpy as np
 from scipy.special import logsumexp, ndtr, ndtri
 
-from ._core import MAX_INT, check_float, check_int, check_seed, is_boolean
+from ._core import MAX_INT, check_bool, check_float, check_int, check_seed, is_boolean
 
 
 class _Dimension:
@@ -65,15 +65,17 @@ class _Choice(_Dimension):
     options: tuple
 
     def encode(self, x) -> float:
-        # The option itself first, as ask gives it: options such as arrays have
-        # no truth value of ==. Then one equal to x, a boolean matching only a
-        # boolean, as in JavaScript: True is not the option 1.
+        # The option itself first, as ask gives it. Then one equal to x, a
+        # boolean matching only a boolean, as in JavaScript: True is not the
+        # option 1. An == that gives no boolean, as for arrays, is no match.
         for i, option in enumerate(self.options):
             if option is x:
                 return float(i)
         for i, option in enumerate(self.options):
-            if is_boolean(option) == is_boolean(x) and option == x:
-                return float(i)
+            if is_boolean(option) == is_boolean(x):
+                same = option == x
+                if is_boolean(same) and same:
+                    return float(i)
         raise ValueError(f"{x!r} is not an option")
 
     def decode(self, u: float):
@@ -93,7 +95,8 @@ def loguniform(low: float, high: float) -> _Numeric:
 def integer(low: int, high: int, *, log: bool = False) -> _Numeric:
     """Integers in [low, high], optionally searched on a log scale."""
     low = check_int(low, "low", -MAX_INT, MAX_INT)
-    return _numeric(low, check_int(high, "high", low, MAX_INT), log, True)
+    high = check_int(high, "high", low, MAX_INT)
+    return _numeric(low, high, check_bool(log, "log"), True)
 
 
 def choice(*options: Any) -> _Choice:

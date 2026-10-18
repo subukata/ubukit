@@ -4,7 +4,7 @@
  * leading principal plane unless given.
  */
 import {
-  argmaxRows, asData, center, checkInt, checkMaxIter, checkNumber, checkScale, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
+  argmaxRows, asData, center, checkBoolean, checkInt, checkMaxIter, checkNumber, checkScale, copyMatrix, fitted, isList, iterate, labelSums, mapMatrix,
   matrix, MAX_SQ_NORM, named, nearest, random, rejectUnknown, schedule, shift, softmin, sqdist, startFixed, steady, tolerance, weightedMean,
 } from './core.js';
 
@@ -30,6 +30,7 @@ export function* som(X, grid = [10, 10], options) {
   checkNumber(lr, 'lr', 0, true);
   checkNumber(lrEnd, 'lrEnd', 0, true);
   if (Math.max(lr, lrEnd) > 1) throw new RangeError('lr and lrEnd must be at most 1');
+  checkBoolean(shuffle, 'shuffle');
   const rand = random(seed), { data, W } = setup(X, R, init), k = R.rows, q = R.cols;
   const epoch = (data, W, _, e) => {
     const { rows: n, cols: d, data: x } = data.X, steps = epochs * n;

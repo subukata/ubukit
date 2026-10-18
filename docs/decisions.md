@@ -5,6 +5,16 @@ reason and what was rejected; the pull requests it names hold the
 measurements and the review history. Add an entry when a pull request makes
 or changes a design decision.
 
+## 2026-10-19 Inputs taken as given, in both languages (#130)
+
+A labeling holds values of one kind, flags are booleans, and JavaScript
+reads only an options object's own properties. *Why:* Python made mixed
+labels one kind where JavaScript kept them apart, a string `"false"` was
+truthy, and inherited properties, `Object.prototype`'s included, set options
+that `rejectUnknown` never saw. *Rejected:* converting mixed labels in
+JavaScript as NumPy does (the ambiguity stays, in both languages), and
+guarding `Object.prototype` (other code's object; the copy suffices).
+
 ## 2026-10-19 apply takes the model's parameters without defaults (#128)
 
 The parameters that define a method's assignment have no default in

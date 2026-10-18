@@ -81,6 +81,22 @@ test('options that are not an object are an error, not the defaults', async () =
   assert.deepEqual(ub.batchSom(X, [2, 2], undefined), ub.batchSom(X, [2, 2]));
 });
 
+test('only the own options of an object count', () => {
+  // Destructuring read inherited options too, so an option set on
+  // Object.prototype by any code changed every call, and rejectUnknown, which
+  // sees own keys only, let it through.
+  const plain = ub.fcm(X, 3, { seed: 0 });
+  assert.deepEqual(ub.fcm(X, 3, Object.assign(Object.create({ m: 50 }), { seed: 0 })), plain);
+  /** @type {any} */ (Object.prototype).maxIter = 1;
+  try {
+    assert.deepEqual(ub.fcm(X, 3, { seed: 0 }), plain);
+  } finally {
+    delete (/** @type {any} */ (Object.prototype)).maxIter;
+  }
+  // An own __proto__ key, as JSON.parse makes it, is an unknown option.
+  assert.throws(() => ub.fcm(X, 3, JSON.parse('{"__proto__": {"m": 50}}')), { name: 'TypeError', message: 'unknown option __proto__' });
+});
+
 test('row entries must be numbers', () => {
   // The copy into a Float64Array read null as 0 (Python rejects None), true
   // as 1 and '3' as 3; a BigInt made it throw an unrelated error.
