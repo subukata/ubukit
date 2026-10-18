@@ -82,13 +82,16 @@ Each principle states a rule and the failure it prevents.
    unmeasured optimization is usually complexity without benefit.
 8. **A short, closed supply chain.** CI actions are pinned to commit SHAs
    and get the least permissions; dependency install scripts do not run;
+   new releases of the actions and dependencies are taken only once they are
+   a week old;
    tests and builds run without credentials and in separate jobs, so the
    published files are made with the build tools alone, and the publishing
    jobs only upload them through trusted publishing. Only the maintainer
    pushes release tags, only on commits of `main`, and never moves one.
    *Why:* a package is only as trustworthy as the path from source to
    registry: no third-party code may run where a publishing token can be
-   minted, and only the build tools where the published files are made.
+   minted, and only the build tools where the published files are made; and
+   most compromised releases are withdrawn within days.
 9. **Designs follow the model, not the shortest path.** A change is designed
    from what the library should be in the long run. When a feature does not
    fit, the abstraction that keeps it out is changed, even if a workaround

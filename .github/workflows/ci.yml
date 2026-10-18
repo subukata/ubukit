@@ -20,9 +20,15 @@ permissions:
 
 # pip installs wheels only: building a dependency from its source runs that
 # package's own code (DESIGN.md, principle 8; npm skips install scripts).
-# UbuKit itself is still built from this checkout.
+# UbuKit itself is still built from this checkout. And pip takes only files
+# uploaded at least a week ago, the cooldown Dependabot keeps for npm and the
+# actions: most compromised releases are withdrawn within days. The isolated
+# environments of builds, which install hatchling, follow both. The first pip
+# command of each job gives the cutoff again as an option, so a pip too old
+# for it (before 26.0), which would ignore the variable, stops the job there.
 env:
   PIP_ONLY_BINARY: ":all:"
+  PIP_UPLOADED_PRIOR_TO: P7D
 
 # A new push to a pull request cancels its earlier run; runs started by hand
 # never cancel each other.
@@ -49,7 +55,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install --upgrade pip
+      - run: python -m pip install --upgrade --uploaded-prior-to P7D pip
       - run: python -m pip install -e . --group dev
       - run: ruff check . ../fixtures ../bench
       - run: ruff format --check . ../fixtures ../bench
@@ -72,7 +78,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - run: python -m pip install --upgrade pip
+      - run: python -m pip install --upgrade --uploaded-prior-to P7D pip
       - run: python -m pip install "numpy==2.2.*" "scipy==1.15.*" -e . --group dev
       # NumPy's type stubs change between versions, so mypy checks these too.
       - run: mypy
@@ -94,7 +100,7 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-      - run: python -m pip install build twine
+      - run: python -m pip install --uploaded-prior-to P7D build twine
       - run: python -m build python --outdir dist
       - run: python -m twine check --strict dist/*
       - run: npm ci --ignore-scripts

@@ -131,8 +131,11 @@ closes the pull requests that target it.
   `--ignore-scripts`, and pip with `PIP_ONLY_BINARY=:all:` (set in both
   workflows), so it installs wheels and never builds a dependency from
   source. A dependency without a wheel for a Python that CI tests fails
-  that job; UbuKit itself is still built from the checkout. Set the same
-  variable when installing the development group locally.
+  that job; UbuKit itself is still built from the checkout. pip also takes
+  only files uploaded at least a week ago (`PIP_UPLOADED_PRIOR_TO=P7D`, pip
+  26.0 or newer), as Dependabot waits a week for npm and the actions, in
+  builds' isolated environments too. Set the same variables when installing
+  the development group locally.
 - Dependabot proposes the month's updates to the actions and to the npm
   development dependencies as one pull request per ecosystem, and only
   versions at least a week old. CI runs on these pull requests like any
