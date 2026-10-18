@@ -1,969 +1,574 @@
 # Decisions
 
 Why UbuKit is the way it is, newest first. Each entry gives the decision, the
-reason and what was rejected, with the pull requests that carried it. Add an
-entry when a pull request makes or changes a design decision.
+reason and what was rejected; the pull requests it names hold the
+measurements and the review history. Add an entry when a pull request makes
+or changes a design decision.
 
 ## 2026-10-18 Unit coordinates centered from the first unit; norms scaled (#121)
 
-SOM-OLP subtracts the first unit from the unit coordinates before
-subtracting their mean; a start made with `pca_scale` passes the whole
-scale check of a given start (one shared `check_scale` / `checkScale`);
-JavaScript's principal axes take their norms with the entries scaled by the
-largest. *Why:* Codex's review of 0.2.0's candidate found that the mean of
-coincident units at 1e50 is computed with an error of 1e34, which the
-weighted latent positions turned into costs of 1e37 in JavaScript (#116's
-centering alone did not suffice); that `pca_scale = 1e-160` passed, as
-#116 checked only the upper bound; and that JavaScript lost the principal
-axes of data at 1e80 or 1e-100, whose covariance squares overflow or
-underflow. Rectangular grids, whose first unit is the origin, are
-unchanged; one fixture moves by 2.8e-14. *Rejected:* refusing coincident
-or far units (they are valid), scaling the data before the PCA (a second
-copy of X, where only the norms needed care), and `Math.hypot` over
-spread arrays (the stack limit that #109 met).
+SOM-OLP subtracts the first unit before the mean of the unit coordinates, a
+start made with `pca_scale` passes the whole scale check of a given start
+(one `check_scale`), and JavaScript's principal-axis norms scale the entries
+by the largest. *Why:* coincident units far from the origin got large costs
+from the mean's rounding, a tiny `pca_scale` passed the upper bound alone,
+and JavaScript lost the axes of data at 1e80 or 1e-100, whose squares
+overflow or underflow. *Rejected:* refusing coincident or far units (they
+are valid), scaling the data before the PCA (a second copy of X), and
+`Math.hypot` over spread arrays (the stack limit, #109).
 
 ## 2026-10-17 pip installs wheels only (#119)
 
-Both workflows set `PIP_ONLY_BINARY=:all:`, so pip never builds a
-dependency from source, as npm's `--ignore-scripts` keeps install scripts
-from running. *Why:* principle 8 says that dependency install scripts do
-not run, but only npm enforced it: pip builds a package that has no wheel
-for the platform, running its build backend's code, in the test jobs and
-in the isolated environment of the release build. Codex's review pointed
-it out. The latest CI built nothing from source but UbuKit itself, which
-the setting still builds, and `python -m build` with `twine check` passed
-under it. *Rejected:* narrowing principle 8 to npm (the promise is worth
-keeping, and it costs nothing today) and hash-pinned requirement files (the
-monthly maintenance #56 rejected).
+Both workflows set `PIP_ONLY_BINARY=:all:`, so pip never builds a dependency
+from source, as npm's `--ignore-scripts` keeps install scripts from running.
+*Why:* principle 8 promised it, but only npm enforced it: building a package
+that has no wheel runs its build backend, in the test jobs and in the
+release build's isolated environment. It costs nothing today: CI built
+nothing from source but UbuKit itself. *Rejected:* narrowing principle 8 to
+npm, and hash-pinned requirement files (the maintenance #56 rejected).
 
 ## 2026-10-17 Values made inside keep the numerical contract (#116)
 
-What the library makes from valid arguments must keep the contract that
-given values keep: SOM-OLP's latent costs come from centered unit
-coordinates (as distances come from centered data), a PCA start must pass
-the scale check that a given start passes, and `softmin` raises an error
-naming the temperature when the objective it returns is not a float64.
-*Why:* Codex's review found three valid-looking inputs giving NaN or `-inf`
-with "tol": units at 1e20 slipped past #115's bound, which assumed exact
-arithmetic, through the rounding of their offset; a `pca_scale` of 1e200;
-and a `tau` or `lam` of 1e308, whose objective, about -N T log K,
-overflows. Centering moves SOM-OLP's results in their last digits only
-(fixtures: at most 1.2e-14 after 100 iterations). *Rejected:* a bound on
-`gamma` that also covers the rounding of the offset (a second term to
-explain, while centering removes the cause), bounds on `pca_scale`, `tau`
-and `lam` before the data (they depend on the data's spread and size),
-and a check for non-finite values in the loop (#77).
+What the library makes from valid arguments keeps the contract of given
+values: SOM-OLP's latent costs come from centered unit coordinates, a PCA
+start passes the scale check, and `softmin` raises an error naming the
+temperature when its objective overflows. *Why:* far units, `pca_scale =
+1e200` and a `tau` or `lam` of 1e308 gave NaN or `-inf` with "tol".
+*Rejected:* a `gamma` bound covering the offset's rounding (centering
+removes the cause), bounds on `pca_scale`, `tau` and `lam` before the data
+(they depend on it), and a non-finite check in the loop (#77).
 
 ## 2026-10-17 SOM-OLP's gamma bounded; rcm's radius as Python has it (#115)
 
-`som_olp` and `apply.som_olp` require `gamma` times the squared extent of
-the units, bounded by four times their largest squared distance from their
-mean, to be at most 1e300, the bound the scale contract sets for the
-data's squared norms; it is checked with the other arguments, before the
-data. JavaScript's `rcm` takes the radius at a ratio of 0 as the larger
-term itself, the value of (1 + 0)^(1/p) for every p. *Why:* Codex's review
-before 0.2.0 found both giving NaN memberships that the loop reported as
-"tol" (the prototypes, weighted by NaN, kept their place), against
-principle 3; the plan had left them for 0.3.0. The bound keeps the latent
-costs in the range the data's already have. *Rejected:* refusing a `p`
-whose reciprocal overflows, as Codex proposed (Python already gives the
-limit there, and IEEE arithmetic defines 1^inf = 1: only JavaScript's `**`
-differed), scaling the latent costs inside (a rescue path), and a check
-for non-finite memberships in the loop (it finds the symptom, as #77
-decided).
+`gamma` times the squared extent of the units must be at most 1e300, the
+bound of the data's squared norms, checked before the data; JavaScript's
+`rcm` takes the radius at a ratio of 0 as the larger term, the exact value
+of (1 + 0)^(1/p). *Why:* both gave NaN memberships reported as "tol"
+(principle 3). *Rejected:* refusing a `p` whose reciprocal overflows (Python
+gives the limit; only JavaScript's `1 ** Infinity` differs from IEEE `pow`),
+scaling the latent costs (a rescue path), and a non-finite check in the loop
+(#77).
 
 ## 2026-10-16 TPE's settings are read-only (#111)
 
-`TPE` exposes `n_startup`, `n_candidates` and `gamma` as read-only
-properties (getters in JavaScript) of the values its constructor checked.
-*Why:* the outside reviews found them plain attributes, so a value set
-later skipped the checks: `n_candidates = 0` made the next proposal fail
-in both languages, and `n_startup = -1` in Python. A search whose settings
-change midway would need a contract of its own. *Rejected:* private names
-that cannot be read (code that reports a search reads its settings), and
-setters that check again (a second place for each check, for a use nobody
-has).
+`n_startup`, `n_candidates` and `gamma` are read-only properties (getters in
+JavaScript) of the values the constructor checked. *Why:* as plain
+attributes, a value set later skipped the checks: `n_candidates = 0` broke
+the next proposal. *Rejected:* names that cannot be read (code reports a
+search's settings) and setters that check again (a second place for each
+check, for a use nobody has).
 
 ## 2026-10-16 The public API reviewed; rmcm's delta by name (#110)
 
-The review of the whole public API that #89 asked for before 1.0 compared
-every public function of both languages, with its parameter order and
-defaults, and the Result fields. The defaults agree between the languages.
-One change: `rmcm` and `apply.rmcm` take `delta` by name, required, as
-`som_olp` takes `lam` and `gamma`, so every function takes the data and what
-the run is about (`k`, the `centers`, the `grid`) by position and the
-method's parameters by name; the Python tests needed a helper that popped
-`delta` to call the clusterings alike. 0.2.0 introduces `apply.rmcm`, so
-changing it now spares its users a second change. Kept as they are, with
-the outside reviews (Codex and Antigravity CLI) divided on the first two:
-`pca_scale` only on `som_olp` (the batch SOM replaces its start within the
-first epoch and the online SOM's updates soon outweigh it, while SOM-OLP's
-softmax depends on the spread of its start), the type aliases `Space`,
-`Grid`, `Init` and `MapInit` private (typed code infers its spaces since
-#104, and each public name is a promise), `k` naming the clusters of a
-clustering and the neighbors of the metrics (each function's meaning is
-plain, and a rename would touch every call), and Python's positional
-`n_trials` beside JavaScript's `nTrials` option (each language's own way to
-pass a count, which #106 makes an error to confuse). *Rejected:* positional
-`lam` and `gamma` for `som_olp` (they could not follow its optional
-`grid`), a default `delta` (no radius suits data of every scale), and
-keeping `delta` positional (the one exception, now in `apply` too).
+The review that #89 asked for compared every public function of both
+languages; the defaults agree. `rmcm` and `apply.rmcm` take `delta` by name,
+required, as `som_olp` takes `lam` and `gamma`: the data and what the run is
+about (`k`, `centers`, `grid`) go by position, a method's parameters by
+name. Kept: `pca_scale` on `som_olp` only (only its softmax depends on the
+start), private type aliases (spaces type-check by inference, #104), `k` for
+clusters and for neighbors, and Python's positional `n_trials`. *Rejected:*
+positional `lam` and `gamma` (they cannot follow the optional `grid`), a
+default `delta` (no radius suits every scale), and `delta` kept positional
+(the one exception).
 
 ## 2026-10-16 JavaScript options must be an object (#106)
 
-Every JavaScript function that takes options destructures them in its body
-from `named(options)`, which passes an object or no options and throws
-`TypeError` for anything else; #86's rest element still catches unknown
-names. *Why:* an outside review found that a number or boolean where the
-options go has no keys of its own, so destructuring it in the parameter
-list, as #86 did, ran the call with every default: `minimize(f, space,
-20)`, Python's positional `n_trials`, ran 100 trials. *Rejected:* reading
-the raw argument through `arguments` (its index differs per function) and
-a `typeof` check written out in each of the twenty functions.
+Every JavaScript function that takes options destructures `named(options)`
+in its body, which passes an object or nothing and throws `TypeError` for
+anything else; #86's rest element still catches unknown names. *Why:* a
+number has no keys, so destructuring it in the parameter list ran the call
+with every default: `minimize(f, space, 20)`, Python's positional
+`n_trials`, ran 100 trials. *Rejected:* reading `arguments` (its index
+differs per function) and a `typeof` check written out in each function.
 
 ## 2026-10-16 Effort by the weight of a change (#102)
 
 `CONTRIBUTING.md` sorts changes into light, medium and heavy, each with what
-it needs beyond the checks; several light documentation fixes may share a
-pull request; `AGENTS.md` lets agents merge a light pull request once CI
-passes and asks them to match their effort to the weight. *Why:* in
-#94-#100 a pull request took 1.5 to 2 minutes from opening to merge and
-the checks about a minute, but a heavy change took 40 to 110 minutes
-before it was opened: full benchmark comparisons of about 15 minutes, run
-alone and repeated when the machine was busy, two reviews by other models
-of about 10 minutes each, and documents for every change. Light changes
-took 4 to 15 minutes. Every rule had been applied at full strength to
-every change, and improving the library had stopped feeling light.
-*Rejected:* dropping the benchmark or decision rules (they caught a
-regression and record the reasons), and a separate instruction file or
-skill for agents (a second copy of the rules, which #46 ruled out).
+it needs beyond the checks, and `AGENTS.md` lets agents merge a light pull
+request once CI passes. *Why:* every rule had been applied at full strength
+to every change, so a heavy change took up to two hours before it was
+opened. *Rejected:* dropping the benchmark or decision rules (they caught a
+regression and keep the reasons) and a separate instruction file for agents
+(a second copy of the rules, #46).
 
 ## 2026-10-16 Recipes, run by the tests (#100)
 
-`docs/recipes.md` holds worked uses that users asked for: SOM-OLP's scales
-(lambda in squared data units, gamma converting squared grid units into
-them, so scaling the data by a and the grid by b keeps the memberships
-with lambda a^2 and gamma a^2 / b^2) and diagnostics (effective number of
-units, points on a unit), watching rough c-means converge through its
-generator, held-out data, adding points to a trained map, federated rough
-c-means (the centralized run's updates in exact arithmetic), and points
-separated on screen only. `tests/test_recipes.py` runs its blocks in order, so they
-stay true as the API changes. *Why:* the feedback of #94-#97 asked for
-these uses; each one is a few lines on the public API. *Rejected:* the
-READMEs (their PyPI and npm pages would grow long, twice), helper functions
-for the diagnostics (formulas of a line each, as #62 decided for m*), and
-notebooks (unrun by the tests, and their diffs carry outputs). Codex's
-review of the recipes also corrected two statements of earlier changes:
-the collapse threshold 2 lambda_max(S) holds for SOM-OLP only with
-gamma = 0, and an applied SOM-OLP point's result can depend on the points
-applied with it, since one rule stops them all (a point midway between two
-units stopped after 2 iterations at 0.5 alone and after 33 at 0.98 with
-another point).
+`docs/recipes.md` holds worked uses that users asked for (SOM-OLP's scales
+and diagnostics, watching rough c-means converge, held-out data, adding
+points to a map, federated rough c-means), and `tests/test_recipes.py` runs
+its blocks. *Why:* each is a few lines on the public API, and running them
+keeps them true. *Rejected:* the READMEs (their registry pages would grow,
+twice), helpers for one-line diagnostics (as #62 decided for m*), and
+notebooks (unrun, and their diffs carry outputs).
 
 ## 2026-10-16 Python data must hold numbers too (#99)
 
-`as_matrix` refuses arrays whose values are not integers or floats with
-`TypeError`, before converting them, as JavaScript's `matrix` has since
-0.1.1 (#84). *Why:* NumPy's conversion read `"1.5"` as 1.5, `True` as 1,
-complex numbers as their real part, and `None` as a missing value, so the
-two languages took different data. *Rejected:* converting in JavaScript
-too (a string column is almost always a mistake) and refusing only some
-kinds (each kept conversion is an exception to explain).
+`as_matrix` refuses values that are not integers or floats with `TypeError`
+before converting them, as JavaScript's `matrix` does since 0.1.1 (#84).
+*Why:* NumPy read `"1.5"` as 1.5, `True` as 1 and complex numbers as their
+real part, so the languages took different data. *Rejected:* converting in
+JavaScript too (a string column is almost always a mistake) and refusing
+only some kinds (each kept conversion is an exception to explain).
 
 ## 2026-10-16 Internal modules with an underscore (#98)
 
 `cluster`, `som`, `metrics` and `tpe` became `_cluster`, `_som`, `_metrics`
-and `_tpe`, so the public modules are exactly those without one: `ubukit`,
-`ubukit.steps`, `ubukit.apply` and `ubukit.steps.apply`. The test of the
-public names now counts modules too, and the "Compatibility" section lists
-the four (it had missed `apply` since #97). *Why:* #89, after #90 wrote down
-that import paths are not promised: the old paths looked public, and
-`from ubukit.cluster import fcm` gave the generator rather than the function
-`ubukit.fcm`. *Rejected:* modules under the old names that import the new
-ones, or a module `__getattr__` warning about them (a compatibility layer
-for paths never promised, which #90 rules out in 0.x).
+and `_tpe`, so the public modules are exactly those without one (`ubukit`,
+`ubukit.steps`, `ubukit.apply`, `ubukit.steps.apply`), which a test counts.
+*Why:* the old paths looked public, and `from ubukit.cluster import fcm`
+gave the generator, not `ubukit.fcm`. *Rejected:* modules under the old
+names, or a warning `__getattr__` (a compatibility layer for paths never
+promised, which #90 rules out in 0.x).
 
 ## 2026-10-16 Trained prototypes applied to new data (#97)
 
-`apply.<method>(X, centers, ...)` and its generator `steps.apply.<method>`
-run each method's assignment on new data with the prototypes fixed, taking
-the parameters of the model (m, tau, alpha, grid, lam, ...) and nothing that
-only training uses. Each method builds its rule once, its parameter checks
-and assignment, for training and application alike. The loop takes the
-prototypes as given (`fixed`): it centers them afresh for each data set and
-copies them into every Result, since centering and restoring them moved 0.1
-to 0.10000038 in a reviewer's example. One assignment ends the run
-(`Schedule(1)`, "schedule"); SOM-OLP's memberships depend on the previous
-ones, so they are iterated from the distances alone until they change by at
-most `tol` (`Steady`, "tol" or "limit", `max_iter` 1000 by default). *Why:*
-the maintainer's #89, an app placing new artworks on a trained map, and a
-study needing the memberships of a test split all asked for it; `init` with
-`max_iter=1` gave the memberships for clusterings only, with moved centers,
-k <= N and no documentation. On digits (64 dimensions, 10 x 10 map), new
-points placed this way agreed with the digits around them as often as at
-their best-matching units or in a map retrained with them, and needed 16 to
-117 iterations. The iteration has several fixed points (one point between
-two units: three), and for the points a map was trained on it can settle
-elsewhere than training left them; in the same experiment those that moved
-agreed with the map around them more often after than before. *Rejected:*
-an `update=False` flag on the fitting functions (it makes `init` carry the
-model, keeps every training argument without effect, and leaves training and
-application one call apart); `Result.predict` or model objects (a Result
-holds no method or parameters); functions such as `rcm_membership`
-computing the memberships apart (a second definition of every rule, without
-labels, embedding or history); "tol" for one assignment, so that rows sent
-to the run would continue it (no change was measured, and new points call
-for a new application); training's 100 iterations for SOM-OLP applied. Two
-other models, Codex and Gemini, reviewed the design; the flag and "tol" were
-Gemini's proposals, and both agreed on the rest.
+`apply.<method>(X, centers, ...)` (and `steps.apply`) runs each method's
+assignment on new data with the prototypes fixed and given back unchanged,
+taking only the model's parameters; each method builds its rule once, for
+training and application. One assignment ends the run ("schedule");
+SOM-OLP's memberships, which depend on the previous ones, iterate until they
+settle (`Steady`). *Why:* users placing new items on a trained map or
+needing a test split's memberships had only `init` with `max_iter=1`, which
+moved the centers. *Rejected:* an `update=False` flag (it makes `init` carry
+the model), `Result.predict` or model objects (a Result holds no
+parameters), separate membership functions (each rule twice), and "tol" for
+one assignment.
 
 ## 2026-10-16 Maps return their unit coordinates (#96)
 
-The Results of the maps hold `unit_coordinates` (`unitCoordinates`), the
-(K, Q) coordinates the run used, not normalized, with `centers[j]` the
-prototype of unit j; clusterings have `None`. The run owns its coordinates
-(Python copies a given array, as JavaScript did) and every Result gets its
-own copy, as views copy all the state they put in a Result. *Why:* an app's
-developer rebuilt the grid to draw the map, matching orientation and
-normalization by hand, while the run already held the coordinates that
-`embedding` is made of. Python read the array passed as `grid` during the
-run, so changing it moved the iterations that followed, and the Results a
-saved Progress of an earlier iteration built afterwards; a test now changes
-it after the first iteration. *Rejected:*
-`units` (it reads as the units themselves, or physical units), `grid` (the
-argument's name, a (rows, cols) pair there) and `positions` (beside
-`centers` and `embedding`, unclear); a public function building a grid's
-coordinates (the caller would still rebuild what the run used); one
-read-only array shared by the Results (NumPy's flag can be cleared and a
-Float64Array cannot be frozen); and the grid's shape, mesh edges or
-normalized coordinates in the Result (the caller has the shape it passed,
-any coordinates have no edges, and drawing is out of scope).
+The maps' Results hold `unit_coordinates`, the (K, Q) coordinates the run
+used, not normalized, `centers[j]` being unit j's prototype; the run owns
+its copy. *Why:* an app's developer rebuilt the grid by hand to draw the
+map. *Rejected:* the names `units`, `grid` and `positions` (each misleads),
+a public grid builder (the caller would still rebuild what the run used),
+one shared read-only array (neither language can enforce it), and shapes,
+edges or normalized coordinates (drawing is out of scope).
 
 ## 2026-10-16 A stop reason instead of `converged` (#95)
 
-`Result.converged` is replaced by `stop_reason` (`stopReason`): `"tol"`,
-`"schedule"` or `"limit"`, the rule that holds at the result's iteration
-under the run's own settings, with "tol" before "limit" when both hold, and
-`None` (`null`) in a Progress result where none holds yet. Each method gives
-`iterate` its stopping rule as a value, a tolerance with an iteration limit
-or a fixed schedule, in place of `tol=None` as the mark of a schedule; the
-loop still makes every decision (principle 1). A Progress result keeps the
-iterates of the run whose `max_iter` is its iteration, but not that run's
-reason: that run reaches its limit there, while this one goes on. `tol = 0`
-is now said to mean only that the prototypes did not move, since SOM-OLP's
-memberships can still change once more. The fixtures record the reason, so
-the languages are checked to agree on it. This replaces the part of #65 by
-which a fixed schedule "converges" in the loop. *Why:* an app's developer
-had to read `converged` per method: true once a map's schedule completed,
-after even one epoch, and false both when the limit came first and while a
-run went on; inside, the absence of a tolerance stood for a schedule, an
-existing concept carrying another (principle 9). *Rejected:* keeping
-`converged` beside the reason (two fields for one fact); `"interrupted"` for
-Progress results (when one is made, nobody knows whether the caller will
-stop, go on or send data; the field records rules, not the caller's
-choices); `"max_iter"` (it reads wrongly beside JavaScript's `maxIter`); a
-`schedule=True` flag beside `tol` and `max_iter` (combinations that
-contradict each other); and a value for applying fixed prototypes now (a
-reason names a rule, not an operation; that change will settle it).
+`stop_reason` (`"tol"`, `"schedule"`, `"limit"`, or `None` while none holds)
+replaces `converged`; each method gives `iterate` its stopping rule as a
+value, a tolerance with a limit or a schedule, and the loop decides
+(principle 1). It replaces #65's rule that a schedule "converges". *Why:*
+`converged` meant different things per method, and a missing tolerance stood
+for a schedule (principle 9). *Rejected:* both fields (one fact twice),
+`"interrupted"` (the field records rules, not the caller's choices),
+`"max_iter"` (wrong beside `maxIter`), and a `schedule=True` flag
+(contradictory combinations).
 
 ## 2026-10-16 Distances computed once for many embeddings (#94)
 
-`Neighborhood(X)` holds the (N, N) squared distances of X, and
-`trustworthiness` and `continuity` take it in place of either set of
-points; a list of k gives one value per k from one count of ranks, since
-the neighbors, sorted by (distance, index), give the k nearest of every
-smaller k as their first k. The scoring is the one there was: the rows of
-distances come from the Neighborhood instead of being computed again, so
-the values are the same bit for bit, and the Numba kernel takes either
-form. *Why:* a user tuning SOM-OLP layouts of one input (848 points, 1049
-features; both metrics at k = 5, 10, 20 in a TPE search) wrote their own
-cache: the six calls took 1.53 s on their machine, almost all of it the
-distances of X, computed again in every call. On ours, for 5 such layouts,
-a Neighborhood took 0.82 s to build and then 0.40 s per layout instead of
-5.69 s in Python (14x), and 3.1 s and 0.34 s instead of 15.3 s in
-JavaScript (45x); on the benchmark's 3000 x 16 data, whose distances cost
-little, the list of k still gives 2.6x and 2.9x. Plain calls are as fast as
-before. *Rejected:* a table of ranks from sorted rows (0.10 s per layout
-instead of 0.40 s in Python), which needs the sort that #60 rejected: plain
-calls ranking by sorted rows were 3.2-4.2x slower on the benchmark's
-3000 x 16 data at k = 5-10 (1.15-1.2x at 1049 features), and counting for
-plain calls beside a table would define the rank twice (principle 2); a
-function returning both metrics (a third name for what two do, while the
-embedding's side costs little); a cache kept inside the metrics (a hidden
-session, wrong once the caller changes X in place); and a raw (N, N)
-matrix with `metric="precomputed"` (an array that could also be data, so a
-flag in every call of both languages).
+`Neighborhood(X)` holds the squared distances of X, which `trustworthiness`
+and `continuity` take in place of either set of points with the same values;
+a list of k gives one value per k from one count of ranks. *Why:* a search
+scoring many layouts of one X recomputed its distances in every call (14x in
+Python and 45x in JavaScript for 848 points of 1049 features). *Rejected:*
+ranks from sorted rows (plain calls 3-4x slower, #60), a function returning
+both metrics, a cache inside the metrics (a hidden session), and
+`metric="precomputed"` (an array that could also be data).
 
 ## 2026-10-07 A small, written compatibility promise (#90)
 
-`DESIGN.md` states what UbuKit promises (the public names with their
-parameters, defaults and Result fields, and the equations) and what it does
-not (where names are defined, underscored names, pickles across versions,
-identical bits), and how a promise changes: at once in a 0.x minor version,
-with no alias or shim; from 1.0, after one minor version of deprecation.
-Tests compare the names each package exposes with `__all__`, and the
-JavaScript exports with Python's names through the fixtures; #89 collects
-what to settle before 1.0. *Why:* undocumented import paths
-(`ubukit.cluster`, whose `fcm` is the generator) and pickles that record
-module files had become implicit promises, each needing a compatibility
-layer once the code moves. *Rejected:* setting the `__module__` of the
-public classes to `ubukit` so that pickles survive moved files:
-`inspect.getsource` then fails for them (Python 3.12) or returns lines of
-another file (3.13 and later read `__firstlineno__` in the file of
-`__module__`), and a pickle across versions breaks anyway once a Result
-gains a field; scikit-learn does not promise it either.
+`DESIGN.md` states what is promised (the public names with their parameters,
+defaults and Result fields; the equations), what is not (module paths,
+underscored names, pickles across versions, identical bits), and how a
+promise changes: at once in 0.x, after a deprecation from 1.0. *Why:*
+unstated paths and pickles had become promises, each needing a compatibility
+layer. *Rejected:* setting the classes' `__module__` to keep pickles across
+moved files (it breaks `inspect.getsource`, and pickles break anyway once a
+Result gains a field).
 
 ## 2026-10-07 JavaScript rejects unknown options (#86)
 
 Every JavaScript function that takes options collects those it does not take
-with a rest element and throws `TypeError`, naming the camelCase spelling
-when the name has an underscore. *Why:* Python rejects an unknown keyword,
-but JavaScript ignored an unknown option, so the likeliest mistake of someone
-moving between the packages, a Python name (`max_iter` for `maxIter`), ran
-the call with the default and no error; TypeScript catches it only in object
-literals of typed code. *Rejected:* relying on the TypeScript declarations
-(plain JavaScript and options built at run time are not checked), a list of
-known names per function (a second copy of each destructuring, which can
-drift), and accepting snake_case aliases (two spellings of every option).
+with a rest element and throws `TypeError`, naming the camelCase spelling of
+a snake_case name. *Why:* Python rejects an unknown keyword, but JavaScript
+ran `max_iter` (for `maxIter`) with the default and no error. *Rejected:*
+relying on the TypeScript declarations (plain JavaScript is not checked), a
+list of known names per function (a second copy that can drift), and
+snake_case aliases (two spellings of every option).
 
 ## 2026-10-06 npm releases are staged and approved on npmjs.com (#83)
 
-The release job runs `npm stage publish`; the version is published only
-when the maintainer approves it on npmjs.com with npm's two-factor
-authentication, and npm's trusted publisher allows staging only. The `npm`
-environment no longer has a required reviewer, so a release takes two
-approvals: `pypi` on GitHub and the staged version on npm. *Why:* with
-direct publishing, a compromised GitHub account or workflow could publish
-to npm through the trusted publisher; staging puts a second key, the npm
-account, in front of every npm version, lets the maintainer inspect the
-tarball first, and is what npm recommends. The release job's Node 24.21
-bundles npm 11.19, and staging needs 11.15; a dry run of `npm stage
-publish` on the 0.1.0 tarball accepted the same arguments as `npm publish`.
-*Rejected:* keeping the GitHub review of `npm` as well (three approvals, the
-weakest of them redundant) and installing npm in the release job (registry
-code where an OIDC token can be minted, and not needed). PyPI has no staging,
-so its review on GitHub stays.
+`release.yml` runs `npm stage publish`; a version is published only when the
+maintainer approves it on npmjs.com with two-factor authentication, and
+npm's trusted publisher may only stage. *Why:* a compromised GitHub account
+or workflow could otherwise publish; staging puts the npm account's key in
+front of every version. *Rejected:* a GitHub review of `npm` too (a
+redundant third approval) and installing npm in the release job (registry
+code where a token can be minted).
 
 ## 2026-10-06 0.1.0 released; npm through its trusted publisher only (#82)
 
-UbuKit 0.1.0 is on PyPI and npm, both built by `release.yml` from the
-release commit on `main` and published with provenance (PyPI's attestation
-names `release.yml` and the `pypi` environment; npm's statement is in the
-public transparency log). npm trusts only an existing package, so its first
-upload used a short-lived token; npm now publishes through its trusted
-publisher like PyPI, the token is revoked, and `release.yml` reads no secret.
-*Why:* a stored publishing token is the credential an attacker would want;
-trusted publishing mints one per run, for this workflow and environment
-only. *Rejected:* keeping the token for convenience (it would outlive its
-one use). *Deferred, wrongly:* npm's stage-only trusted publisher was put
-off because the npm of Node 24.15 (11.14.1) has no `npm stage`; that was
-the maintainer's machine, while the release job already ran Node 24.21 with
-npm 11.19, so #83 adopted it.
+npm, like PyPI, publishes through its trusted publisher; its first upload
+needed a short-lived token (npm trusts only an existing package), revoked
+right after, and `release.yml` reads no secret. *Why:* a stored token is the
+credential an attacker would want. *Rejected:* keeping the token for
+convenience. (#83 then adopted the stage-only publisher, which this entry
+had wrongly deferred.)
 
 ## 2026-10-06 No JavaScript allocation sized by a claimed length (#80)
 
-`ari`, `ami` and `toRows` check their input as `matrix` does since #76: a
-labeling must be an array or a typed array (one shared check, `isList`),
-and `toRows` needs a matrix whose data hold exactly its rows (one shared
-check with `matrix`, `isMatrix`). *Why:* the second external review found
-that `{"length": 1e9}` as labels made `ari` and `ami` ask for a 4 GB array,
-and that two `{"length": 3}` scored as identical; `toRows` had the same
-entry. A sweep of every exported function found no other: the rest take
-data through `matrix`, or sizes the caller states (`k`, the grid, iteration
-and trial counts), which `SECURITY.md` asks services to bound. *Rejected:*
-size limits in the library (the same reasons as in #76).
+`ari`, `ami` and `toRows` check their input as `matrix` does (#76): labels
+must be arrays or typed arrays (`isList`), and a matrix's data must hold
+exactly its rows (`isMatrix`). *Why:* `{"length": 1e9}` as labels asked for
+a 4 GB array, and two `{"length": 3}` scored as identical. *Rejected:* size
+limits in the library (#76).
 
 ## 2026-10-06 The online SOM back to O(K) memory; schedules as a^(1-f) b^f (#79)
 
-The online SOM computes its winner's grid differences again for each
-sample, divided by the width before squaring as in the batch SOM, in NumPy,
-Numba and JavaScript. Every geometric schedule (`sigma` and `lr` of the
-online SOM, `sigma` of the batch SOM) is evaluated as a^(1-f) b^f. *Why:* a
-second external review found that the table of all grid distances added in
-#77 took memory in the square of the units: 24 MB at 32 x 32 units, 385 MB
-at 64 x 64 and about 2.2 GiB at 100 x 100 in Python, against 0.3 to 0.6 MB
-before; the benchmark's 10 x 10 map could not show it. It also found that
-far-apart ends (`sigma` from 1e200 to 1e-200, or `lr` from 1e-320 to 1)
-made the ratio b / a of the old form a (b / a)^f over- or underflow, giving
-NaN marked converged or `ZeroDivisionError`. The new form never builds the
-ratio, and gives a and b exactly at the ends. A test now bounds the online
-SOM's memory, and the benchmark has a 40 x 40 map. Against the code before
-#77, the online SOM is 1.09x slower in Python (one division more per
-sample) and the same elsewhere; the fixtures move by 4e-16. *Rejected:*
-keeping the table for small maps (a second path) and the schedule in
-logarithms (its ends would not be exact).
+The online SOM computes its winner's grid differences per sample, divided by
+the width before squaring, and every geometric schedule is a^(1-f) b^f.
+*Why:* #77's table of all grid distances took memory in the square of the
+units (385 MB at 64 x 64 in Python), and the old form a (b/a)^f over- or
+underflowed for far-apart ends. *Rejected:* keeping the table for small maps
+(a second path) and the schedule in logarithms (its ends would not be
+exact).
 
 ## 2026-10-06 Small temperatures and widths reach their limits (#77)
 
 `softmin` subtracts each row's minimum before dividing by the temperature,
-and the SOM neighborhoods divide by the width twice instead of by its
-square; intended overflows to infinity are silenced. (The online SOM also
-read its grid distances from a table computed once; #79 removed it, since
-it took memory in the square of the units.) *Why:* an external security review found EFCM returning
-NaN memberships marked converged for `tau = 1e-320`; the same happens for
-data of the largest allowed scale (1e148) with `tau = 1e-12`, inside the
-input contract, and for SOM-OLP's `lam`. A width whose square underflows
-(`sigma = 1e-200`) made the online SOM raise `ZeroDivisionError` (NumPy,
-Numba) or return NaN (JavaScript), and left the batch SOM silently at its
-start. Principle 3 asks for stability from the formulation: now each limit
-is the method's own (k-means, hard memberships, the winner alone). The
-results move only in their last digits (fixtures: 4e-16 and 9e-15).
-*Rejected:* lower bounds on `tau`, `lam` and `sigma` (arbitrary, and
-the overflow depends on the data's scale) and a check for non-finite
-results in the loop (it finds the symptom, not the cause, and misses the
-batch SOM, whose result was finite).
+and the neighborhoods divide grid differences by the width before squaring,
+so a tiny `tau`, `lam` or `sigma` gives its limit: k-means, hard
+memberships, the winner alone. *Why:* they gave NaN marked converged, or
+`ZeroDivisionError`, inside the contract (principle 3). *Rejected:* lower
+bounds on the parameters (arbitrary; the overflow depends on the data's
+scale) and a non-finite check in the loop (the symptom, not the cause). (Its
+table of grid distances was removed by #79.)
 
 ## 2026-10-06 Input checked before it is copied; no size limit (#76)
 
-JavaScript's `matrix` checks that every row is an array of equal length
-before it allocates the copy, and `runAsync` refuses a `budgetMs` that is not
-a finite number >= 0. *Why:* an external security review found that
-`[{"length": 1e9}]`, a few bytes of JSON, made `matrix` ask for an 8 GB
-array before any check, and that a `NaN` or infinite budget never let the
-event loop run, so an abort never took effect. Checking first ties memory
-to the data actually given. *Rejected:* a size limit in the library (any
-fixed limit would block research use; services that take untrusted input
-set their own, as `SECURITY.md` says).
+JavaScript's `matrix` checks every row before allocating the copy, and
+`runAsync` refuses a `budgetMs` that is not finite and >= 0. *Why:*
+`[{"length": 1e9}]` asked for an 8 GB array before any check, and an
+infinite budget never let an abort take effect. *Rejected:* a size limit in
+the library (any fixed limit blocks research use; services set their own, as
+`SECURITY.md` says).
 
 ## 2026-10-06 Releases only from main, with fixed tags (#75, #78)
 
-`release.yml` stops before building when the tag's commit is not on `main`;
-two tag rulesets let only the maintainer create `v*` tags and nobody move or
-delete them; and the `pypi` and `npm` environments no longer let
-administrators bypass the review. *Why:* an external security review found
-that any commit with a `v*` tag could be published after one approval, that
-a tag could be re-pointed, and that administrators could skip the review;
-a published version can never be replaced. The check on `main` and the tag
-rulesets cover different failures (a wrong commit and a moved tag), so both
-are kept. The rules are split in two (#78) because a ruleset's bypass
-applies to all its rules: one ruleset that let the maintainer create tags
-would also have let them move or delete one. *Rejected:* building from a
-branch instead of tags (the registries' trusted publishing and provenance
-are set up for tags) and a release environment limited to `main` (a tag run
-has no branch to match).
+`release.yml` stops unless the tag's commit is on `main`; two tag rulesets
+let only the maintainer create `v*` tags and nobody move or delete them
+(two, because a ruleset's bypass covers all its rules); the environments
+allow no administrator bypass. *Why:* any tagged commit could be published
+after one approval and a tag could be re-pointed, while a published version
+can never be replaced. *Rejected:* building from a branch (trusted
+publishing is set up for tags) and an environment limited to `main` (a tag
+run has no branch).
 
 ## 2026-10-06 One required check, "All checks" (#74)
 
-CI ends with a job, "All checks", that fails when any other job failed or
-was cancelled, and the `main` ruleset requires only that one. *Why:* the
-ruleset matches checks by name, and the job names carry the Python and Node
-versions, so each yearly version change would have left every pull request
-waiting for checks that no longer report until the ruleset was edited by
-hand. The job runs even when others fail (`always()`), so a cancelled run
-cannot pass, and it is skipped with the rest while the repository is
-private, which GitHub counts as passed. *Rejected:* requiring the six jobs
-by name (the yearly edit) and a third-party action for the same summary
-(an action to trust for one comparison).
+CI ends with a job that fails when any other failed or was cancelled, and
+the `main` ruleset requires only it. *Why:* the job names carry the Python
+and Node versions, so each yearly change would have left pull requests
+waiting for checks that no longer report. *Rejected:* requiring the jobs by
+name (the yearly edit) and a third-party action for the summary.
 
 ## 2026-10-06 CI on every pull request, on Ubuntu, once public (#73)
 
-CI runs its six Ubuntu jobs on every pull request, and a new push cancels
-the earlier run; Windows and macOS still run by hand, once each before a
-release. While the repository is private, pull requests skip every job, and
-agents may start no workflow but this one. *Why:* the repository is about
-to become public, where standard runners cost nothing; the runs of
-2026-10-05 took 1 to 2.3 minutes from start to finish, three systems
-included (6.6 job-minutes for 14 jobs), and Dependabot's pull requests no
-longer need checking out by hand. The decision of #50 was about paid
-minutes, which the skip keeps should the repository become private again.
-*Rejected:* all three systems on every pull request (Windows and macOS
-rarely differ here, and their jobs are the slowest) and keeping CI manual
-(no reason once runs are free).
+CI runs its Ubuntu jobs on every pull request, Windows and macOS by hand
+once each before a release, and nothing while the repository is private.
+*Why:* standard runners cost nothing in a public repository; #50's reason,
+paid minutes, still holds if it turns private. *Rejected:* all three systems
+on every pull request (they rarely differ here and are the slowest) and CI
+by hand only.
 
 ## 2026-10-06 scikit-learn's notice for three expressions in ARI and AMI (#72)
 
-`THIRD_PARTY_NOTICES.txt` (in the repository and both packages) keeps
-scikit-learn's BSD 3-Clause notice for the ARI expression from pair counts
-with its fn = fp = 0 case, the AMI of 1.0 for single clusters, and the
-signed epsilon of the AMI denominator; comments mark them in both
-languages, and the packages declare `MIT AND BSD-3-Clause`. *Why:* the code
-before the rebuild (#36) recorded these as adapted from scikit-learn and kept
-its notice; the rebuild kept the same expressions but not the notice, which
-a check before making the repository public found. Publishing the packages
-redistributes them, and BSD-3-Clause asks that its notice go with them.
-*Rejected:* relying on the expressions being too small to be covered (it
-contradicts the earlier judgement) and rewriting them in another form (the
-last digits of ARI would change, and the rewrite would still need
-explaining).
+`THIRD_PARTY_NOTICES.txt`, in the repository and both packages, keeps
+scikit-learn's BSD-3-Clause notice for three expressions in ARI and AMI,
+marked in comments; the packages declare `MIT AND BSD-3-Clause`. *Why:* the
+rebuild kept the expressions that the old code had recorded as adapted, but
+not the notice. *Rejected:* calling them too small to be covered (against
+the earlier judgement) and rewriting them (ARI's last digits would change).
 
 ## 2026-10-06 Arguments before data; the standard update by default (#71)
 
-Every fitting function checks all its arguments before it touches the data
-(the maps build their unit coordinates first, so the default `sigma` needs
-no data), `lloyd`'s `update` defaults to the means weighted by the
-memberships, and rmcm builds its data by field name. *Why:* a wrong `tol`,
-`max_iter` or `epochs` was reported only after centering, k-means++ seeding
-or the PCA start, which can take seconds on large data, and the order
-differed between methods; three methods per language spelled out the same
-weighted-mean update; and building rmcm's data by position would shift the
-fields silently if `Data` gained one, the problem #65 removed from the
-views. Iterates are bit for bit unchanged in both languages, and tests now
-require arguments to be checked first. *Rejected:* checking arguments
-inside `start` and `_setup` (they would need every method's options).
+Every fitting function checks its arguments before any work on the data
+(#107 completed it for `k`, `init` and `seed`), `lloyd`'s `update` defaults
+to the weighted means, and rmcm builds its data by field name. *Why:* a
+wrong argument was reported only after seconds of centering, seeding or PCA,
+and three methods per language spelled out the same update. *Rejected:*
+checking inside `start` and `_setup` (they would need every method's
+options).
 
 ## 2026-10-06 JavaScript's public types are tested as npm users see them (#70)
 
 `js/test/typing-api.js`, like `python/tests/typing_api.py`, calls the API as
-typed code does, with `@ts-expect-error` on calls that must be rejected;
-`npm run check` builds the declarations and checks it against them in
-strict mode. *Why:* the published types come from JSDoc, and a broken
-comment turns a parameter into `any` without any error, since the sources
-are checked without strict mode (removing one `@param` line made the check
-fail three ways). Checking the sources instead would not reach what users
-import, and without strict mode TypeScript cannot narrow a generator's
-`{ value, done }`, as the README does. *Rejected:* strict mode for the
-sources (164 errors, nearly all internal parameters without annotations,
-which users never see).
+typed code does, with `@ts-expect-error` on calls that must fail, and `npm
+run check` checks it in strict mode against the built declarations. *Why:*
+the types come from JSDoc, and a broken comment silently turns a parameter
+into `any`. *Rejected:* strict mode for the sources (164 errors, nearly all
+in internal code that users never see).
 
 ## 2026-10-06 The objective comes with the memberships (#69)
 
-`lloyd`'s `assign` returns the memberships with the objective at them, and
-a shared `softmin` gives EFCM and SOM-OLP their memberships with the sum of
-the rows' soft minima, which is that objective. FCM takes it from the
-minimum distance and the normalizing sum it already computes. *Why:* the
-history searched the N x K distances and memberships again for each row's
-minimum and maximum, about 20% of FCM's and EFCM's time in Python, while
-the memberships are the minimizer of the objective for the given
-prototypes and their computation already holds those quantities. Asked
-whether the history could be switched off when not needed, we measured
-switching it off at 1.26x for FCM and 1.29x for EFCM, and taking it from the
-memberships at 1.21x and 1.24x, with nothing to switch. `bench/run.py
---compare main --threads 1`: Python FCM 1.32x, EFCM 1.22x, SOM-OLP 1.11x;
-JavaScript SOM-OLP 1.25x, EFCM 1.11x, FCM 1.07x. Iterates are bit for bit
-unchanged in both languages, and the history moves by at most 3.5e-16
-relative. *Rejected:* an option to skip the history (an argument on eight
-functions in two languages, meaningless for the four without an objective,
-for 5% more than this) and faster row reductions (the second search stays).
-Unlike the costs that #65 stopped passing from `assign` to `objective`
-through a shared variable for one method, this value is a return value,
-the same for every method with an objective.
+`lloyd`'s `assign` returns the memberships with the objective at them: EFCM
+and SOM-OLP take it from `softmin`'s row minima and sums, FCM from its
+normalizing sum. *Why:* the history searched the N x K distances again,
+about 20% of FCM's and EFCM's time; with identical iterates Python FCM
+became 1.32x and EFCM 1.22x faster. *Rejected:* an option to skip the
+history (an argument on eight functions, for 5% more).
 
 ## 2026-10-06 Fixtures hold exactly what the code produces (#68)
 
-The fixtures are regenerated, and a speed-only change that moves their last
-digits commits the regenerated file and says so. *Why:* #60 reordered the
-FCM membership and AMI arithmetic, which moved two FCM cases and one AMI
-value by at most 2.2e-16; the tests compare to 1e-10, so the file was left
-as it was, and from then on regenerating it always showed a diff. The check
-that a refactor leaves the results alone, "regenerate and see no diff", no
-longer worked: the review of #65 had to rebuild `main` to tell that diff
-from its own. *Rejected:* comparing regenerated fixtures with a tolerance
-(a second rule beside the tests, and it would hide which cases moved).
+The fixtures are regenerated with every change, and a speed-only change that
+moves their last digits commits the regenerated file and says so. *Why:*
+left stale within the tests' tolerance, the file no longer showed by its
+diff which cases a change moved. *Rejected:* comparing regenerated fixtures
+with a tolerance (a second rule that hides which cases moved).
 
 ## 2026-10-06 JavaScript keeps the shared step for speed (#67)
 
-FCM, EFCM and SOM-OLP in JavaScript stay in stages (all distances, then all
-memberships, then the weighted means) rather than one fused loop per point.
-*Why:* fusing them was expected to gain 1.5-2x (unmeasured) where
-JavaScript is slower than the textbook NumPy code (0.5-0.6x), but it would
-give three methods loops of their own in one language only, so the same
-method would have two shapes to fix; FCM's column-scaled weights need every
-point before the update, so two passes would remain; each method would grow
-from a few lines to a few dozen; and JavaScript already meets its target
-(within an order of magnitude of Python), with the browser demo's hundreds
-to thousands of points fast enough. *Rejected:* the fused loops. If
-JavaScript needs speed, the shared parts (`lloyd`, `softmaxRows`,
-`weightedMean`) are where to find it, for every method at once.
+FCM, EFCM and SOM-OLP in JavaScript stay in stages (distances, memberships,
+weighted means) rather than one fused loop per point. *Why:* fusing would
+give three methods loops of their own in one language, FCM would still need
+two passes, and JavaScript already meets its target; if it needs speed, the
+shared parts are where to find it. *Rejected:* the fused loops.
 
 ## 2026-10-06 Typed generators in Python (#66)
 
-The fitting generators are the functions of `cluster.py` and `som.py`;
-`ubukit.steps` is a module that lists them, and `__init__.py` makes the
-plain functions from them with `stepwise`, as JavaScript's `index.js` does.
-A fitting generator takes new rows or `None` by `send`. mypy also checks the
-bodies of untyped functions and reports unneeded ignores, and
-`tests/typing_api.py` calls the API as typed code does. *Why:* `ubukit.steps`
-was a `SimpleNamespace` filled by the decorator, so to type checkers every
-generator was `Any` and `ub.steps.fcm(X, "3")` passed, and the generator
-type declared that nothing could be sent, so typing them would have
-rejected `run.send(X)` as the README writes it; the typed API of #53 had
-missed both. The decorator also filled a module-level registry as a side
-effect of importing. The plain functions keep `ubukit` as their module, so
-pickle and multiprocessing find them as before. *Rejected:* a typed stub
-listing the generators beside the namespace (every signature twice).
+The fitting generators are the functions of `_cluster` and `_som`;
+`ubukit.steps` lists them, and `stepwise` makes the plain functions, as
+JavaScript's `index.js` does. *Why:* a namespace filled by a decorator typed
+every generator as `Any` and declared that nothing could be sent to it.
+*Rejected:* a typed stub beside the namespace (every signature twice).
 
 ## 2026-10-06 Each method's step fits it; one way to build a Result (#65)
 
-SOM-OLP has its own step, like k-means and the maps, and the standard step
-`lloyd` takes `assign(data, D)` and `update(data, U, V)`. Every view builds
-its Result with `fitted`, and a fixed schedule (`tol=None`) converges in the
-loop when it completes. *Why:* SOM-OLP's memberships depend on the previous
-ones and its objective on its costs rather than the distances, so inside
-`lloyd` it needed an argument for the previous memberships that no other
-method used and passed its costs from `assign` to `objective` through a
-shared variable, a workaround by principle 9; `lloyd` also passed the
-iteration to `assign` and `update`, which no method had used since the batch
-SOM got its own step. The views spelled the common fields of a Result by
-their position, and the map views overrode the loop's `converged`. A review
-of the whole library found these, with a block left over from #64 in
-JavaScript's k-means step and three exports nothing imported. Every iterate
-of every method, with new data sent in, is bit for bit unchanged in both
-languages, and `bench/run.py --compare` finds every affected case the same.
-*Rejected:* `assign` returning its costs with the memberships (a second
-output for one method).
+SOM-OLP has its own step, `lloyd` takes `assign(data, D)` and `update(data,
+U, V)`, and every view builds its Result with `fitted`. *Why:* inside
+`lloyd`, SOM-OLP needed an argument no other method used and passed its
+costs through a shared variable (principle 9), and views spelled the
+Result's fields by position. *Rejected:* `assign` returning SOM-OLP's costs
+too (a second output for one method). (Its rule that a schedule "converges"
+in the loop was replaced by #95's stop reasons.)
 
 ## 2026-10-06 The data are an input of every iteration (#64)
 
-A step is `step(data, V, state, t)` and reads the data from its argument;
-the fitting generators accept new rows between iterations (`send` /
-`next(X)`). The engine prepares them (centering; `rmcm`'s graph), keeps the
-prototypes where they are, keeps the schedule and the random state, and
-keeps the step's state only through the method's `keep` (SOM-OLP's
-memberships, while the number of rows stays the same: points are known only
-by their rows, row i being the same point); any other state is a cache of
-the old data and starts again. `max_iter=None` / `maxIter: Infinity`
-removes the limit. *Why:* the browser demo needs learning to follow points
-that move, and an iterative method is a map from (data, state) to state, of
-which fixed data are the special case; the steps had instead captured the
-data in closures, which is what kept the data from changing. The change
-removed those closures, adds no path, and gives mini-batch learning for free
-to the methods that carry only their prototypes (send a different batch each
-iteration; not to SOM-OLP, whose memberships belong to the points, as #67
-corrected this entry). JavaScript's online SOM now
-shuffles from the identity each epoch, as Python's does, so the number of
-rows may change. *Rejected:* passing the previous Result back as `init`
-(an output carrying the next iteration's state, a new run every frame that
-loses the schedule and random state; principle 9), a public state object
-with a pure `step` function (exposes the internal state as API), and
-swapping the data inside each method (the same logic eight times, twice).
+A step is `step(data, V, state, t)`; the generators accept new rows between
+iterations, and the prototypes, the schedule and the random state carry
+over, the step's state only through the method's `keep` (SOM-OLP's
+memberships, for the same points). *Why:* the browser demo needs learning to
+follow moving points; fixed data are the special case. *Rejected:* passing
+the previous Result back as `init` (an output carrying the next iteration's
+state; principle 9), a public state object (internal state as API), and
+swapping the data inside each method (the same logic everywhere).
 
 ## 2026-10-06 Designs follow the model, not the shortest path (#63)
 
 `DESIGN.md` gains principle 9, and `AGENTS.md` asks agents to choose designs
 by it. *Why:* asked to let the browser demo keep learning while its points
-move, the agent first proposed passing the previous Result back as `init`,
-because the current code could rebuild everything from it each frame. That
-would have made an output carry the state of the next iteration, mixed
-starting a run with continuing one, and lost the schedule and random state
-on every frame; the fitting design makes the data an input of each
-iteration. The proposal was chosen for the size of the change, which is the
-failure the principle names. *Rejected:* leaving it to review (the same
-choice recurs with every feature).
+move, an agent first proposed passing the previous Result back as `init`,
+chosen for the size of the change. *Rejected:* leaving it to review (the
+same choice recurs with every feature).
 
 ## 2026-10-06 Seeds stay language-specific (#63)
 
 Python keeps NumPy's generator and JavaScript its Mulberry32; equal results
-across the languages come from passing the same initial prototypes.
-*Why:* the same seed in both would need one generator in both, and the one
-that is easy in JavaScript (Mulberry32: 32-bit state, period 2^32) is
-clearly weaker than NumPy's PCG64; lowering Python's to it buys only
-convenience. *Rejected:* Mulberry32 in Python, and for now a stronger
-JavaScript generator such as sfc32 or xoshiro128** (Mulberry32 serves its
-uses, seeding, shuffling and TPE draws, far below its period).
+across the languages come from passing the same initial prototypes. *Why:*
+one generator in both would lower Python's to the weaker one for convenience
+only. *Rejected:* Mulberry32 in Python, and for now a stronger JavaScript
+generator (Mulberry32 serves seeding, shuffling and TPE draws, far below its
+period).
 
 ## 2026-10-06 The k-means++ start kept; degenerate FCM documented (#62)
 
-The clustering methods keep starting from greedy k-means++ seeds moved to
-their cells' means, and `docs/algorithms.md` now explains why, where zero
-distances are handled, and when FCM and EFCM collapse to the mean. *Why:*
-measured on the benchmark data (16 dimensions, 10 to 20 seeds): with m up to
-5, the start (cell means, raw seeds, or seeds plus noise of 1e-6, 1% or 10%
-of the data radius) changed neither the objective nor the ARI; with
-m = 50, raw seeds and seeds plus small noise stalled after one iteration on
-their data points, while cell means converged. Only FCM divides by a
-distance; clipping it at the smallest normal number already gives Bezdek's
-rule for d = 0, so noise would add a scale parameter for nothing, and EFCM,
-RCM, RMCM and the maps never divide by a distance. The collapse to the mean
-follows the linearized thresholds m* = 1 / (1 - 2 lambda_max(M)) and
-tau* = 2 lambda_max(S) to within 3% (m* = 1.27 for the 100-blob data), and
-past them a lower objective went with an ARI of 0.03 to 0.19 against
-0.96 to 0.99 below; raw seeds scored high there only because they stalled
-on k-means++ seeds. *Rejected:* noise on the seeds (no gain, a scale
-parameter, and both languages would need the same Gaussian draws),
-relocating empty clusters (none in 80 k-means runs; they need fewer distinct
-points than K), and a helper returning m* (new API; the formula is
-documented).
+The clusterings keep starting from greedy k-means++ seeds moved to their
+cells' means, and `docs/algorithms.md` explains why, where zero distances
+are handled, and when FCM and EFCM collapse to the mean. *Why:* other starts
+changed neither objective nor ARI up to m = 5, while raw seeds stalled on
+their points at m = 50; the collapse follows the linearized thresholds m*
+and tau* to within 3%. *Rejected:* noise on the seeds (no gain, and a scale
+parameter), relocating empty clusters (none in 80 runs), and a helper
+returning m* (one documented formula).
 
 ## 2026-10-06 Faster default paths without new code paths (#60)
 
-Without Numba, in both languages: FCM memberships as powers of
-d_min^2 / d^2 (the same softmax, without logarithms); the FCM, EFCM and
-SOM-OLP histories by the closed forms that the objectives take at the
-memberships of the same distances (N logarithms instead of N K); the
-expected MI from one table of log-factorials (Python also vectorizes the
-inner sum); nearest prototypes without the (N, K) matrix (Python in
-cache-sized row blocks, JavaScript fused); and Python's `sqdist` doubling the
-prototypes instead of the result (exact, so bit for bit the same). The
-results match the old code to rounding, and tests now check the histories
-against the definitions. Best times on 16 cores (Python with one BLAS
-thread), main -> new: Python batch_som 2.0x, ami with 400 distinct cluster
-sizes 11.6x (3.69 -> 0.32 s), ami 50 x 40 clusters 1.3x, fcm 1.2x (m = 2) to
-1.5x (m = 1.5), som_olp 1.4x, efcm 1.1x; JavaScript ami 3.0x and 6.6x, fcm
-1.4x (m = 1.5), efcm 1.2x, batchSom 1.1x, somOlp 1.1x. *Why:* each replaces
-code rather than adding a path, and the Numba kernels follow the same table.
-The cost: building the table is O(N), so `ami` with two clusters and large
-N is slower (N = 1,000,000: Python 44 -> 55 ms, JavaScript 33 -> 53 ms),
-where the label encoding already dominates. *Rejected:* choosing between a
-table and per-term log-gamma by size (two paths for one sum), the
-vectorized sum without a table (no regression, but 1.6x less gain and
-slower at 50 x 40 clusters), label sums by `bincount` or sorting (slower than
-the sparse product), rmcm memberships by `bincount` (no gain), and ranks by
-sorting in trustworthiness (30x at k = 1000 but 2x slower at the usual k =
-5-10).
+Without Numba, in both languages: FCM memberships as powers of distance
+ratios, closed-form objectives at the memberships, the expected MI from one
+table of log-factorials, nearest prototypes without the N x K matrix, and
+the prototypes doubled instead of the product. *Why:* each replaces code
+rather than adding a path (AMI with many cluster sizes 11.6x faster, the
+others 1.1-2x). *Rejected:* choosing between a table and per-term log-gamma
+by size (two paths for one sum), ranks by sorting in trustworthiness (2x
+slower at the usual k), and variants that measured no gain.
 
 ## 2026-10-06 Numba kernels for the online SOM, trustworthiness and AMI (#59)
 
-`som`, `trustworthiness`, `continuity` and `ami` take `engine="numba"`
-(`pip install "ubukit[numba]"`; Numba is in the dev group so the checks
-always test it). Every method and metric was prototyped as a Numba kernel
-and timed on the benchmark data (16 cores; NumPy uses all of them through
-BLAS). Kept, because they gain on one core as well as many (AMI on one core
-only where it is slow, with many distinct cluster sizes); the final kernels:
-
-| | NumPy s | Numba s (16 threads) | Numba s (1 thread) |
-|---|---:|---:|---:|
-| online SOM, N = 5000, 10x10, 2 epochs | 0.153 | 0.019 (serial) | 0.020 |
-| trustworthiness, N = 3000, k = 10 | 0.288 | 0.012 | 0.093 |
-| AMI, 400 distinct cluster sizes, N = 80,200 | 3.64 | 0.148 | 1.24 |
-| AMI, 50 x 40 clusters, N = 1,000,000 | 0.189 | 0.074 | 0.197 |
-
-*Why:* these are loops that NumPy cannot vectorize (one sample after
-another; ranks by (distance, index); a sum per pair of cluster sizes). The
-kernels transcribe the reference loops and give the same results (the SOM
-and trustworthiness exactly); parallel kernels split work only by
-independent rows, so results do not depend on the thread count. Nothing is
-cached on disk (the library does no file access), so each kernel compiles
-on its first call in a process, 0.3-1.3 s. *Rejected:* kernels for som_olp
-(4.3x on 16 threads, none on one), efcm (2.8x), batch_som (2.8x, slower
-on one thread), rcm (2.0x), fcm (1.7x, slower on one thread), k-means
-(1.3-1.9x, slower at K = 100), rmcm (1.0x): their work is BLAS products and
-elementwise functions that NumPy already runs well, so the gain depends on
-the core count and does not pay for a second implementation. ARI spends its
-time encoding arbitrary labels (`np.unique`), and TPE 0.4 ms per trial;
-neither benefits.
+`som`, `trustworthiness`, `continuity` and `ami` take `engine="numba"`. Each
+kernel transcribes its NumPy reference loop and gives its results; parallel
+kernels split the work only by independent rows, so results do not depend on
+the thread count; nothing is cached on disk. *Why:* these loops do not
+vectorize, and the kernels gain on one core as well as many. *Rejected:*
+kernels for the other methods, whose work is BLAS products that NumPy runs
+well, so their gain depended on the core count (SOM-OLP 4.3x on 16 threads,
+none on one).
 
 ## 2026-10-06 Release files built apart from the tests; PyPI before npm (#56)
 
-`release.yml` runs the tests in one job and builds the packages in another
-that installs only the build tools (`build`, and TypeScript for the type
-declarations); the npm upload waits for the PyPI upload. *Why:* the build
-job also installed the development group (about 20 unpinned packages such
-as pytest, scikit-learn, mypy and ruff) and ran the tests in the workspace
-it then packed, so one compromised test dependency could have changed the
-published files, which would still carry valid provenance. The two uploads
-ran in parallel, so a failure in one could leave a version on one registry
-only; a version can never be uploaded again, and npm is the upload more
-likely to need a fix (its first release uses a token). *Rejected:* pinning
-the development group by hash (more maintenance for a job that need not
-install it) and keeping the tests out of the release workflow (the tag's
-exact commit would go untested on the release platform).
+`release.yml` tests in one job and builds in another that installs only the
+build tools, and npm waits for PyPI. *Why:* a compromised test dependency in
+the build job could have changed the published files, which would still
+carry valid provenance, and parallel uploads could leave a version on one
+registry only. *Rejected:* hash-pinning the development group (maintenance
+for a job that need not install it) and no tests in the release workflow
+(the tag's commit would go untested there).
 
 ## 2026-10-06 One release checklist; Dependabot batched and delayed (#55)
 
-The release steps, including the one-time setup, are one checklist under
-"Releasing" in `CONTRIBUTING.md`, which starts by making the repository
-public. Dependabot stays, with one pull request per ecosystem a month and
-only for versions at least a week old. *Why:* the one-time steps lived only
-in comments of `release.yml`, and a mistake is permanent because neither
-registry accepts a version again; npm does not generate provenance in a
-private repository, so the first tag would have failed there. Dependabot's
-update jobs do not count against Actions minutes, and it keeps the pinned
-actions of the publishing workflow current; since CI no longer checks its
-pull requests, fewer and older updates are easier to check by hand and less
-likely to carry a compromised release. *Rejected:* removing Dependabot and
-refreshing the pins by hand before each release (an easy step to skip), and
-publishing npm without provenance while private.
+The release steps, the one-time setup included, are one checklist in
+`CONTRIBUTING.md`, and Dependabot proposes one pull request per ecosystem a
+month, for versions at least a week old. *Why:* the one-time steps lived in
+comments, a release mistake is permanent, and fewer, older updates are
+easier to check and less likely to carry a compromised release. *Rejected:*
+removing Dependabot (refreshing the pins by hand is easy to skip) and npm
+without provenance while private. (Its reason that CI no longer checked
+these pull requests ended with #73.)
 
 ## 2026-10-06 A typed public Python API (#53)
 
-Every public Python function and the TPE class annotate their parameters and
-results (`ArrayLike` inputs, `Literal` choices such as `average`, and the
-aliases `Init`, `MapInit`, `Grid` and `Space`), and the internal helpers are
-typed so that mypy finds nothing beyond SciPy's missing stubs. *Why:* the
-package declared `Typing :: Typed` while 28% of the parameters were
-annotated, so editors and type checkers knew little about the API; now
-mypy `--strict` accepts correct calls and catches a string `k`, missing
-`lam`/`gamma` and an unknown `average`. *Rejected:* dropping the `Typed`
-classifier instead (gives up editor help for users). mypy, pinned to one
-minor series like ruff, is part of the local checks (SciPy's missing stubs
-are ignored in `pyproject.toml`), so the annotations stay true.
+Every public function and class annotates its parameters and results, and
+mypy checks the library. *Why:* the package declared `Typing :: Typed` with
+28% of the parameters annotated. *Rejected:* dropping the classifier instead
+(it gives up help from editors).
 
 ## 2026-10-06 One engine shape in both languages (#52)
 
-Python's `iterate` is now a generator that takes the method's `view`, like
-JavaScript's, and each fitting function is written once as a generator;
-`stepwise` turns it into the plain function and lists it in `ubukit.steps`,
-whose iterations offer `result()` as in JavaScript. *Why:* after the
-JavaScript-only changes the engines had drifted apart (Python returned a
-tuple that four methods each turned into a Result, its k-means modified its
-state in place, and `DESIGN.md` described only JavaScript), and plotting the
-SOM-OLP learning for research needs the real iterates in Python too. Results
-and speed are unchanged (benchmark ratios 0.85-1.05). *Rejected:* a
-`callback` argument on every function (duplicates the generators) and
-keeping the generators JavaScript-only (two engine shapes to maintain).
+Python's `iterate` is a generator taking the method's `view`, like
+JavaScript's, and each fitting function is written once as a generator.
+*Why:* the engines had drifted apart, and plotting SOM-OLP's learning in
+Python needed the real iterates. *Rejected:* a `callback` argument on every
+function (it duplicates the generators) and generators in JavaScript only.
 
 ## 2026-10-06 Every iteration's result, on demand (#51)
 
-The JavaScript step generators yield `{ iteration, result }`, where
-`result()` returns the Result the run would return had it stopped at that
-iteration; the loop builds it with the same function that builds the final
-Result. *Why:* the browser demo could show only finished runs: the
-generators yielded just the iteration number, so drawing the SOM-OLP
-learning meant restarting from the centers, which reset the memberships the
-latent positions come from. *Rejected:* building every intermediate Result
-eagerly (O(NK) per iteration even when unused), an `onIteration` callback on
-every function (duplicates the generators), and an API to resume from a
-saved state (exposes internal state; keeping the generator already resumes).
+The generators yield `{ iteration, result }`, where `result()` builds, with
+the function that builds the final Result, the Result the run would return
+had it stopped there. *Why:* the browser demo could show only finished runs,
+and restarting from the centers lost SOM-OLP's memberships. *Rejected:*
+building every intermediate Result eagerly (O(NK) per iteration), an
+`onIteration` callback (it duplicates the generators), and resuming from a
+saved state (internal state as API).
 
 ## 2026-10-05 CI only by hand while the repository is private (#50)
 
-CI runs only when the maintainer starts it, on one operating system per run,
-and agents may not trigger workflows without asking. *Why:* the rebuild
-(#36) replaced the previous workflow, which ran only by hand on one system per
-run after confirming the remaining minutes, with CI on every pull request and
-every push to `main` on three systems. In one day (#36-#49) that ran about 33
-times at over 100 billed minutes each (macOS counts 10x) and used the
-account's entire 2,000 monthly minutes, while every problem it could have
-found had already been caught by the local checks. *Rejected:* removing CI
-altogether (it is the only check on macOS and Linux before a release) and
-Linux-only CI on every pull request (still repeats the local checks).
+Replaced by #73 once the repository was public. While it was private, every
+run cost paid minutes: a day of pull requests on three systems (#36-#49)
+used the month's 2,000 minutes, though the local checks had found every
+problem first. So CI ran only when the maintainer started it, on one system
+per run.
 
 ## 2026-10-05 Hamerly's bounds for k-means (#49)
 
-k-means runs Lloyd's iterations as a step with Hamerly's (2010) bounds: a
-point keeps its label without computing its other distances when its exact
-distance to its center is below half the distance from that center to the
-nearest other one and below a lower bound on its distance to every other
-center. Points within 1e-9 of a bound are recomputed, so the iterates are
-Lloyd's (bitwise in JavaScript; fixtures unchanged). *Why:* `bench/run.py
---compare` showed Python 1.6x faster on separated blobs, 1.45x on uniform
-noise and 3.2x with K = 100 (scikit-learn's gap there fell from 16x to about
-4x), and JavaScript 1.9-4.5x faster on every case. *Rejected after
-measuring:* the second-nearest distance from `np.partition` (15% slower than
-Lloyd on overlapping clusters, where most points are recomputed; masking the
-nearest and taking the minimum is not), keeping only the half-distance test
-(slower than Lloyd), and Elkan's K lower bounds per point (K times the
-memory for a gain that matters only at large K).
+k-means runs Lloyd's iterations with Hamerly's (2010) bounds, recomputing
+every point within 1e-9 of a bound, so the iterates are Lloyd's. *Why:*
+1.45-3.2x faster in Python and 1.9-4.5x in JavaScript; scikit-learn's lead
+at K = 100 fell from 16x to about 4x. *Rejected after measuring:* the
+second-nearest distance by `np.partition` (slower on overlapping clusters),
+the half-distance test alone (slower than Lloyd), and Elkan's K bounds per
+point (K times the memory).
 
 ## 2026-10-05 Greedy k-means++ seeding (#48)
 
-Each seed is the best, by the resulting sum of squared distances, of
-2 + floor(ln K) candidates drawn in proportion to the squared distance to the
-nearest seed (as in scikit-learn), instead of a single draw. *Why:*
-`bench/run.py --quality` showed single draws putting two seeds into one
-well-separated cluster: over 10 seeds, k-means ARI rose from a median of
-0.87 to 1.0 (26.5 to 2 iterations), K = 100 from 0.84 to 0.96, and EFCM, RCM
-and RMCM from about 0.87 to 1.0; recovering 10 separated blobs exactly went
-from 6 to 16 of 20 seeds in Python and 4 to 18 in JavaScript. Seeding costs
-2 + floor(ln K) times more distance evaluations, which fewer iterations
-usually repay. *Rejected:* k-means|| (built for distributed data) and
-several restarts (multiplies the whole run).
+Each seed is the best of 2 + floor(ln K) candidates drawn by squared
+distance, as in scikit-learn. *Why:* single draws often put two seeds into
+one cluster: k-means' median ARI over seeds rose from 0.87 to 1.0, with
+fewer iterations. *Rejected:* k-means|| (built for distributed data) and
+restarts (they multiply the whole run).
 
 ## 2026-10-05 A benchmark that can tell differences apart (#47)
 
-The benchmark now compares two git trees in alternating ABBA order and calls
-a difference only for non-overlapping samples at least 5% apart; it reports
-medians with spreads, iterations, Python peak memory, BLAS threads, a
-scikit-learn column, quality over seeds with the default initialization
-(`--quality`), growth with N per iteration (`--size s,m,l`), and fails CI if
-the languages disagree at small sizes. *Why:* the first benchmark ran each
-side separately and could not resolve differences under about 20% (Python
-batch SOM ranged over 0.182-0.215 s for one tree); BLAS threads moved times
-by 20%; and scikit-learn's k-means, timed without a warm-up (0.063 s cold,
-0.019 s warm), looked 1.4x faster than ours when it is 5.5-7.6x faster per
-iteration. The 13-15% gains reported for
-EFCM and SOM-OLP in #45 were within that noise and are not claimed; FCM's
-1.4x is. Identical trees still differ by up to 5% under ABBA, hence the
-threshold. *Rejected:* tracking times in CI, whose shared runners are too
-noisy to compare.
+The benchmark compares two trees in ABBA order and calls a difference only
+for separated samples at least 5% apart; it reports spreads, iterations,
+memory, BLAS threads, a scikit-learn column, quality over seeds and growth
+with N, and fails CI when the languages disagree. *Why:* the first one could
+not resolve differences under about 20% and timed scikit-learn without a
+warm-up. *Rejected:* timing in CI (shared runners are too noisy).
 
 ## 2026-10-05 Documents by role (#46)
 
 `DESIGN.md` says what and why, `CONTRIBUTING.md` how, `AGENTS.md` only what
-is specific to agents, and this file the reasons; `CLAUDE.md` just includes
-`AGENTS.md`. *Why:* the same rules lived in `DESIGN.md` and `AGENTS.md`, and
-three of six pull requests had to edit both; principles named functions and
-current state, so refactors rewrote them; and the reasons existed only in
-pull request descriptions. *Rejected:* a separate file per agent tool, which
-would duplicate the rules again.
+is specific to agents, and this file the reasons; `CLAUDE.md` includes
+`AGENTS.md`. *Why:* the same rules lived in two files, and the reasons only
+in pull requests. *Rejected:* a file per agent tool (the rules twice again).
 
 ## 2026-10-05 JavaScript distances stay direct differences (#45)
 
-Plain loops replaced TypedArray callbacks on the hot paths (FCM 1.4x faster,
-bitwise-identical results). *Rejected after measuring:* the Gram identity
-(4.19 to 4.76 ms, no gain in V8, less accurate) and four-accumulator loops (at
-most 1.14x at D = 64, slower at small D). The remaining gap to Python is
-scalar loops versus BLAS.
+Plain loops replace TypedArray callbacks on the hot paths. *Rejected after
+measuring:* the Gram identity (no gain in V8, and less accurate) and
+four-accumulator loops (at most 1.14x at D = 64, slower at small D); the
+remaining gap to Python is scalar loops against BLAS.
 
 ## 2026-10-05 Windowed expected mutual information (#44)
 
-AMI sums the hypergeometric expectation only within sqrt(35 min(a, b)) of its
-mean; by Hoeffding's inequality the omitted mass is below 2 exp(-70), so the
-value equals the full sum to rounding (differences at most 1e-18), 10-12x
-faster at N = 1e6. *Rejected:* keeping the full sum for exactness that
-rounding already erases.
+AMI sums the hypergeometric expectation only within sqrt(35 min(a, b)) of
+its mean; by Hoeffding's inequality the omitted mass is below 2 exp(-70), so
+the value equals the full sum to rounding, 10-12x faster at N = 1e6.
+*Rejected:* the full sum, for an exactness that rounding already erases.
 
 ## 2026-10-05 One loop, many steps (#43)
 
-The engine owns the control (stopping, limits, history, progress) and methods
-supply a step; the standard step is `lloyd`, and the online SOM's step is an
-epoch. *Why:* exact accelerations such as Hamerly's k-means and optional
-compiled kernels replace the step, not the loop, and the online SOM had a
-loop of its own in each language. *Rejected:* letting accelerated methods own
-their loops (principle 1), and a distance hook only (too narrow for bounds
-and epochs).
+The engine owns the control (stopping, limits, history, progress) and
+methods supply a step: `lloyd` for most, an epoch for the online SOM. *Why:*
+exact accelerations such as Hamerly's bounds and compiled kernels replace
+the step, not the loop. *Rejected:* accelerated methods owning their loops
+(principle 1) and only a distance hook (too narrow).
 
 ## 2026-10-05 Benchmark, fixture format and change rules (#42)
 
 `bench/run.py` defines each case once and times and scores it in both
-languages; fixtures have one case per line; speed-only changes may touch one
-language and must leave the fixtures unchanged, so an unchanged fixture file
-means a pure speedup. *Why:* "justify with a measurement" had no measurement,
-quality regressions had no number, and the one-line fixture file made diffs
-unreadable.
+languages, and the fixtures have one case per line, so a diff names the
+cases a change moved. *Why:* "justify with a measurement" had no
+measurement, and the one-line fixture file made diffs unreadable. (Its rule
+that a speed-only change leaves the fixtures untouched was revised by #68.)
 
 ## 2026-10-05 Numba as an optional, explicit kernel (#42)
 
-A Numba kernel may replace a hot step if it is installed as an extra, chosen
-per call (`engine="numba"`), reproduces the reference iterates, passes the
-same tests and shows a large benchmark gain. None exists yet. *Why:*
-sequential, branching steps (online SOM updates, bound checks in accelerated
-k-means) do not vectorize, and the maintainer wants that speed. *Rejected:*
-using Numba automatically when installed (results would depend on the
-environment) and a Numba backend for everything (a second implementation of
-every algorithm).
+A Numba kernel may replace a hot step if it is an installed extra, chosen
+per call (`engine="numba"`), reproduces the reference iterates and shows a
+large measured gain; #59 added the first. *Why:* sequential, branching steps
+do not vectorize. *Rejected:* using Numba whenever it is installed (results
+would depend on the environment) and a Numba backend for everything (a
+second implementation of every algorithm).
 
 ## 2026-10-05 PCA initialization (#40, #41)
 
-Python eigendecomposes the smaller of XᵀX and XXᵀ; JavaScript uses
-Rayleigh-Ritz on a Krylov basis of at most 64 vectors (exact for D <= 64);
-each axis is oriented by its first clearly nonzero component. *Why:* the D x D
-eigendecomposition took 5.9 s at D = 4000 in Python and 25 s at D = 784 in
-JavaScript (now 14 ms and 0.18 s), and orienting by the largest
-component mirrored the map on standardized 2-D data, whose axes tie in
-magnitude (59 of 200 row reorderings). *Rejected:* subspace iteration
-(fragile near ties) and Householder plus QL in JavaScript (much longer code).
+Python eigendecomposes the smaller of XᵀX and XXᵀ, JavaScript uses
+Rayleigh-Ritz on a Krylov basis of at most 64 vectors (exact for D <= 64),
+and each axis is oriented by its first clearly nonzero component. *Why:* the
+D x D eigendecomposition took 5.9 s at D = 4000 in Python and 25 s at D =
+784 in JavaScript, and orienting by the largest component mirrored the map
+on standardized 2-D data. *Rejected:* subspace iteration (fragile near ties)
+and Householder with QL in JavaScript (much longer).
 
 ## 2026-10-05 Input scale contract (#40, #41)
 
-Rows must have norms below 1e150 and, unless all rows are equal, some feature
-must span at least 1e-150. *Why:* data at 1e200 gave NaN memberships and
-merged clusters, and data at 1e-170 gave ARI 0 marked "converged" and
-trustworthiness 1.0, all without an error. *Rejected:* rescaling internally,
-a rescue path that principle 3 rules out.
+Rows must have norms below 1e150 and, unless all rows are equal, some
+feature must span at least 1e-150. *Why:* data at 1e200 gave NaN memberships
+and data at 1e-170 meaningless results, both marked converged. *Rejected:*
+rescaling internally (a rescue path, principle 3).
 
 ## 2026-10-05 Release path (#38, #39, #40)
 
-Trusted publishing to PyPI and npm from `release.yml`: a credential-free job
-tests and builds both packages, and publishing jobs only upload those files.
-The first npm release uses a short-lived token because npm can only trust an
-existing package. Dependabot does not manage the Python requirements, which
-are deliberate lower bounds. *Why:* no third-party code may run where a
-publishing token can be minted. *Rejected:* long-lived tokens and the
-previous hand-made provenance and archive checks.
+Trusted publishing to PyPI and npm from `release.yml`: a job without
+credentials tests and builds, and the publishing jobs only upload its files.
+Dependabot leaves the Python requirements alone: they are deliberate lower
+bounds. *Why:* no third-party code may run where a publishing token can be
+minted. *Rejected:* long-lived tokens and the previous hand-made provenance
+and archive checks.
 
 ## 2026-10-05 Rebuild around one engine (#36)
 
-The library was rewritten as one alternating loop on NumPy/SciPy and plain
-JavaScript. *Why:* the previous code had accumulated alternative paths and
-machinery (subnormal recovery in FCM, warm-memory and metric fast paths,
-session storage, exact-identity release pinning and archive verification;
-#15-#35) that made it slow to change and hard to verify. *Rejected:*
-cleaning it up path by path; the maintainer chose to replace it.
+The library was rewritten as one alternating loop on NumPy and SciPy, and on
+plain JavaScript. *Why:* the previous code had accumulated alternative paths
+and machinery (subnormal recovery, fast paths for particular versions,
+session storage, release pinning) that made it slow to change and hard to
+verify. *Rejected:* cleaning it up path by path.
 
 ## 2026-10-05 Agreement across languages by equations, not bits (#36)
 
-Python and JavaScript share names, parameters and equations, each uses its
-own random generator, and fixtures check that JavaScript reproduces Python to
-~1e-9 when the initialization is given. *Rejected:* bit-identical results,
-which would need a shared random generator and no BLAS.
+Python and JavaScript share names, parameters and equations, each with its
+own random generator, and the fixtures check that JavaScript reproduces
+Python to about 1e-9 given the initialization. *Rejected:* bit-identical
+results, which would need a shared generator and no BLAS.

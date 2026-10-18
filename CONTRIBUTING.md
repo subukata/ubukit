@@ -46,7 +46,9 @@ bump them in pull requests of their own.
   new kernel needs a large measured gain over NumPy on few cores as well as
   many, a test against its reference there, and a "numba" benchmark case.
 - A design decision (a new principle, an exception to one, a choice between
-  approaches) gets a short entry in `docs/decisions.md`.
+  approaches) gets an entry in `docs/decisions.md`: the decision, why, and
+  what was rejected, in a few lines, the measurements left in the pull
+  request. An entry that a later decision replaces stays and names it.
 
 ## Weight of a change
 
