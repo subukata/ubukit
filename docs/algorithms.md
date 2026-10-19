@@ -229,7 +229,7 @@ underflows when the ends are far apart.
 
 `apply` runs a method's assignment on new data with the prototypes fixed,
 kept exactly as given (they are never shifted to the data's centering and
-back). *Unreleased; planned for 0.3.0.* The parameters that define the
+back). The parameters that define the
 assignment (`m`, `tau`, `alpha`, `beta`, `p`, `delta`, `lam`, `gamma`) have
 no defaults, since only the trained ones are right; those that control its
 computation (`som_olp`'s `max_iter` and `tol`, `rmcm`'s `max_edges`) keep
@@ -292,7 +292,7 @@ on $[0, 1]$ whose width is the larger gap to the neighboring centers;
 categorical kernels put $1 - \varepsilon$ on the observed option. The best of
 `n_candidates` samples from $l(x)$ by $l(x)/g(x)$ is proposed.
 
-*Unreleased; planned for 0.3.0.* Every ask draws from a random stream fixed
+Every ask draws from a random stream fixed
 by the seed and the number of trials told: the first ask after a tell starts
 the stream of the new count, and further asks continue it. A search
 therefore resumes from its trials: a `TPE` with the same space (its

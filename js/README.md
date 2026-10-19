@@ -45,7 +45,7 @@ prototype at the mean of the data and still stop with `'tol'`. Use `m`
 closer to 1 there (1.2, for example) and check that the centers are apart.
 Inputs must be finite numbers of ordinary scale; standardize features first.
 The equations, the stopping rules and when FCM and EFCM collapse are in
-[docs/algorithms.md](https://github.com/subukata/ubukit/blob/v0.2.0/docs/algorithms.md).
+[docs/algorithms.md](https://github.com/subukata/ubukit/blob/v0.3.0/docs/algorithms.md).
 
 Trained prototypes apply to new data, fixed: `ub.apply` has a function for
 every method, which takes the data, the prototypes and the parameters they
@@ -65,7 +65,7 @@ Each method assigns once, except `somOlp`, whose memberships iterate with
 the map fixed until they settle, so for the points the map was trained on
 they need not end at the trained `embedding`; `rmcm`'s memberships depend on
 the points applied together
-([applying trained prototypes](https://github.com/subukata/ubukit/blob/v0.2.0/docs/algorithms.md#applying-trained-prototypes)).
+([applying trained prototypes](https://github.com/subukata/ubukit/blob/v0.3.0/docs/algorithms.md#applying-trained-prototypes)).
 
 A search that scores many embeddings of one `X` computes its distances once
 with `new Neighborhood(X)` (8 N^2 bytes), which both metrics take in place
@@ -118,5 +118,5 @@ const result = await ub.runAsync(ub.steps.fcm(X, 2), { signal, onProgress: p => 
 
 For heavy work in a browser, import `ubukit` inside your own Web Worker.
 
-Worked uses, in Python with the same names (camelCase here): <https://github.com/subukata/ubukit/blob/v0.2.0/docs/recipes.md>.
+Worked uses, in Python with the same names (camelCase here): <https://github.com/subukata/ubukit/blob/v0.3.0/docs/recipes.md>.
 The Python package `ubukit` on PyPI has the same API in snake_case.

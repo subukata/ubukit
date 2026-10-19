@@ -45,7 +45,7 @@ lifecycle and a serialization contract the use does not need), and waiving
 
 The package READMEs link `docs/` at their version's tag, set by the release
 pull request; the documents follow `main` and mark what is not released
-("*Unreleased; planned for 0.3.0.*"), and `test_packaging.py` checks both.
+yet, with the version planned, and `test_packaging.py` checks both.
 *Why:* 0.2.0's registry pages linked `main`, whose resume recipe failed on
 the released package. *Rejected:* version marks alone (they warn about
 additions but not about changed defaults or examples), and documentation

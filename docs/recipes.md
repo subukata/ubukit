@@ -194,7 +194,7 @@ score = ub.trustworthiness(X, m.embedding, k=10)  # not on `shown`
 
 ## Resuming a search
 
-*Unreleased; planned for 0.3.0.* A TPE's proposals follow from its seed and
+A TPE's proposals follow from its seed and
 the trials told, so a search resumes from its result, in another process
 too: a new `TPE` with the same space, settings and seed, told the trials in
 order, goes on as the search would have.
