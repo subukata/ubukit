@@ -53,7 +53,7 @@ closer to 1 there (1.2, for example) and check that the centers are apart.
 Inputs must be finite numbers of ordinary scale; standardize features first.
 A pickled `Result` or `TPE` is promised to load only in the version that
 wrote it. The equations, the stopping rules and when FCM and EFCM collapse are in
-[docs/algorithms.md](https://github.com/subukata/ubukit/blob/v0.2.0/docs/algorithms.md).
+[docs/algorithms.md](https://github.com/subukata/ubukit/blob/v0.3.0/docs/algorithms.md).
 
 Trained prototypes apply to new data, fixed: `ub.apply` has a function for
 every method, which takes the data, the prototypes and the parameters they
@@ -73,7 +73,7 @@ Each method assigns once, except `som_olp`, whose memberships iterate with
 the map fixed until they settle, so for the points the map was trained on
 they need not end at the trained `embedding`; `rmcm`'s memberships depend on
 the points applied together
-([applying trained prototypes](https://github.com/subukata/ubukit/blob/v0.2.0/docs/algorithms.md#applying-trained-prototypes)).
+([applying trained prototypes](https://github.com/subukata/ubukit/blob/v0.3.0/docs/algorithms.md#applying-trained-prototypes)).
 
 A search that scores many embeddings of one `X` computes its distances once
 with `Neighborhood(X)` (8 N^2 bytes), which both metrics take in place of
@@ -129,5 +129,5 @@ Each kernel compiles on its first call in a process. The parallel ones
 (trustworthiness, continuity, ami) use every core unless `NUMBA_NUM_THREADS`
 limits them; their results do not depend on it.
 
-Worked uses: <https://github.com/subukata/ubukit/blob/v0.2.0/docs/recipes.md>.
+Worked uses: <https://github.com/subukata/ubukit/blob/v0.3.0/docs/recipes.md>.
 A JavaScript package with the same API in camelCase is available as `ubukit` on npm.
